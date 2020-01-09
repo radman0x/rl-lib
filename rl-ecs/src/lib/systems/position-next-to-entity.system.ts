@@ -25,6 +25,7 @@ function positionNextToEntityStep<T extends Args>(
   const directionVec = compassDirectionToUnitVector.get(msg.direction)!;
   const agentPos = em.get(msg.protagId).component(GridPos);
   const targetPos = agentPos.add(directionVec);
+  console.log(`pos next to entity: ${targetPos}`);
   return { ...msg, targetPos };
 }
 

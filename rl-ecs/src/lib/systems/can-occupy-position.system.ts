@@ -1,13 +1,13 @@
 import { EntityManager } from 'rad-ecs';
 import { OperationStep } from 'src/lib/operation-step.model';
 import { Physical, Size } from '../components/physical.model';
-import { GridPos } from '../components/position.model';
-import { EntityId } from '../ecs.types';
+import { GridPos, GridPosData } from '../components/position.model';
 
 import * as deepEqual from 'fast-deep-equal';
+import { Blockage } from '../components/blockage.model';
 
 interface Args {
-  targetPos: GridPos;
+  targetPos: GridPosData;
 }
 export type CanOccupyPositionArgs = Args;
 
@@ -20,6 +20,9 @@ function canOccupyPositionStep<T extends Args>(
   msg: T,
   em: EntityManager
 ): T & Out {
+  if (!msg.targetPos) {
+    throw Error(`No target pos present so cannot determine occupyability!`);
+  }
   let canOccupy = true;
   em.each(
     (e, y, p) => {
@@ -32,9 +35,7 @@ function canOccupyPositionStep<T extends Args>(
   );
 
   console.log(
-    `MOVE: Pos ${msg.targetPos.toString()} ${
-      canOccupy ? `can` : `CANNOT`
-    } be occupied`
+    `MOVE: ${msg.targetPos} ${canOccupy ? 'can' : 'CANNOT'} be occupied`
   );
   return { ...msg, canOccupy };
 }

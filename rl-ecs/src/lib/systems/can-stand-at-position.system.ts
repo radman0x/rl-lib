@@ -1,14 +1,14 @@
 import { EntityManager } from 'rad-ecs';
 import { OperationStep } from 'src/lib/operation-step.model';
 import { Physical, Size } from '../components/physical.model';
-import { GridPos } from '../components/position.model';
+import { GridPos, GridPosData } from '../components/position.model';
 import { EntityId } from '../ecs.types';
 
 import * as deepEqual from 'fast-deep-equal';
 
 interface Args {
   protagId: EntityId;
-  targetPos: GridPos;
+  targetPos: GridPosData;
 }
 export type CanStandAtArgs = Args;
 

@@ -1,8 +1,8 @@
 import { EffectType } from '../systems/systems.types';
 import { Damage } from './damage.model';
 
-export class Burn extends Damage {
+export class Freeze extends Damage {
   constructor(data: { amount: number }) {
-    super({ type: EffectType.FIRE, amount: data.amount });
+    super({ type: EffectType.COLD, amount: data.amount });
   }
 }

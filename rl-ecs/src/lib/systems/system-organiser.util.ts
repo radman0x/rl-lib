@@ -1,128 +1,148 @@
-import { EntityManager, EntityId } from 'rad-ecs';
-import { Observable, of, Subject } from 'rxjs';
-import { filter, map, mergeMap, tap } from 'rxjs/operators';
-import { CompassDirection } from '../ecs.types';
+import { EntityId, EntityManager } from 'rad-ecs';
+import { merge, Observable, Subject } from 'rxjs';
+import { filter, map, tap } from 'rxjs/operators';
+import { GridPosData } from '../components/position.model';
+import { hookAoeTarget } from './acquire-aoe-targets.system';
+import { hookEntitiesAtPosition } from './entities-at-position.system';
 import {
-  acquireAoeTargets,
-  AcquireAOETargetsArgs,
-  AcquireAoeTargetsOut
-} from './acquire-aoe-targets.system';
-import { acquireCombatTargetAtPosition } from './acquire-combat-target-at-position.system';
-import {
-  calculateEffectDamage,
-  CalculateEffectDamageArgs
-} from './calculate-effect-damage.system';
-import { canOccupyPosition } from './can-occupy-position.system';
-import { canStandAtPosition } from './can-stand-at-position.system';
-import { positionNextToEntity } from './position-next-to-entity.system';
-import { resistEffectDamage } from './resist-effect-damage.system';
-import { sustainDamage } from './sustain-damage.system';
-import { aoeAnimation } from './system.utils';
-import { ProtagonistEntity } from './systems.types';
-import { GridPos } from '../components/position.model';
-import { AreaOfEffect } from '../components/area-of-effect.model';
-import { Burn } from '../components/burn.model';
-import { DamageType } from '../components/damage.model';
+  hookCombatOrder,
+  hookMoveOrder,
+  hookPerformMove,
+  hookEntitiesAtProtagPos
+} from './aggregators.system';
+import { burn } from './burn.system';
+import { CanOccupyPositionArgs } from './can-occupy-position.system';
+import { CanStandAtArgs } from './can-stand-at-position.system';
+import { attachFireResist, fireResist } from './fire-resist.system';
+import { freeze } from './freeze.system';
 import { grimReaper } from './grim-reaper.system';
+import { integrity, IntegrityArgs } from './integrity.system';
+import { PositionNextToEntityArgs } from './position-next-to-entity.system';
+import { hookSingleTarget } from './single-target.system';
+import {
+  ActiveEffect,
+  CombatTarget,
+  Damaged,
+  EffectStart,
+  EnteredPos,
+  ProtagonistEntity,
+  TargetEntity,
+  TargetPos,
+  Collected
+} from './systems.types';
+import { hookAddToInventory } from './add-to-inventory.system';
+import { LoggerService } from 'src/app/logger.service';
+import { hasDamage, hasLockChange } from './systems.utils';
+import { toggleLock } from './toggle-lock.system';
+import { lock } from './lock.system';
+import { blocking } from './blocking.system';
 
 export class SystemOrganiser {
-  effectSystem = new Subject<ProcessEffectArgs>();
-  aoeEffect: Observable<ProcessEffectArgs & AcquireAOETargetsArgs>;
-  aoeDamageTargets: Observable<{ targetId: EntityId } & ProcessEffectArgs>;
+  aoeTargetPositions: Observable<{ targetPos: GridPosData } & EffectStart>;
   animationSystem: Observable<{ effectId: EntityId }>;
   applyDamageSystem: Observable<{}>;
 
-  constructor(private em: EntityManager) {
-    this.aoeEffect = this.effectSystem.pipe(
-      tap(msg => console.log(`starting aoe calc`)),
-      filter(msg => this.em.hasComponent(msg.effectId, AreaOfEffect)),
-      map(msg => ({
-        ...msg,
-        aoeComponent: this.em.getComponent(msg.effectId, AreaOfEffect)!
-      })),
-      map(msg => ({
-        ...msg,
-        aoeCenter: msg.targetPos,
-        aoeRadius: msg.aoeComponent.radius
-      }))
+  public readonly applyEffect$ = new Subject<EffectStart>();
+
+  public readonly effectAtPosition$ = new Subject<TargetPos & ActiveEffect>();
+  public readonly effectOnEntity$ = new Subject<TargetEntity & ActiveEffect>();
+  public readonly effectProduced$ = new Subject<
+    Damaged & TargetEntity & ActiveEffect
+  >();
+  public readonly effectModified$ = new Subject<
+    Damaged & TargetEntity & ActiveEffect
+  >();
+  public readonly integrityModified$ = new Subject<TargetEntity>();
+
+  public readonly moveRequest$ = new Subject<PositionNextToEntityArgs>();
+
+  public readonly meleeAttack$ = new Subject<
+    CombatTarget & ProtagonistEntity
+  >();
+  public readonly tileEntered$ = new Subject<{}>();
+
+  public singleTargetAttempt = new Subject<{
+    selectedPos?: GridPosData;
+    effectId: EntityId;
+  }>();
+  public singleTargetAction: Observable<{
+    targetPos: GridPosData;
+    effectId: EntityId;
+  }>;
+
+  public aoeTargetAttempt = new Subject<{
+    selectedPos?: GridPosData;
+    effectId: EntityId;
+  }>();
+  public aoeTargetAction: Observable<{
+    targetPos: GridPosData;
+    effectId: EntityId;
+  }>;
+
+  public moveOrdered$ = new Subject<CanOccupyPositionArgs & CanStandAtArgs>();
+  public movePerformed$ = new Subject<ProtagonistEntity & EnteredPos>();
+
+  public requestCollectLocal$ = new Subject<ProtagonistEntity>();
+  public performCollection$ = new Subject<ProtagonistEntity & TargetEntity>();
+  public entityCollected$ = new Subject<
+    ProtagonistEntity & TargetEntity & Collected
+  >();
+
+  constructor(private em: EntityManager, private logger: LoggerService) {
+    hookEntitiesAtProtagPos(
+      this.requestCollectLocal$,
+      this.performCollection$,
+      this.em
+    );
+    hookAddToInventory(
+      this.performCollection$,
+      this.entityCollected$,
+      this.em,
+      this.logger
+    );
+    hookMoveOrder(this.moveRequest$, this.moveOrdered$, this.em);
+    hookCombatOrder(this.moveRequest$, this.meleeAttack$, this.em);
+    hookPerformMove(this.moveOrdered$, this.movePerformed$, this.em);
+
+    hookSingleTarget(this.applyEffect$, this.effectAtPosition$, this.em);
+    hookAoeTarget(this.applyEffect$, this.effectAtPosition$, this.em);
+
+    hookEntitiesAtPosition(
+      this.effectAtPosition$,
+      this.effectOnEntity$,
+      this.em
     );
 
-    this.aoeDamageTargets = this.aoeEffect.pipe(
-      mergeMap(msg => of(...acquireAoeTargets(msg, this.em)))
-    );
+    merge(
+      this.effectOnEntity$.pipe(map(msg => burn(msg, this.em))),
+      this.effectOnEntity$.pipe(map(msg => freeze(msg, this.em))),
+      this.effectOnEntity$.pipe(map(msg => toggleLock(msg, this.em)))
+    ).subscribe(this.effectProduced$);
 
-    this.applyDamageSystem = this.aoeDamageTargets.pipe(
-      tap(msg => console.log(`got a target`)),
-      filter(msg => this.em.hasComponent(msg.effectId, Burn)),
-      map(msg => ({
-        ...msg,
-        damageTarget: {
-          amount: this.em.getComponent(msg.effectId, Burn)!.intensity,
-          type: DamageType.FIRE
-        }
-      })),
-      map(msg => calculateEffectDamage(msg, this.em)),
-      map(msg => resistEffectDamage(msg, this.em)),
-      map(msg => sustainDamage(msg, this.em)),
-      map(msg => grimReaper(msg, this.em))
-    );
-    this.applyDamageSystem.subscribe(msg => {});
+    this.effectProduced$
+      .pipe(map(msg => fireResist(msg, this.em)))
+      .subscribe(this.effectModified$);
 
-    this.animationSystem = this.aoeEffect.pipe(
-      tap(msg => console.log(this.em.get(msg.effectId))),
-      filter(msg => this.em.hasComponent(msg.effectId, Burn)),
-      tap(msg => console.log(msg)),
-      aoeAnimation(this.em, 'Effect0-144.png')
-    );
-    this.animationSystem.subscribe(msg => console.log(`Animation system END`));
+    this.effectModified$
+      .pipe(
+        filter(hasDamage),
+        map(msg => integrity(msg, this.em))
+      )
+      .subscribe(this.integrityModified$);
+
+    this.integrityModified$
+      .pipe(tap(msg => grimReaper(msg, this.em)))
+      .subscribe(() => {});
+
+    this.effectModified$
+      .pipe(
+        filter(hasLockChange),
+        map(msg => lock(msg, this.em))
+      )
+      .subscribe(() => {});
+
+    this.effectModified$
+      .pipe(map(msg => blocking(msg, this.em)))
+      .subscribe(() => {});
   }
-
-  hookBumpMoveSystem(
-    source: Observable<ProtagonistEntity & { direction: CompassDirection }>
-  ) {
-    const targetSelected = source.pipe(
-      map(msg => positionNextToEntity(msg, this.em)),
-      map(msg => acquireCombatTargetAtPosition(msg, this.em))
-    );
-
-    const move = targetSelected.pipe(
-      filter(msg => msg.combatTargetId === undefined),
-      map(msg => canOccupyPosition(msg, this.em)),
-      map(msg => canStandAtPosition(msg, this.em))
-    );
-
-    const combat = targetSelected.pipe(
-      filter(msg => msg.combatTargetId !== undefined)
-    );
-
-    return { move, combat };
-  }
-
-  hookThrowFireballSystem<T_Args extends AcquireAOETargetsArgs>(
-    source: Observable<T_Args>
-  ) {
-    return source.pipe(
-      aoeAnimation(this.em, 'Effect0-144.png'),
-      mergeMap(msg => of(...acquireAoeTargets(msg, this.em)))
-    );
-  }
-
-  hookApplyDamageSystem<T_Args extends CalculateEffectDamageArgs>(
-    source: Observable<T_Args>
-  ) {
-    return source.pipe(
-      map(msg => calculateEffectDamage(msg, this.em)),
-      map(msg => resistEffectDamage(msg, this.em)),
-      map(msg => sustainDamage(msg, this.em))
-    );
-  }
-
-  hookEffectHandlerSystem() {
-    return this.effectSystem;
-  }
-}
-
-export interface ProcessEffectArgs {
-  effectId: EntityId;
-  targetPos: GridPos;
 }

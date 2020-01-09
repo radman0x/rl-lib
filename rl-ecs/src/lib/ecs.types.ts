@@ -1,5 +1,5 @@
 import { GridPos } from './components/position.model';
-import { Damage, DamageType } from './components/damage.model';
+import { EffectType } from './systems/systems.types';
 
 export type EntityId = number;
 
@@ -29,6 +29,6 @@ export const compassDirectionToUnitVector: Map<
 ]);
 
 export interface DamageResisted {
-  type: DamageType;
+  type: EffectType;
   resistedAmount: number;
 }

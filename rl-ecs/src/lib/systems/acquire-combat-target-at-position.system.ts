@@ -1,36 +1,36 @@
 import { EntityManager } from 'rad-ecs';
 import { OperationStep } from 'src/lib/operation-step.model';
-import { Durability } from '../components/physical.model';
-import { EntityId } from '../ecs.types';
+import { Integrity } from '../components/physical.model';
 import {
-  acquireTargetAtPosition,
-  AcquireTargetAtPositionArgs
-} from './acquire-target-at-position.system';
-import { renameKey } from './system.utils';
+  entitiesAtPosition,
+  EntitiesAtPositionArgs
+} from './entities-at-position.system';
+import { renameKey } from './systems.utils';
+import { CombatTarget } from './systems.types';
 
-type Args = AcquireTargetAtPositionArgs;
+type Args = EntitiesAtPositionArgs;
 export type AcquireCombatTargetAtPositionArgs = Args;
 
-interface Out {
-  combatTargetId: EntityId | undefined;
-}
+type Out = Partial<CombatTarget>;
 export type AcquireCombatTargetAtPositionOut = Out;
 
 function acquireCombatTargetAtPositionStep<T extends Args>(
   msg: T,
   em: EntityManager
 ): T & Out {
-  const acquired = acquireTargetAtPosition(msg, em, candidate =>
-    candidate.has(Durability)
+  const acquired = entitiesAtPosition(msg, em, candidate =>
+    candidate.has(Integrity)
   );
   if (acquired.length !== 0) {
+    console.log(`Combat target: ${acquired[0]} was acquired`);
     return (renameKey(
       acquired[0],
       'targetId',
       'combatTargetId'
-    ) as unknown) as (T & Out);
+    ) as unknown) as T & Out;
   } else {
-    return { ...msg, combatTargetId: undefined };
+    console.log(`Combat target NOT acquired`);
+    return msg;
   }
 }
 

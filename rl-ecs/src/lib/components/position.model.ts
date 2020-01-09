@@ -1,10 +1,15 @@
 import { Component } from 'rad-ecs';
 
-export class GridPos extends Component {
+export interface GridPosData {
+  x: number;
+  y: number;
+  z: number;
+}
+export class GridPos extends Component implements GridPosData {
   public readonly x: number;
   public readonly y: number;
   public readonly z: number;
-  constructor(data: { x: number; y: number; z: number }) {
+  constructor(data: GridPosData) {
     super();
     Object.assign(this, data);
   }

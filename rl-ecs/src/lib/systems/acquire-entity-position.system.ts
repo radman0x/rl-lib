@@ -1,7 +1,8 @@
 import { EntityManager } from 'rad-ecs';
 import { OperationStep } from 'src/lib/operation-step.model';
-import { GridPos } from '../components/position.model';
+import { GridPos, GridPosData } from '../components/position.model';
 import { EntityId } from '../ecs.types';
+import { radClone } from './systems.utils';
 
 interface Args {
   protagId: EntityId;
@@ -9,7 +10,7 @@ interface Args {
 export type AcquireEntityPositionArgs = Args;
 
 interface Out {
-  targetPos: GridPos;
+  targetPos: GridPosData;
 }
 export type AcquireEntityPositionOut = Out;
 
@@ -17,11 +18,12 @@ function acquireEntityPositionStep<T extends Args>(
   msg: T,
   em: EntityManager
 ): T & Out {
-  const protagEntity = em.get(msg.protagId);
-  if (!protagEntity.has(GridPos)) {
+  const p = em.getComponent(msg.protagId, GridPos);
+  if (!p) {
     throw Error(`Protagonist entity isn't at a position!`);
+  } else {
+    return { ...radClone(msg), targetPos: { ...p } };
   }
-  return { ...msg, targetPos: protagEntity.component(GridPos) };
 }
 
 type StepFunc = OperationStep<Args, Out>;

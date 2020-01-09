@@ -1,24 +1,16 @@
 import { Component } from 'rad-ecs';
-
-export enum DamageType {
-  FIRE,
-  COLD
-}
+import { EffectType } from '../systems/systems.types';
 
 export interface DamageData {
-  type: DamageType
-  amount: number
+  type: EffectType;
+  amount: number;
 }
 
 export class Damage extends Component implements DamageData {
-
-  public readonly type: DamageType;
+  public readonly type: EffectType;
   public readonly amount: number;
-  constructor(data: {type: DamageType, amount: number})
-  {
+  constructor(data: { type: EffectType; amount: number }) {
     super();
     Object.assign(this, data);
   }
-
 }
-

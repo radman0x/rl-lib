@@ -1,31 +1,25 @@
 import { EntityManager } from 'rad-ecs';
 import { OperationStep } from 'src/lib/operation-step.model';
-import { GridPos } from '../components/position.model';
+import { GridPos, GridPosData } from '../components/position.model';
 import { EntityId } from '../ecs.types';
-import { CanOccupyPositionOut } from './can-occupy-position.system';
-import { CanStandAtOut } from './can-stand-at-position.system';
+import { radClone } from './systems.utils';
+import { EnteredPos } from './systems.types';
 
 type Args = {
   protagId: EntityId;
-  targetPos: GridPos;
-} & CanStandAtOut &
-  CanOccupyPositionOut;
+  targetPos: GridPosData;
+  canOccupy: true;
+  canStand: true;
+};
 export type PlaceEntityAtArgs = Args;
 
-interface Out {}
+type Out = EnteredPos;
 export type PlaceEntityAtOut = Out;
 
 function placeEntityAtStep<T extends Args>(msg: T, em: EntityManager): T & Out {
-  if (msg.canOccupy && msg.canStand) {
-    console.log(`MOVE: Moving entity ${msg.protagId} to ${msg.targetPos}`);
-    em.setComponent(msg.protagId, msg.targetPos);
-  } else {
-    console.log(
-      `Unable to place entity at: ${msg.targetPos}, canStand: ${msg.canStand}, canOccupy: ${msg.canOccupy}`
-    );
-  }
-
-  return msg;
+  console.log(`MOVE: Moving entity ${msg.protagId} to ${msg.targetPos}`);
+  em.setComponent(msg.protagId, new GridPos(msg.targetPos));
+  return { ...radClone(msg), enteredPos: msg.targetPos };
 }
 
 type StepFunc = OperationStep<Args, Out>;
