@@ -1,10 +1,19 @@
-import { Component, ElementRef, OnInit, ViewChild, Input } from '@angular/core';
-import { Renderer } from '@rad/rad-pixi';
-import { EntityManager, Entity } from 'rad-ecs';
-import { ReplaySubject } from 'rxjs';
-import { Renderable } from 'libs/rl-ecs/src/lib/components/renderable.model';
+import {
+  Component,
+  ElementRef,
+  Input,
+  OnInit,
+  Output,
+  ViewChild
+} from '@angular/core';
+import { PointXY, Renderer } from '@rad/rad-pixi';
+import * as deepEqual from 'fast-deep-equal';
 import { GridPos } from 'libs/rl-ecs/src/lib/components/position.model';
+import { Renderable } from 'libs/rl-ecs/src/lib/components/renderable.model';
 import * as PIXI from 'pixi.js-legacy';
+import { Entity, EntityManager } from 'rad-ecs';
+import { ReplaySubject, Subject } from 'rxjs';
+import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 
 export interface RendererSettings {
   tileSize: number;
@@ -21,6 +30,8 @@ export class GridRendererComponent implements OnInit {
   @Input('em') em: EntityManager;
   @Input('settings') settings: RendererSettings;
   @Input('sprites') spriteSheet: string;
+  @Output('mouseOverGridPos') mouseOverGridPos$: Subject<PointXY>;
+  @Output('mousePressGridPos') mousePressGridPos$: Subject<PointXY>;
 
   private sprites = new Map<number, PIXI.Sprite>();
   private desiredDisplayWidthPx: number;
@@ -32,21 +43,8 @@ export class GridRendererComponent implements OnInit {
   private renderer: Renderer;
 
   constructor() {
-    // { tileSize: 16, displayWidthInTiles: 20 }
-    // this.renderer.pixiApp.renderer.plugins.interaction.on('pointermove', event => {
-    //   if (this.renderer.pixiApp.stage) {
-    //     this.mouseOverGridPos.next(
-    //       this.convertToGridPos(event.data.getLocalPosition(this.renderer.pixiApp.stage))
-    //     );
-    //   }
-    // });
-    // this.renderer.pixiApp.renderer.plugins.interaction.on('pointerdown', event => {
-    //   if (this.renderer.pixiApp.stage) {
-    //     this.mousePressGridPos.next(
-    //       this.convertToGridPos(event.data.getLocalPosition(this.renderer.pixiApp.stage))
-    //     );
-    //   }
-    // });
+    this.mouseOverGridPos$ = new Subject<PointXY>();
+    this.mousePressGridPos$ = new Subject<PointXY>();
   }
 
   ngOnInit() {
@@ -62,8 +60,30 @@ export class GridRendererComponent implements OnInit {
       r.resize();
       (this.renderElem.nativeElement as HTMLElement).appendChild(r.view);
       this.rendererSubject.next(r);
+      r.pixiApp.ticker.add(() => this.renderUpdate());
+
+      r.mouseOver$
+        .pipe(
+          map(pos => this.convertToGridPos(pos)),
+          filter(pos => pos !== null),
+          distinctUntilChanged((lhs, rhs) => {
+            if (!lhs || !rhs) {
+              return false;
+            } else {
+              return deepEqual(rhs, lhs);
+            }
+          })
+        )
+        .subscribe(this.mouseOverGridPos$);
+
+      r.mousePress$
+        .pipe(
+          map(pos => this.convertToGridPos(pos)),
+          filter(pos => pos !== null)
+        )
+        .subscribe(this.mousePressGridPos$);
+
       this.renderer = r;
-      this.renderer.pixiApp.ticker.add(() => this.renderUpdate());
     });
   }
 
@@ -112,25 +132,22 @@ export class GridRendererComponent implements OnInit {
     );
   }
 
-  // private convertToGridPos(pos: {
-  //   x: number;
-  //   y: number;
-  // }): { x: number; y: number } | null {
-  //   if (this.maxTileX === undefined || this.maxTileY === undefined) {
-  //     return null;
-  //   }
-  //   if (
-  //     pos.x > this.maxTileX + this.tileSize ||
-  //     pos.y > this.maxTileY + this.tileSize
-  //   ) {
-  //     return null;
-  //   }
-  //   const tileX = Math.floor(pos.x / this.tileSize);
-  //   const tileY = Math.floor(
-  //     (this.maxTileY + this.tileSize - pos.y) / this.tileSize
-  //   );
-  //   return { x: tileX, y: tileY };
-  // }
+  private convertToGridPos(pos: PointXY): PointXY | null {
+    if (this.maxTileX === undefined || this.maxTileY === undefined) {
+      return null;
+    }
+    if (
+      pos.x > this.maxTileX + this.tileSize ||
+      pos.y > this.maxTileY + this.tileSize
+    ) {
+      return null;
+    }
+    const tileX = Math.floor(pos.x / this.tileSize);
+    const tileY = Math.floor(
+      (this.maxTileY + this.tileSize - pos.y) / this.tileSize
+    );
+    return { x: tileX, y: tileY };
+  }
 
   get tileSize() {
     return this.settings.tileSize;

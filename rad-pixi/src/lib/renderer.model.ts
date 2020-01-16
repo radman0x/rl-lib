@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js-legacy';
-import { Observable, ReplaySubject } from 'rxjs';
+import { Observable, ReplaySubject, Subject } from 'rxjs';
 import { take } from 'rxjs/operators';
 
 export interface RendererSettings {
@@ -7,13 +7,32 @@ export interface RendererSettings {
   displayWidthInTiles: number;
 }
 
+export interface PointXY {
+  x: number;
+  y: number;
+}
+
 export class Renderer {
   public pixiApp: PIXI.Application;
   private resources: PIXI.LoaderResource;
 
+  public readonly mouseOver$ = new Subject<PointXY | null>();
+  public readonly mousePress$ = new Subject<PointXY | null>();
+
   private constructor(options: object) {
     PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
     this.pixiApp = new PIXI.Application(options);
+
+    this.pixiApp.renderer.plugins.interaction.on('pointermove', event => {
+      if (this.pixiApp.stage) {
+        this.mouseOver$.next(event.data.getLocalPosition(this.pixiApp.stage));
+      }
+    });
+    this.pixiApp.renderer.plugins.interaction.on('pointerdown', event => {
+      if (this.pixiApp.stage) {
+        this.mousePress$.next(event.data.getLocalPosition(this.pixiApp.stage));
+      }
+    });
   }
 
   static create(sheet: string, pixiAppOptions: object): Observable<Renderer> {
@@ -30,6 +49,7 @@ export class Renderer {
         throw Error(`\n${errors.join(`\n`)}`);
       }
       renderer.resources = renderer.pixiApp.loader.resources[sheet];
+
       subject.next(renderer);
     });
     return subject.pipe(take(1));
@@ -49,25 +69,4 @@ export class Renderer {
   get view() {
     return this.pixiApp.view;
   }
-
-  // get mouseOver$() {
-  //   return this.mouseOverGridPos.pipe(
-  //     distinctUntilChanged((lhs, rhs) => {
-  //       if (lhs === rhs) {
-  //         return true;
-  //       } else if (!lhs || !rhs) {
-  //         return false;
-  //       } else {
-  //         return lhs.x === rhs.x && lhs.y === rhs.y;
-  //       }
-  //     })
-  //   );
-  // }
-
-  // get mousePress$() {
-  //   return this.mousePressGridPos;
-  // }
-
-  // private mouseOverGridPos = new Subject<{ x: number; y: number } | null>();
-  // private mousePressGridPos = new Subject<{ x: number; y: number } | null>();
 }
