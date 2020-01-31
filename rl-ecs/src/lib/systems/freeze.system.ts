@@ -1,5 +1,5 @@
 import { EntityManager } from 'rad-ecs';
-import { OperationStep } from 'src/lib/operation-step.model';
+import { OperationStep } from '../operation-step.model';
 import { Freeze } from '../components/freeze.model';
 import { ActiveEffect, Damaged } from './systems.types';
 import * as cloneDeep from 'clone-deep';

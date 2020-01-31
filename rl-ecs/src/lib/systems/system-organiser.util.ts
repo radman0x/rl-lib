@@ -2,40 +2,40 @@ import { EntityId, EntityManager } from 'rad-ecs';
 import { merge, Observable, Subject } from 'rxjs';
 import { filter, map, tap } from 'rxjs/operators';
 import { GridPosData } from '../components/position.model';
+import { Logger } from '../ecs.types';
 import { hookAoeTarget } from './acquire-aoe-targets.system';
-import { hookEntitiesAtPosition } from './entities-at-position.system';
+import { hookAddToInventory } from './add-to-inventory.system';
 import {
   hookCombatOrder,
+  hookEntitiesAtProtagPos,
   hookMoveOrder,
-  hookPerformMove,
-  hookEntitiesAtProtagPos
+  hookPerformMove
 } from './aggregators.system';
+import { blocking } from './blocking.system';
 import { burn } from './burn.system';
 import { CanOccupyPositionArgs } from './can-occupy-position.system';
 import { CanStandAtArgs } from './can-stand-at-position.system';
-import { attachFireResist, fireResist } from './fire-resist.system';
+import { hookEntitiesAtPosition } from './entities-at-position.system';
+import { fireResist } from './fire-resist.system';
 import { freeze } from './freeze.system';
 import { grimReaper } from './grim-reaper.system';
-import { integrity, IntegrityArgs } from './integrity.system';
+import { integrity } from './integrity.system';
+import { lock } from './lock.system';
 import { PositionNextToEntityArgs } from './position-next-to-entity.system';
 import { hookSingleTarget } from './single-target.system';
 import {
   ActiveEffect,
+  Collected,
   CombatTarget,
   Damaged,
   EffectStart,
   EnteredPos,
   ProtagonistEntity,
   TargetEntity,
-  TargetPos,
-  Collected
+  TargetPos
 } from './systems.types';
-import { hookAddToInventory } from './add-to-inventory.system';
-import { LoggerService } from 'src/app/logger.service';
 import { hasDamage, hasLockChange } from './systems.utils';
 import { toggleLock } from './toggle-lock.system';
-import { lock } from './lock.system';
-import { blocking } from './blocking.system';
 
 export class SystemOrganiser {
   aoeTargetPositions: Observable<{ targetPos: GridPosData } & EffectStart>;
@@ -88,7 +88,7 @@ export class SystemOrganiser {
     ProtagonistEntity & TargetEntity & Collected
   >();
 
-  constructor(private em: EntityManager, private logger: LoggerService) {
+  constructor(private em: EntityManager, private logger: Logger) {
     hookEntitiesAtProtagPos(
       this.requestCollectLocal$,
       this.performCollection$,
@@ -144,5 +144,20 @@ export class SystemOrganiser {
     this.effectModified$
       .pipe(map(msg => blocking(msg, this.em)))
       .subscribe(() => {});
+
+    this.hookErrorReporting(this.movePerformed$);
+    this.hookErrorReporting(this.performCollection$);
+    this.hookErrorReporting(this.entityCollected$);
+    this.hookErrorReporting(this.effectProduced$);
+    this.hookErrorReporting(this.effectModified$);
+    this.hookErrorReporting(this.integrityModified$);
+  }
+
+  errorEncountered(message: string) {
+    console.log(`System organiser encountered ERROR: ${message}`);
+  }
+
+  hookErrorReporting(obs: Observable<any>) {
+    obs.subscribe({ error: msg => this.errorEncountered(msg) });
   }
 }

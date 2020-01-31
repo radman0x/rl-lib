@@ -1,6 +1,6 @@
 import { SystemOrganiser } from './system-organiser.util';
 import { EntityManager, EntityId } from 'rad-ecs';
-import { CompassDirection } from '../ecs.types';
+import { CompassDirection, Logger } from '../ecs.types';
 import { GridPos, GridPosData } from '../components/position.model';
 import { Physical, Size, Integrity } from '../components/physical.model';
 import { Burn } from '../components/burn.model';
@@ -8,7 +8,6 @@ import { SingleTarget } from '../components/single-target.model';
 import { FireResistance } from '../components/resistance.model';
 import { AreaOfEffect } from '../components/area-of-effect.model';
 import { Inventory } from '../components/inventory.model';
-import { LoggerService } from '../..//app/logger.service';
 import { Targeted } from '../components/targeted.model';
 import { Renderable } from '../components/renderable.model';
 import { Lock, LockState } from '../components/lock.model';
@@ -18,12 +17,12 @@ import { Blockage } from '../components/blockage.model';
 interface Basics {
   em: EntityManager;
   org: SystemOrganiser;
-  logger: LoggerService;
+  logger: Logger;
 }
 
 function theBasics(): Basics {
   const em = new EntityManager();
-  const logger = new LoggerService();
+  const logger = msg => console.log(`LOG: ${msg}`);
   em.indexBy(GridPos);
   const org = new SystemOrganiser(em, logger);
   return { em, logger, org };

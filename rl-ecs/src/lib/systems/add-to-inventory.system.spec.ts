@@ -1,6 +1,5 @@
 import { EntityManager, EntityId } from 'rad-ecs';
 import { GridPos } from '../components/position.model';
-import { LoggerService } from '../../app/logger.service';
 import { Inventory } from '../components/inventory.model';
 import {
   addToInventory,
@@ -9,17 +8,18 @@ import {
   hookAddToInventory
 } from './add-to-inventory.system';
 import { Subject } from 'rxjs';
+import { Logger } from '../ecs.types';
 
 describe('Add to inventory', () => {
   let em: EntityManager;
-  let logger: LoggerService;
+  let logger: Logger;
   let item: EntityId;
   let collector: EntityId;
   let msg: AddToInventoryArgs;
   beforeEach(() => {
     em = new EntityManager();
     em.indexBy(GridPos);
-    logger = new LoggerService();
+    logger = msg => console.log(`LOG: ${msg}`);
     item = em.createEntity().id;
     collector = em.createEntity(new Inventory({ contents: [] })).id;
     msg = { protagId: collector, targetId: item };

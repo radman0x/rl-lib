@@ -1,4 +1,4 @@
-import { OperationStep } from 'src/lib/operation-step.model';
+import { OperationStep } from '../operation-step.model';
 import { EntityManager } from 'rad-ecs';
 import { radClone } from './systems.utils';
 import { TargetPos } from './systems.types';
@@ -25,6 +25,8 @@ function positionBlockedStep<T extends Args>(
       if (deepEqual(p, msg.targetPos) && b.active) {
         console.log(`it's blocked`);
         isBlocked = true;
+      } else {
+        console.log(`not blocked`);
       }
     },
     Blockage,

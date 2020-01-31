@@ -8,6 +8,7 @@ import { DisplayOnly } from '../components/display-only.model';
 import * as deepClone from 'clone-deep';
 import { DamageData } from '../components/damage.model';
 import { LockState } from '../components/lock.model';
+import { CompassDirection } from '../ecs.types';
 
 type Rename<T, K extends keyof T, N extends string> = Pick<
   T,
@@ -141,3 +142,34 @@ export function withinRange(
     Math.abs(target.z - start.z) <= range
   );
 }
+
+
+export const DIR_FROM_KEY = new Map<string, CompassDirection>([
+  ['1', CompassDirection.SW],
+  ['b', CompassDirection.SW],
+
+  ['ArrowDown', CompassDirection.S],
+  ['2', CompassDirection.S],
+  ['j', CompassDirection.S],
+
+  ['3', CompassDirection.SE],
+  ['n', CompassDirection.SE],
+
+  ['ArrowLeft', CompassDirection.W],
+  ['4', CompassDirection.W],
+  ['h', CompassDirection.W],
+
+  ['ArrowRight', CompassDirection.E],
+  ['6', CompassDirection.E],
+  ['l', CompassDirection.E],
+
+  ['7', CompassDirection.NW],
+  ['y', CompassDirection.NW],
+
+  ['ArrowUp', CompassDirection.N],
+  ['8', CompassDirection.N],
+  ['k', CompassDirection.N],
+
+  ['9', CompassDirection.NE],
+  ['u', CompassDirection.NE],
+]);

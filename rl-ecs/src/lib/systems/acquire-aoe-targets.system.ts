@@ -1,7 +1,7 @@
 import { EntityId, EntityManager } from 'rad-ecs';
 import { Observable, of, Subject } from 'rxjs';
 import { filter, map, mergeMap } from 'rxjs/operators';
-import { OperationStepMulti } from 'src/lib/operation-step.model';
+import { OperationStepMulti } from '../operation-step.model';
 import {
   AreaOfEffect,
   AreaOfEffectData

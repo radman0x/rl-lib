@@ -1,5 +1,5 @@
 import { EntityManager, EntityId } from 'rad-ecs';
-import { OperationStep } from 'src/lib/operation-step.model';
+import { OperationStep } from '../operation-step.model';
 import { GridPosData } from '../components/position.model';
 import { radClone, hasSelectedPos } from './systems.utils';
 import { Observable, Subject } from 'rxjs';

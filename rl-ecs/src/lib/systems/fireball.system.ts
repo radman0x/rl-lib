@@ -1,4 +1,4 @@
-import { OperationStep } from 'src/lib/operation-step.model';
+import { OperationStep } from '../operation-step.model';
 import { EntityManager } from 'rad-ecs';
 
 interface Args {

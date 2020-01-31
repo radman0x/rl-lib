@@ -1,4 +1,4 @@
-import { OperationStep } from 'src/lib/operation-step.model';
+import { OperationStep } from '../operation-step.model';
 import { EntityManager } from 'rad-ecs';
 import { TargetEntity, LockChange } from './systems.types';
 import { Lock, oppositeLockState, LockState } from '../components/lock.model';

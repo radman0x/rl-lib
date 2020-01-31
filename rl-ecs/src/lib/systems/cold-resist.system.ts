@@ -1,5 +1,5 @@
 import { EntityManager } from 'rad-ecs';
-import { OperationStep } from 'src/lib/operation-step.model';
+import { OperationStep } from '../operation-step.model';
 import { EffectType, TargetEntity, Damaged } from './systems.types';
 import { ColdResistance } from '../components/resistance.model';
 

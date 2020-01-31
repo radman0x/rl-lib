@@ -1,5 +1,5 @@
 import { EntityManager } from 'rad-ecs';
-import { OperationStep } from 'src/lib/operation-step.model';
+import { OperationStep } from '../operation-step.model';
 import { Integrity } from '../components/physical.model';
 import { EntityId } from '../ecs.types';
 import { CalculateEffectDamageOut } from './calculate-effect-damage.system';

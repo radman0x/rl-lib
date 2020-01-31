@@ -32,3 +32,5 @@ export interface DamageResisted {
   type: EffectType;
   resistedAmount: number;
 }
+
+export type Logger = (msg: string) => void;

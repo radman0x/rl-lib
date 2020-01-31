@@ -1,5 +1,5 @@
 import { EntityManager } from 'rad-ecs';
-import { OperationStep } from 'src/lib/operation-step.model';
+import { OperationStep } from '../operation-step.model';
 import { GridPos, GridPosData } from '../components/position.model';
 import { EntityId } from '../ecs.types';
 import { radClone } from './systems.utils';

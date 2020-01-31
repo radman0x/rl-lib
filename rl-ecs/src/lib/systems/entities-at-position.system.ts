@@ -1,5 +1,5 @@
 import { Entity, EntityManager } from 'rad-ecs';
-import { OperationStepMulti } from 'src/lib/operation-step.model';
+import { OperationStepMulti } from '../operation-step.model';
 import { GridPos, GridPosData } from '../components/position.model';
 import { EntityId } from '../ecs.types';
 import * as cloneDeep from 'clone-deep';

@@ -1,4 +1,4 @@
-import { OperationStep } from 'src/lib/operation-step.model';
+import { OperationStep } from '../operation-step.model';
 import { EntityManager } from 'rad-ecs';
 import { CalculateEffectDamageOut } from './calculate-effect-damage.system';
 import { DamageResisted } from '../ecs.types';
