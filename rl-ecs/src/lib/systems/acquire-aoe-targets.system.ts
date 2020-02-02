@@ -13,7 +13,7 @@ import {
   radClone
 } from './systems.utils';
 
-interface HookAoeTargetArgs {
+export interface HookAoeTargetArgs {
   selectedPos?: GridPosData;
   effectId: EntityId;
 }

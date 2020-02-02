@@ -1,11 +1,8 @@
 import { EntityManager } from 'rad-ecs';
 import { OperationStep } from '../operation-step.model';
 import { GridPos } from '../components/position.model';
-import {
-  CompassDirection,
-  compassDirectionToUnitVector,
-  EntityId
-} from '../ecs.types';
+import { EntityId } from '../ecs.types';
+import { CompassDirection, compassDirectionToUnitVector } from '@rad/rl-utils';
 
 interface Args {
   protagId: EntityId;
@@ -24,7 +21,7 @@ function positionNextToEntityStep<T extends Args>(
 ): T & Out {
   const directionVec = compassDirectionToUnitVector.get(msg.direction)!;
   const agentPos = em.get(msg.protagId).component(GridPos);
-  const targetPos = agentPos.add(directionVec);
+  const targetPos = agentPos.add(new GridPos(directionVec));
   console.log(`pos next to entity: ${targetPos}`);
   return { ...msg, targetPos };
 }

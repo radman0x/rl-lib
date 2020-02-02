@@ -1,14 +1,13 @@
-import { Entity, EntityManager, EntityId } from 'rad-ecs';
-import { Observable, of } from 'rxjs';
-import { delay, map, mergeMap, reduce, tap } from 'rxjs/operators';
+import * as deepClone from 'clone-deep';
+import { EntityId, EntityManager } from 'rad-ecs';
+import { Observable } from 'rxjs';
+import { delay, map, tap } from 'rxjs/operators';
+import { DamageData } from '../components/damage.model';
+import { DisplayOnly } from '../components/display-only.model';
+import { LockState } from '../components/lock.model';
 import { GridPos, GridPosData } from '../components/position.model';
 import { Renderable } from '../components/renderable.model';
-import { TargetPos, ActiveEffect } from './systems.types';
-import { DisplayOnly } from '../components/display-only.model';
-import * as deepClone from 'clone-deep';
-import { DamageData } from '../components/damage.model';
-import { LockState } from '../components/lock.model';
-import { CompassDirection } from '../ecs.types';
+import { ActiveEffect, TargetPos } from './systems.types';
 
 type Rename<T, K extends keyof T, N extends string> = Pick<
   T,
@@ -102,6 +101,10 @@ export function radClone<T>(source: T): T {
   return deepClone(source) as T;
 }
 
+export function hasProtagId<T>(a: T): a is T & { protagId: EntityId } {
+  return a['protagId'] !== undefined;
+}
+
 export function hasSelectedPos<T>(a: T): a is T & { selectedPos: GridPosData } {
   return a['selectedPos'] !== undefined;
 }
@@ -130,46 +133,3 @@ export function canOccupyStandAndNotBlocked<
   console.log(`Testing move: ${JSON.stringify(a, null, 2)}`);
   return a.canOccupy && a.canStand && !a.isBlocked; /*?*/
 }
-
-export function withinRange(
-  range: number,
-  target: GridPosData,
-  start: GridPosData
-) {
-  return (
-    Math.abs(target.x - start.x) <= range &&
-    Math.abs(target.y - start.y) <= range &&
-    Math.abs(target.z - start.z) <= range
-  );
-}
-
-
-export const DIR_FROM_KEY = new Map<string, CompassDirection>([
-  ['1', CompassDirection.SW],
-  ['b', CompassDirection.SW],
-
-  ['ArrowDown', CompassDirection.S],
-  ['2', CompassDirection.S],
-  ['j', CompassDirection.S],
-
-  ['3', CompassDirection.SE],
-  ['n', CompassDirection.SE],
-
-  ['ArrowLeft', CompassDirection.W],
-  ['4', CompassDirection.W],
-  ['h', CompassDirection.W],
-
-  ['ArrowRight', CompassDirection.E],
-  ['6', CompassDirection.E],
-  ['l', CompassDirection.E],
-
-  ['7', CompassDirection.NW],
-  ['y', CompassDirection.NW],
-
-  ['ArrowUp', CompassDirection.N],
-  ['8', CompassDirection.N],
-  ['k', CompassDirection.N],
-
-  ['9', CompassDirection.NE],
-  ['u', CompassDirection.NE],
-]);

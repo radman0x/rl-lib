@@ -11,9 +11,10 @@ import * as deepEqual from 'fast-deep-equal';
 import { GridPos } from 'libs/rl-ecs/src/lib/components/position.model';
 import { Renderable } from 'libs/rl-ecs/src/lib/components/renderable.model';
 import * as PIXI from 'pixi.js-legacy';
-import { Entity, EntityManager } from 'rad-ecs';
+import { Entity, EntityManager, EntityId } from 'rad-ecs';
 import { ReplaySubject, Subject } from 'rxjs';
 import { distinctUntilChanged, filter, map } from 'rxjs/operators';
+import { KnowledgeMap, Knowledge } from '@rad/rl-ecs';
 
 export interface RendererSettings {
   tileSize: number;
@@ -30,6 +31,8 @@ export class GridRendererComponent implements OnInit {
   @Input('em') em: EntityManager;
   @Input('settings') settings: RendererSettings;
   @Input('sprites') spriteSheet: string;
+  @Input('viewerId') viewerId: EntityId;
+  @Input('backgroundColor') backgroundColor: number;
   @Output('mouseOverGridPos') mouseOverGridPos$: Subject<PointXY>;
   @Output('mousePressGridPos') mousePressGridPos$: Subject<PointXY>;
 
@@ -54,7 +57,7 @@ export class GridRendererComponent implements OnInit {
 
   ngAfterViewInit(): void {
     Renderer.create(this.spriteSheet, {
-      backgroundColor: Number('0x00FFFF'),
+      backgroundColor: Number(this.backgroundColor),
       resizeTo: this.renderElem.nativeElement
     }).subscribe((r: Renderer) => {
       r.resize();
@@ -93,8 +96,6 @@ export class GridRendererComponent implements OnInit {
     const stage = this.renderer.pixiApp.stage;
     const TILE_SIZE = this.settings.tileSize;
 
-    const renderableEntities: Entity[] = [];
-
     this.maxTileY = -1;
     this.maxTileX = -1;
     this.em.each(
@@ -103,33 +104,32 @@ export class GridRendererComponent implements OnInit {
           this.maxTileY = Math.max(this.maxTileY, p.y * TILE_SIZE);
           this.maxTileX = Math.max(this.maxTileX, p.x * TILE_SIZE);
         }
-        renderableEntities.push(e);
       },
       Renderable,
       GridPos
     );
 
-    const zValueCalc = (e: Entity) =>
-      e.component(GridPos).z * 100 + e.component(Renderable).zOrder;
-    renderableEntities.sort((lhs, rhs) => zValueCalc(lhs) - zValueCalc(rhs));
-
-    for (const e of renderableEntities) {
-      const r = e.component(Renderable);
-      const p = e.component(GridPos);
-
-      let sprite = this.sprites.get(e.id)!;
-      if (!sprite) {
-        sprite = this.renderer.sprite(r.image);
-        this.sprites.set(e.id, sprite);
-      }
-
-      sprite.position.set(p.x * TILE_SIZE, this.maxTileY - p.y * TILE_SIZE);
-      stage.addChild(sprite);
+    let currentKnowledge: KnowledgeMap;
+    let historicalKnowledge: KnowledgeMap;
+    if (this.viewerId !== undefined) {
+      const viewerKnowledge = this.em.getComponent(this.viewerId, Knowledge);
+      currentKnowledge = viewerKnowledge.current;
+      historicalKnowledge = viewerKnowledge.history;
     }
 
+    for (const [, sprite] of this.sprites) {
+      sprite.visible = false;
+    }
+
+    this.renderFromKnowledge(historicalKnowledge, stage, 0x999999);
+    this.renderFromKnowledge(currentKnowledge, stage, 0xffffff);
     stage.scale.set(
       this.renderer.pixiApp.renderer.width / this.desiredDisplayWidthPx
     );
+  }
+
+  get tileSize() {
+    return this.settings.tileSize;
   }
 
   private convertToGridPos(pos: PointXY): PointXY | null {
@@ -149,7 +149,56 @@ export class GridRendererComponent implements OnInit {
     return { x: tileX, y: tileY };
   }
 
-  get tileSize() {
-    return this.settings.tileSize;
+  private renderFromKnowledge(
+    knowledge: KnowledgeMap,
+    stage: PIXI.Container,
+    tint: number
+  ) {
+    const zValueCalc = (e: Entity) => e.component(Renderable).zOrder;
+    const zSortedHistoricalKnowledgePositions = Array.from(
+      knowledge.values()
+    ).sort((lhs, rhs) => lhs.k.z - rhs.k.z);
+    for (const { k: seenPos, v: ids } of zSortedHistoricalKnowledgePositions) {
+      const sortedIds = [...ids].sort(
+        (lhs, rhs) =>
+          zValueCalc(this.em.get(lhs)) - zValueCalc(this.em.get(rhs))
+      );
+      for (const seenEntityId of sortedIds) {
+        this.renderEntity(seenEntityId, stage, tint, seenPos);
+      }
+    }
+  }
+
+  private renderEntity(
+    id: EntityId,
+    stage: PIXI.Container,
+    tint: number,
+    pos: GridPos
+  ) {
+    if (
+      this.em.hasComponent(id, Renderable) &&
+      this.em.hasComponent(id, GridPos)
+    ) {
+      const r = this.em.getComponent(id, Renderable);
+      let sprite = this.sprites.get(id);
+      if (!sprite) {
+        sprite = this.renderer.sprite(r.image);
+        this.sprites.set(id, sprite);
+      }
+
+      sprite.tint = tint;
+      sprite.visible = true;
+
+      sprite.position.set(
+        pos.x * this.settings.tileSize,
+        this.maxTileY - pos.y * this.settings.tileSize
+      );
+      stage.addChild(sprite);
+    } else {
+      let sprite = this.sprites.get(id);
+      if (sprite) {
+        sprite.visible = false;
+      }
+    }
   }
 }

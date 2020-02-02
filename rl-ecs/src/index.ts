@@ -1,3 +1,5 @@
+export * from './lib/components/knowledge.model';
+
 export * from './lib/components/physical.model';
 export * from './lib/components/position.model';
 export * from './lib/components/renderable.model';
