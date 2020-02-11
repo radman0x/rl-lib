@@ -60,7 +60,7 @@ describe('System organiser utility', () => {
       ).id;
     });
     it('should toggle the lock state once', () => {
-      basics.org.applyEffect$.next({
+      basics.org.applyTargetedEffect$.next({
         effectId: toggleEffect,
         selectedPos: { ...doorPos }
       });
@@ -73,11 +73,11 @@ describe('System organiser utility', () => {
     });
 
     it('should toggle the open state multiple times', () => {
-      basics.org.applyEffect$.next({
+      basics.org.applyTargetedEffect$.next({
         effectId: toggleEffect,
         selectedPos: { ...doorPos }
       });
-      basics.org.applyEffect$.next({
+      basics.org.applyTargetedEffect$.next({
         effectId: toggleEffect,
         selectedPos: { ...doorPos }
       });
@@ -110,12 +110,12 @@ describe('System organiser utility', () => {
           ]
         })
       );
-      basics.org.applyEffect$.next({
+      basics.org.applyTargetedEffect$.next({
         effectId: toggleEffect,
         selectedPos: { ...doorPos }
       });
       expect(basics.em.getComponent(lock, Blockage)!.active).toEqual(false);
-      basics.org.applyEffect$.next({
+      basics.org.applyTargetedEffect$.next({
         effectId: toggleEffect,
         selectedPos: { ...doorPos }
       });
@@ -245,7 +245,7 @@ describe('System organiser utility', () => {
       ).id;
     });
     it('should remove an entity by sustaining damage', () => {
-      basics.org.applyEffect$.next({
+      basics.org.applyTargetedEffect$.next({
         effectId: effect,
         selectedPos: new GridPos(targetPos)
       });
@@ -254,7 +254,7 @@ describe('System organiser utility', () => {
     });
     it('should remove an entity by sustaining damage when it has some fire resistance', () => {
       basics.em.setComponent(target, new FireResistance({ factor: 5 }));
-      basics.org.applyEffect$.next({
+      basics.org.applyTargetedEffect$.next({
         effectId: effect,
         selectedPos: new GridPos(targetPos)
       });
@@ -264,7 +264,7 @@ describe('System organiser utility', () => {
 
     it('should fail to remove an entity if it has too much resistance', () => {
       basics.em.setComponent(target, new FireResistance({ factor: 1000 }));
-      basics.org.applyEffect$.next({
+      basics.org.applyTargetedEffect$.next({
         effectId: effect,
         selectedPos: new GridPos(targetPos)
       });
@@ -275,7 +275,7 @@ describe('System organiser utility', () => {
     it('should process an AOE burn effect', () => {
       basics.em.removeComponent(effect, SingleTarget);
       basics.em.setComponent(effect, new AreaOfEffect({ radius: 1 }));
-      basics.org.applyEffect$.next({
+      basics.org.applyTargetedEffect$.next({
         effectId: effect,
         selectedPos: targetPos
       });

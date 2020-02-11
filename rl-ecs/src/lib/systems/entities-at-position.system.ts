@@ -48,7 +48,7 @@ function entitiesAtPositionStep<T extends Args>(
   if (targetIds.length === 0) {
     console.log(`TARGETING: No targets acquired`);
   } else {
-    console.log(`TARGETING: targets acquired: ${targetIds.join(',')}`);
+    console.log(`TARGETING: targets acquired: [${targetIds.join(',')}]`);
   }
   return targetIds.map(id => ({ ...cloneDeep(msg), targetId: id }));
 }

@@ -35,6 +35,10 @@ export interface Damaged {
   damage?: DamageData;
 }
 
+export interface Teleported {
+  teleport?: { targetLocation: GridPosData };
+}
+
 export interface EffectStart {
   effectId: EntityId;
   selectedPos?: GridPosData;

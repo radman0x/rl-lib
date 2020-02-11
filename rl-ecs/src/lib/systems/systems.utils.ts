@@ -7,7 +7,8 @@ import { DisplayOnly } from '../components/display-only.model';
 import { LockState } from '../components/lock.model';
 import { GridPos, GridPosData } from '../components/position.model';
 import { Renderable } from '../components/renderable.model';
-import { ActiveEffect, TargetPos } from './systems.types';
+import { ActiveEffect, TargetPos, Teleported } from './systems.types';
+import { ClimbableData } from '../components/climbable.model';
 
 type Rename<T, K extends keyof T, N extends string> = Pick<
   T,
@@ -113,8 +114,16 @@ export function hasDamage<T>(a: T): a is T & { damage: DamageData } {
   return a['damage'] !== undefined;
 }
 
+export function hasSpatialChange<T>(a: T): a is T & { teleport: Teleported } {
+  return a['teleport'] !== undefined;
+}
+
 export function hasLockChange<T>(a: T): a is T & { lockChange: LockState } {
   return a['lockChange'] !== undefined;
+}
+
+export function hasClimbable<T>(a: T): a is T & { climbable: ClimbableData } {
+  return a['climbable'] !== undefined;
 }
 
 export function hasCombatTarget<T>(

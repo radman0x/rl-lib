@@ -1,4 +1,4 @@
-import { EntityManager } from 'rad-ecs';
+import { EntityManager, Entity, EntityId } from 'rad-ecs';
 import { Observable, Subject, of } from 'rxjs';
 import { filter, map, mergeMap, tap } from 'rxjs/operators';
 import { acquireCombatTargetAtPosition } from './acquire-combat-target-at-position.system';
@@ -9,14 +9,16 @@ import {
 import {
   hasCombatTarget,
   noCombatTarget,
-  canOccupyStandAndNotBlocked
+  canOccupyStandAndNotBlocked,
+  radClone
 } from './systems.utils';
 import {
   ProtagonistEntity,
   TargetPos,
   CombatTarget,
   EnteredPos,
-  TargetEntity
+  TargetEntity,
+  ActiveEffect
 } from './systems.types';
 import { canOccupyPosition } from './can-occupy-position.system';
 import { canStandAtPosition } from './can-stand-at-position.system';
@@ -24,6 +26,8 @@ import { placeEntityAt } from './place-entity-at.system';
 import { acquireEntityPosition } from './acquire-entity-position.system';
 import { entitiesAtPosition } from './entities-at-position.system';
 import { positionBlocked } from './position-blocked.system';
+import { Effects } from '../components/effects.model';
+import { Climbable } from '../components/climbable.model';
 
 export function hookMoveOrder<T extends PositionNextToEntityArgs>(
   source: Observable<T>,
@@ -72,13 +76,20 @@ export function hookCombatOrder<T extends PositionNextToEntityArgs>(
 export function hookEntitiesAtProtagPos<T extends ProtagonistEntity>(
   source: Observable<T>,
   dest: Subject<ProtagonistEntity & TargetEntity>,
-  em: EntityManager
+  em: EntityManager,
+  predicate: (e: Entity) => boolean = () => true
 ) {
   source
     .pipe(
       map(msg => acquireEntityPosition(msg, em)),
       mergeMap(msg =>
-        of(...entitiesAtPosition(msg, em, e => e.id !== msg.protagId))
+        of(
+          ...entitiesAtPosition(
+            msg,
+            em,
+            e => e.id !== msg.protagId && predicate(e)
+          )
+        )
       )
     )
     .subscribe(dest);

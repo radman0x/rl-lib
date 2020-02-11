@@ -1,7 +1,10 @@
-import { EntityId, EntityManager } from 'rad-ecs';
-import { merge, Observable, Subject } from 'rxjs';
-import { filter, map, tap } from 'rxjs/operators';
-import { GridPosData, GridPos } from '../components/position.model';
+import { ValueMap } from '@rad/rl-utils';
+import { EntityId, EntityManager, Entity } from 'rad-ecs';
+import { merge, Observable, Subject, of } from 'rxjs';
+import { filter, map, tap, mergeMap } from 'rxjs/operators';
+import { Knowledge } from '../components/knowledge.model';
+import { GridPosData } from '../components/position.model';
+import { Sighted } from '../components/sighted.model';
 import { Logger } from '../ecs.types';
 import { hookAoeTarget } from './acquire-aoe-targets.system';
 import { hookAddToInventory } from './add-to-inventory.system';
@@ -16,7 +19,9 @@ import { burn } from './burn.system';
 import { CanOccupyPositionArgs } from './can-occupy-position.system';
 import { CanStandAtArgs } from './can-stand-at-position.system';
 import { hookEntitiesAtPosition } from './entities-at-position.system';
+import { hookEntitiesWithComponent } from './entities-with-component.system';
 import { fireResist } from './fire-resist.system';
+import { FOVEntitiesOut, hookFOVEntities } from './fov-entities.system';
 import { freeze } from './freeze.system';
 import { grimReaper } from './grim-reaper.system';
 import { integrity } from './integrity.system';
@@ -32,22 +37,30 @@ import {
   EnteredPos,
   ProtagonistEntity,
   TargetEntity,
-  TargetPos
+  TargetPos,
+  Teleported
 } from './systems.types';
-import { hasDamage, hasLockChange, radClone } from './systems.utils';
+import {
+  hasDamage,
+  hasLockChange,
+  radClone,
+  hasClimbable,
+  hasSpatialChange
+} from './systems.utils';
 import { toggleLock } from './toggle-lock.system';
-import { hookEntitiesWithComponent } from './entities-with-component.system';
-import { Sighted } from '../components/sighted.model';
-import { hookFOVEntities, FOVEntitiesOut } from './fov-entities.system';
-import { Knowledge, KnownState } from '../components/knowledge.model';
-import { ValueMap } from '@rad/rl-utils';
+import { Climbable } from '../components/climbable.model';
+import { Effects } from '../components/effects.model';
+import { acquireEffects } from './acquire-effects.system';
+import { climbableEffect } from './climbable-effect.system';
+import { teleport } from './teleport.system';
+import { spatial } from './spatial.system';
 
 export class SystemOrganiser {
   aoeTargetPositions: Observable<{ targetPos: GridPosData } & EffectStart>;
   animationSystem: Observable<{ effectId: EntityId }>;
   applyDamageSystem: Observable<{}>;
 
-  public readonly applyEffect$ = new Subject<EffectStart>();
+  public readonly applyTargetedEffect$ = new Subject<EffectStart>();
 
   public readonly effectAtPosition$ = new Subject<TargetPos & ActiveEffect>();
   public readonly effectOnEntity$ = new Subject<TargetEntity & ActiveEffect>();
@@ -55,7 +68,7 @@ export class SystemOrganiser {
     Damaged & TargetEntity & ActiveEffect
   >();
   public readonly effectModified$ = new Subject<
-    Damaged & TargetEntity & ActiveEffect
+    Damaged & TargetEntity & ActiveEffect & Teleported
   >();
   public readonly integrityModified$ = new Subject<TargetEntity>();
 
@@ -99,6 +112,9 @@ export class SystemOrganiser {
   public entityInVision$ = new Subject<ProtagonistEntity & FOVEntitiesOut>();
   public entitySeen$ = new Subject<ProtagonistEntity & FOVEntitiesOut>();
 
+  public climbRequest$ = new Subject<ProtagonistEntity>();
+  public climbOrdered$ = new Subject<ProtagonistEntity & TargetEntity>();
+
   constructor(private em: EntityManager, private logger: Logger) {
     hookEntitiesAtProtagPos(
       this.requestCollectLocal$,
@@ -115,8 +131,12 @@ export class SystemOrganiser {
     hookCombatOrder(this.moveRequest$, this.meleeAttack$, this.em);
     hookPerformMove(this.moveOrdered$, this.movePerformed$, this.em);
 
-    hookSingleTarget(this.applyEffect$, this.effectAtPosition$, this.em);
-    hookAoeTarget(this.applyEffect$, this.effectAtPosition$, this.em);
+    hookSingleTarget(
+      this.applyTargetedEffect$,
+      this.effectAtPosition$,
+      this.em
+    );
+    hookAoeTarget(this.applyTargetedEffect$, this.effectAtPosition$, this.em);
 
     hookEntitiesAtPosition(
       this.effectAtPosition$,
@@ -127,7 +147,8 @@ export class SystemOrganiser {
     merge(
       this.effectOnEntity$.pipe(map(msg => burn(msg, this.em))),
       this.effectOnEntity$.pipe(map(msg => freeze(msg, this.em))),
-      this.effectOnEntity$.pipe(map(msg => toggleLock(msg, this.em)))
+      this.effectOnEntity$.pipe(map(msg => toggleLock(msg, this.em))),
+      this.effectOnEntity$.pipe(map(msg => teleport(msg, this.em)))
     ).subscribe(this.effectProduced$);
 
     this.effectProduced$
@@ -155,6 +176,13 @@ export class SystemOrganiser {
     this.effectModified$
       .pipe(map(msg => blocking(msg, this.em)))
       .subscribe(() => {});
+
+    this.effectModified$
+      .pipe(
+        filter(hasSpatialChange),
+        map(msg => spatial(msg, this.em))
+      )
+      .subscribe(this.turnEnded$);
 
     this.movePerformed$.subscribe(this.turnEnded$);
 
@@ -202,6 +230,23 @@ export class SystemOrganiser {
         new Knowledge({ current: currentKnowledge, history: knowledge.history })
       );
     });
+
+    const climbCandidate$ = new Subject<ProtagonistEntity & TargetEntity>();
+    hookEntitiesAtProtagPos(this.climbRequest$, climbCandidate$, this.em);
+
+    climbCandidate$
+      .pipe(
+        mergeMap(msg => of(...acquireEffects(msg, em))),
+        filter(msg => em.hasComponent(msg.effectId, Climbable)),
+        map(msg => ({
+          ...radClone(msg),
+          climbable: em.getComponent(msg.effectId, Climbable)
+        })),
+        filter(msg => hasClimbable(msg)),
+        map(msg => ({ ...radClone(msg), targetId: msg.protagId })),
+        tap(msg => console.log(JSON.stringify(msg, null, 2)))
+      )
+      .subscribe(this.effectOnEntity$);
 
     this.hookErrorReporting(this.movePerformed$);
     this.hookErrorReporting(this.performCollection$);
