@@ -1,8 +1,8 @@
 import { CompassDirection } from '@rad/rl-utils';
-import { DamageData } from '../components/damage.model';
-import { LockState } from '../components/lock.model';
-import { GridPosData } from '../components/position.model';
-import { EntityId } from '../ecs.types';
+import { DamageData } from './components/damage.model';
+import { LockState } from './components/lock.model';
+import { GridPosData } from './components/position.model';
+import { EntityId } from './ecs.types';
 
 export enum EffectType {
   FIRE,

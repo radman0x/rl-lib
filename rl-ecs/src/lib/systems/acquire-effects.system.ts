@@ -1,7 +1,7 @@
 import { EntityId, EntityManager } from 'rad-ecs';
 import { Effects, EffectsData } from '../components/effects.model';
 import { OperationStepMulti } from '../operation-step.model';
-import { radClone } from './systems.utils';
+import { radClone } from '../systems.utils';
 
 interface Args {
   targetId: EntityId;

@@ -1,8 +1,8 @@
 import { OperationStep } from '../operation-step.model';
 import { EntityManager } from 'rad-ecs';
 import { ToggleLock } from '../components/toggle-lock.model';
-import { ActiveEffect, LockChange } from './systems.types';
-import { radClone } from './systems.utils';
+import { ActiveEffect, LockChange } from '../systems.types';
+import { radClone } from '../systems.utils';
 
 type Args = ActiveEffect;
 export type ToggleLockArgs = Args;

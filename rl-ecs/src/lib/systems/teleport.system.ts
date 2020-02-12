@@ -1,8 +1,8 @@
 import { EntityManager } from 'rad-ecs';
 import { Teleport } from '../components/teleport.model';
 import { OperationStep } from '../operation-step.model';
-import { ActiveEffect, Teleported } from './systems.types';
-import { radClone } from './systems.utils';
+import { ActiveEffect, Teleported } from '../systems.types';
+import { radClone } from '../systems.utils';
 
 type Args = ActiveEffect;
 export type TeleportArgs = Args;

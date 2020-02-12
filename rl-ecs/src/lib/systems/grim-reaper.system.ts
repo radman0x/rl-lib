@@ -1,7 +1,7 @@
 import { EntityManager } from 'rad-ecs';
 import { Integrity } from '../components/physical.model';
 import { OperationStep } from '../operation-step.model';
-import { TargetEntity } from './systems.types';
+import { TargetEntity } from '../systems.types';
 
 type Args = TargetEntity;
 export type GrimReaperArgs = Args;

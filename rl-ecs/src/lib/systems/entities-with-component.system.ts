@@ -2,8 +2,8 @@ import { ComponentConstructor, EntityManager } from 'rad-ecs';
 import { Observable, of, Subject } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';
 import { OperationStepMulti } from '../operation-step.model';
-import { ProtagonistEntity } from './systems.types';
-import { radClone } from './systems.utils';
+import { ProtagonistEntity } from '../systems.types';
+import { radClone } from '../systems.utils';
 
 export function hookEntitiesWithComponent<T>(
   source: Observable<T>,

@@ -11,7 +11,7 @@ import {
   noCombatTarget,
   canOccupyStandAndNotBlocked,
   radClone
-} from './systems.utils';
+} from '../systems.utils';
 import {
   ProtagonistEntity,
   TargetPos,
@@ -19,7 +19,7 @@ import {
   EnteredPos,
   TargetEntity,
   ActiveEffect
-} from './systems.types';
+} from '../systems.types';
 import { canOccupyPosition } from './can-occupy-position.system';
 import { canStandAtPosition } from './can-stand-at-position.system';
 import { placeEntityAt } from './place-entity-at.system';

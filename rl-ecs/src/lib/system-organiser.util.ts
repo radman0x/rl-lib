@@ -2,32 +2,32 @@ import { ValueMap } from '@rad/rl-utils';
 import { EntityId, EntityManager, Entity } from 'rad-ecs';
 import { merge, Observable, Subject, of } from 'rxjs';
 import { filter, map, tap, mergeMap } from 'rxjs/operators';
-import { Knowledge } from '../components/knowledge.model';
-import { GridPosData } from '../components/position.model';
-import { Sighted } from '../components/sighted.model';
-import { Logger } from '../ecs.types';
-import { hookAoeTarget } from './acquire-aoe-targets.system';
-import { hookAddToInventory } from './add-to-inventory.system';
+import { Knowledge } from './components/knowledge.model';
+import { GridPosData } from './components/position.model';
+import { Sighted } from './components/sighted.model';
+import { Logger } from './ecs.types';
+import { hookAoeTarget } from './systems/acquire-aoe-targets.system';
+import { hookAddToInventory } from './systems/add-to-inventory.system';
 import {
   hookCombatOrder,
   hookEntitiesAtProtagPos,
   hookMoveOrder,
   hookPerformMove
-} from './aggregators.system';
-import { blocking } from './blocking.system';
-import { burn } from './burn.system';
-import { CanOccupyPositionArgs } from './can-occupy-position.system';
-import { CanStandAtArgs } from './can-stand-at-position.system';
-import { hookEntitiesAtPosition } from './entities-at-position.system';
-import { hookEntitiesWithComponent } from './entities-with-component.system';
-import { fireResist } from './fire-resist.system';
-import { FOVEntitiesOut, hookFOVEntities } from './fov-entities.system';
-import { freeze } from './freeze.system';
-import { grimReaper } from './grim-reaper.system';
-import { integrity } from './integrity.system';
-import { lock } from './lock.system';
-import { PositionNextToEntityArgs } from './position-next-to-entity.system';
-import { hookSingleTarget } from './single-target.system';
+} from './systems/aggregators.system';
+import { blocking } from './systems/blocking.system';
+import { burn } from './systems/burn.system';
+import { CanOccupyPositionArgs } from './systems/can-occupy-position.system';
+import { CanStandAtArgs } from './systems/can-stand-at-position.system';
+import { hookEntitiesAtPosition } from './systems/entities-at-position.system';
+import { hookEntitiesWithComponent } from './systems/entities-with-component.system';
+import { fireResist } from './systems/fire-resist.system';
+import { FOVEntitiesOut, hookFOVEntities } from './systems/fov-entities.system';
+import { freeze } from './systems/freeze.system';
+import { grimReaper } from './systems/grim-reaper.system';
+import { integrity } from './systems/integrity.system';
+import { lock } from './systems/lock.system';
+import { PositionNextToEntityArgs } from './systems/position-next-to-entity.system';
+import { hookSingleTarget } from './systems/single-target.system';
 import {
   ActiveEffect,
   Collected,
@@ -47,13 +47,13 @@ import {
   hasClimbable,
   hasSpatialChange
 } from './systems.utils';
-import { toggleLock } from './toggle-lock.system';
-import { Climbable } from '../components/climbable.model';
-import { Effects } from '../components/effects.model';
-import { acquireEffects } from './acquire-effects.system';
-import { climbableEffect } from './climbable-effect.system';
-import { teleport } from './teleport.system';
-import { spatial } from './spatial.system';
+import { toggleLock } from './systems/toggle-lock.system';
+import { Climbable } from './components/climbable.model';
+import { Effects } from './components/effects.model';
+import { acquireEffects } from './systems/acquire-effects.system';
+import { climbableEffect } from './systems/climbable-effect.system';
+import { teleport } from './systems/teleport.system';
+import { spatial } from './systems/spatial.system';
 
 export class SystemOrganiser {
   aoeTargetPositions: Observable<{ targetPos: GridPosData } & EffectStart>;

@@ -5,7 +5,7 @@ import { Inventory } from '../components/inventory.model';
 import { GridPos } from '../components/position.model';
 import { Logger } from '../ecs.types';
 import { OperationStep } from '../operation-step.model';
-import { Collected, ProtagonistEntity, TargetEntity } from './systems.types';
+import { Collected, ProtagonistEntity, TargetEntity } from '../systems.types';
 
 type Args = ProtagonistEntity & TargetEntity;
 export type AddToInventoryArgs = Args;

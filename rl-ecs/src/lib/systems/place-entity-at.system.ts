@@ -2,8 +2,8 @@ import { EntityManager } from 'rad-ecs';
 import { OperationStep } from '../operation-step.model';
 import { GridPos, GridPosData } from '../components/position.model';
 import { EntityId } from '../ecs.types';
-import { radClone } from './systems.utils';
-import { EnteredPos } from './systems.types';
+import { radClone } from '../systems.utils';
+import { EnteredPos } from '../systems.types';
 
 type Args = {
   protagId: EntityId;

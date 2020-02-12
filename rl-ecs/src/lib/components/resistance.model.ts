@@ -1,5 +1,5 @@
 import { Component } from 'rad-ecs';
-import { EffectType } from '../systems/systems.types';
+import { EffectType } from '../systems.types';
 
 export interface ResistanceData {
   factor: number;

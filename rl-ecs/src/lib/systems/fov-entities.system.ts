@@ -6,9 +6,9 @@ import { Physical, Size } from '../components/physical.model';
 import { GridPos } from '../components/position.model';
 import { Sighted, SightedData } from '../components/sighted.model';
 import { OperationStepMulti } from '../operation-step.model';
-import { hasProtagId } from '../systems/systems.utils';
-import { ProtagonistEntity } from './systems.types';
-import { radClone } from './systems.utils';
+import { hasProtagId } from '../systems.utils';
+import { ProtagonistEntity } from '../systems.types';
+import { radClone } from '../systems.utils';
 
 export interface HookFovEntitiesArgs {
   protagId: EntityId;

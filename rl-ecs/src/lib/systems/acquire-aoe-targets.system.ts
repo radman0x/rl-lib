@@ -11,7 +11,7 @@ import {
   hasSelectedPos,
   positionsWithinRadius,
   radClone
-} from './systems.utils';
+} from '../systems.utils';
 
 export interface HookAoeTargetArgs {
   selectedPos?: GridPosData;

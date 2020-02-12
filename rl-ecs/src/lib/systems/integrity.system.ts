@@ -2,7 +2,7 @@ import { EntityManager } from 'rad-ecs';
 import { OperationStep } from '../operation-step.model';
 import { DamageData } from '../components/damage.model';
 import { Integrity } from '../components/physical.model';
-import { TargetEntity } from './systems.types';
+import { TargetEntity } from '../systems.types';
 
 type Args = { damage: DamageData } & TargetEntity;
 export type IntegrityArgs = Args;

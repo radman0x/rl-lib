@@ -1,6 +1,6 @@
 import { OperationStep } from '../operation-step.model';
 import { EntityManager } from 'rad-ecs';
-import { TargetPos, ActiveEffect } from './systems.types';
+import { TargetPos, ActiveEffect } from '../systems.types';
 
 type Args = TargetPos & ActiveEffect;
 export type AnimateEffectArgs = Args;

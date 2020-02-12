@@ -1,6 +1,6 @@
 import { OperationStep } from '../operation-step.model';
 import { EntityManager, EntityId } from 'rad-ecs';
-import { radClone } from './systems.utils';
+import { radClone } from '../systems.utils';
 import { Climbable, ClimbableData } from '../components/climbable.model';
 
 interface Args {

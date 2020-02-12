@@ -2,11 +2,11 @@ import { EntityManager } from 'rad-ecs';
 import { OperationStep } from '../operation-step.model';
 import { DamageData } from '../components/damage.model';
 import { FireResistance } from '../components/resistance.model';
-import { EffectType, TargetEntity } from './systems.types';
+import { EffectType, TargetEntity } from '../systems.types';
 import * as cloneDeep from 'clone-deep';
 import { Observable, Subject } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
-import { hasDamage, radClone } from './systems.utils';
+import { hasDamage, radClone } from '../systems.utils';
 
 type HookFireArgs = { damage?: DamageData } & TargetEntity;
 

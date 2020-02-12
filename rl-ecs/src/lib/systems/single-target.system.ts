@@ -1,7 +1,7 @@
 import { EntityManager, EntityId } from 'rad-ecs';
 import { OperationStep } from '../operation-step.model';
 import { GridPosData } from '../components/position.model';
-import { radClone, hasSelectedPos } from './systems.utils';
+import { radClone, hasSelectedPos } from '../systems.utils';
 import { Observable, Subject } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { SingleTarget } from '../components/single-target.model';

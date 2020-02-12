@@ -1,4 +1,4 @@
-import { EffectType } from './systems/systems.types';
+import { EffectType } from './systems.types';
 
 export type EntityId = number;
 

@@ -5,8 +5,8 @@ import {
   entitiesAtPosition,
   EntitiesAtPositionArgs
 } from './entities-at-position.system';
-import { renameKey } from './systems.utils';
-import { CombatTarget } from './systems.types';
+import { renameKey } from '../systems.utils';
+import { CombatTarget } from '../systems.types';
 
 type Args = EntitiesAtPositionArgs;
 export type AcquireCombatTargetAtPositionArgs = Args;

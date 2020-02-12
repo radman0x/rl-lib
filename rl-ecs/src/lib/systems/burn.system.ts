@@ -1,7 +1,7 @@
 import { EntityManager } from 'rad-ecs';
 import { OperationStep } from '../operation-step.model';
 import { Burn } from '../components/burn.model';
-import { ActiveEffect, Damaged } from './systems.types';
+import { ActiveEffect, Damaged } from '../systems.types';
 import * as cloneDeep from 'clone-deep';
 
 type Args = ActiveEffect;

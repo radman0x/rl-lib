@@ -1,4 +1,4 @@
-import { EffectType } from '../systems/systems.types';
+import { EffectType } from '../systems.types';
 import { Damage } from './damage.model';
 
 export class Freeze extends Damage {

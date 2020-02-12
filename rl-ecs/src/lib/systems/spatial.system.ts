@@ -1,8 +1,8 @@
 import { OperationStep } from '../operation-step.model';
 import { EntityManager } from 'rad-ecs';
-import { radClone } from './systems.utils';
+import { radClone } from '../systems.utils';
 import { TeleportOut } from './teleport.system';
-import { TargetEntity } from './systems.types';
+import { TargetEntity } from '../systems.types';
 import { GridPos } from '../components/position.model';
 
 type Args = Required<TeleportOut> & TargetEntity;

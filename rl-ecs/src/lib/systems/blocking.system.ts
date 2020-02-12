@@ -1,7 +1,7 @@
 import { OperationStep } from '../operation-step.model';
 import { EntityManager } from 'rad-ecs';
-import { radClone } from './systems.utils';
-import { TargetEntity } from './systems.types';
+import { radClone } from '../systems.utils';
+import { TargetEntity } from '../systems.types';
 import { Blockage } from '../components/blockage.model';
 
 type Args = TargetEntity;

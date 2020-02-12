@@ -1,4 +1,4 @@
-import { SystemOrganiser } from './system-organiser.util';
+import { SystemOrganiser } from '../system-organiser.util';
 import { EntityManager, EntityId } from 'rad-ecs';
 import { CompassDirection, Logger } from '../ecs.types';
 import { GridPos, GridPosData } from '../components/position.model';
