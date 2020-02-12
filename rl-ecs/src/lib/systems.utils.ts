@@ -9,6 +9,8 @@ import { GridPos, GridPosData } from './components/position.model';
 import { Renderable } from './components/renderable.model';
 import { ActiveEffect, TargetPos, Teleported } from './systems.types';
 import { ClimbableData } from './components/climbable.model';
+import { AreaTransition } from './components/area-transition.model';
+import { TransitionAreaOut } from './systems/transition-area.system';
 
 type Rename<T, K extends keyof T, N extends string> = Pick<
   T,
@@ -112,6 +114,12 @@ export function hasSelectedPos<T>(a: T): a is T & { selectedPos: GridPosData } {
 
 export function hasDamage<T>(a: T): a is T & { damage: DamageData } {
   return a['damage'] !== undefined;
+}
+
+export function hasAreaTransition<T>(
+  a: T
+): a is T & Required<TransitionAreaOut> {
+  return a['areaTransition'] !== undefined;
 }
 
 export function hasSpatialChange<T>(a: T): a is T & { teleport: Teleported } {

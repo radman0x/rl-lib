@@ -1,12 +1,34 @@
 import { ValueMap } from '@rad/rl-utils';
-import { EntityId, EntityManager, Entity } from 'rad-ecs';
-import { merge, Observable, Subject, of } from 'rxjs';
-import { filter, map, tap, mergeMap } from 'rxjs/operators';
+import { EntityId, EntityManager } from 'rad-ecs';
+import { merge, Observable, of, Subject } from 'rxjs';
+import { filter, map, mergeMap, tap } from 'rxjs/operators';
+import { Climbable } from './components/climbable.model';
 import { Knowledge } from './components/knowledge.model';
 import { GridPosData } from './components/position.model';
 import { Sighted } from './components/sighted.model';
 import { Logger } from './ecs.types';
+import {
+  ActiveEffect,
+  Collected,
+  CombatTarget,
+  Damaged,
+  EffectStart,
+  EnteredPos,
+  ProtagonistEntity,
+  TargetEntity,
+  TargetPos,
+  Teleported
+} from './systems.types';
+import {
+  hasClimbable,
+  hasDamage,
+  hasLockChange,
+  hasSpatialChange,
+  radClone,
+  hasAreaTransition
+} from './systems.utils';
 import { hookAoeTarget } from './systems/acquire-aoe-targets.system';
+import { acquireEffects } from './systems/acquire-effects.system';
 import { hookAddToInventory } from './systems/add-to-inventory.system';
 import {
   hookCombatOrder,
@@ -28,32 +50,12 @@ import { integrity } from './systems/integrity.system';
 import { lock } from './systems/lock.system';
 import { PositionNextToEntityArgs } from './systems/position-next-to-entity.system';
 import { hookSingleTarget } from './systems/single-target.system';
-import {
-  ActiveEffect,
-  Collected,
-  CombatTarget,
-  Damaged,
-  EffectStart,
-  EnteredPos,
-  ProtagonistEntity,
-  TargetEntity,
-  TargetPos,
-  Teleported
-} from './systems.types';
-import {
-  hasDamage,
-  hasLockChange,
-  radClone,
-  hasClimbable,
-  hasSpatialChange
-} from './systems.utils';
-import { toggleLock } from './systems/toggle-lock.system';
-import { Climbable } from './components/climbable.model';
-import { Effects } from './components/effects.model';
-import { acquireEffects } from './systems/acquire-effects.system';
-import { climbableEffect } from './systems/climbable-effect.system';
-import { teleport } from './systems/teleport.system';
 import { spatial } from './systems/spatial.system';
+import { teleport } from './systems/teleport.system';
+import { toggleLock } from './systems/toggle-lock.system';
+import { transitionArea } from './systems/transition-area.system';
+import { AreaResolver } from './area-resolver.model';
+import { area } from './systems/area.system';
 
 export class SystemOrganiser {
   aoeTargetPositions: Observable<{ targetPos: GridPosData } & EffectStart>;
@@ -115,7 +117,15 @@ export class SystemOrganiser {
   public climbRequest$ = new Subject<ProtagonistEntity>();
   public climbOrdered$ = new Subject<ProtagonistEntity & TargetEntity>();
 
-  constructor(private em: EntityManager, private logger: Logger) {
+  public effectOnEnvironment$ = new Subject<ActiveEffect>();
+
+  public areaTransitioned$ = new Observable<{ viewerEntity: EntityId }>();
+
+  constructor(
+    private em: EntityManager,
+    private logger: Logger,
+    private areaResolver: AreaResolver
+  ) {
     hookEntitiesAtProtagPos(
       this.requestCollectLocal$,
       this.performCollection$,
@@ -148,7 +158,8 @@ export class SystemOrganiser {
       this.effectOnEntity$.pipe(map(msg => burn(msg, this.em))),
       this.effectOnEntity$.pipe(map(msg => freeze(msg, this.em))),
       this.effectOnEntity$.pipe(map(msg => toggleLock(msg, this.em))),
-      this.effectOnEntity$.pipe(map(msg => teleport(msg, this.em)))
+      this.effectOnEntity$.pipe(map(msg => teleport(msg, this.em))),
+      this.effectOnEntity$.pipe(map(msg => transitionArea(msg, this.em)))
     ).subscribe(this.effectProduced$);
 
     this.effectProduced$
@@ -183,6 +194,15 @@ export class SystemOrganiser {
         map(msg => spatial(msg, this.em))
       )
       .subscribe(this.turnEnded$);
+
+    this.areaTransitioned$ = this.effectModified$.pipe(
+      tap(msg => console.log(`Checking for area transition`)),
+      filter(hasAreaTransition),
+      map(msg =>
+        area(msg, this.em, areaId => this.areaResolver.resolveArea(areaId))
+      ),
+      tap(msg => console.log(`Area transitioned`))
+    );
 
     this.movePerformed$.subscribe(this.turnEnded$);
 

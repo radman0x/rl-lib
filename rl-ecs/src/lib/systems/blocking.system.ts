@@ -11,7 +11,6 @@ interface Out {}
 export type BlockingOut = Out;
 
 function blockingStep<T extends Args>(msg: T, em: EntityManager): T & Out {
-  console.log(`BLOCKING: ...`);
   if (!em.exists(msg.targetId)) {
     return { ...radClone(msg) };
   }

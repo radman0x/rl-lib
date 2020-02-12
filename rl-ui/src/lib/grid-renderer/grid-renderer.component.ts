@@ -90,6 +90,13 @@ export class GridRendererComponent implements OnInit {
     });
   }
 
+  reset(): void {
+    for (const [id, sprite] of this.sprites) {
+      sprite.destroy();
+    }
+    this.sprites = new Map<number, PIXI.Sprite>();
+  }
+
   renderUpdate(): void {
     this.renderer.pixiApp.stage = new PIXI.Container();
 

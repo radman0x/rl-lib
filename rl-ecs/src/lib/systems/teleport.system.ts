@@ -12,10 +12,12 @@ export type TeleportOut = Out;
 
 function teleportStep<T extends Args>(msg: T, em: EntityManager): T & Out {
   const t = em.getComponent(msg.effectId, Teleport);
-  console.log(`Actioning teleport to: ${t.target}`);
-  return t === undefined
-    ? { ...radClone(msg) }
-    : { ...radClone(msg), teleport: { targetLocation: t.target } };
+  if (t) {
+    console.log(`Actioning teleport to: ${t.target}`);
+    return { ...radClone(msg), teleport: { targetLocation: t.target } };
+  } else {
+    return { ...radClone(msg) };
+  }
 }
 
 type StepFunc = OperationStep<Args, Out>;
