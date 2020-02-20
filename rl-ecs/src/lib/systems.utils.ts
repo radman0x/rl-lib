@@ -78,7 +78,7 @@ export function singleAnim(em: EntityManager, image: string) {
     return obs.pipe(
       map(msg => {
         console.log(`ANIMATE: Creating image: ${image}`);
-        const id = em.createEntity(
+        const id = em.create(
           new Renderable({ image, zOrder: 99, uiElem: true }),
           new GridPos(msg.targetPos),
           new DisplayOnly()

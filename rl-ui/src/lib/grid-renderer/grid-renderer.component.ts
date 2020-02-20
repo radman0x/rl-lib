@@ -91,7 +91,7 @@ export class GridRendererComponent implements OnInit {
   }
 
   reset(): void {
-    for (const [id, sprite] of this.sprites) {
+    for (const [, sprite] of this.sprites) {
       sprite.destroy();
     }
     this.sprites = new Map<number, PIXI.Sprite>();
@@ -118,18 +118,25 @@ export class GridRendererComponent implements OnInit {
 
     let currentKnowledge: KnowledgeMap;
     let historicalKnowledge: KnowledgeMap;
+    let viewerZPos: number;
     if (this.viewerId !== undefined) {
+      viewerZPos = this.em.getComponent(this.viewerId, GridPos).z;
       const viewerKnowledge = this.em.getComponent(this.viewerId, Knowledge);
       currentKnowledge = viewerKnowledge.current;
       historicalKnowledge = viewerKnowledge.history;
     }
 
+    // NOTE: Replaced this with the below, only making not visible had the sprites appearing somewhat randomly about the place after transitioning levels :P
+    // for (const [, sprite] of this.sprites) {
+    //   sprite.visible = false;
+    // }
     for (const [, sprite] of this.sprites) {
-      sprite.visible = false;
+      sprite.destroy();
     }
+    this.sprites.clear();
 
-    this.renderFromKnowledge(historicalKnowledge, stage, 0x999999);
-    this.renderFromKnowledge(currentKnowledge, stage, 0xffffff);
+    this.renderFromKnowledge(historicalKnowledge, viewerZPos, stage, 0x999999);
+    this.renderFromKnowledge(currentKnowledge, viewerZPos, stage, 0xffffff);
     stage.scale.set(
       this.renderer.pixiApp.renderer.width / this.desiredDisplayWidthPx
     );
@@ -158,18 +165,18 @@ export class GridRendererComponent implements OnInit {
 
   private renderFromKnowledge(
     knowledge: KnowledgeMap,
+    viewerZPos: number,
     stage: PIXI.Container,
     tint: number
   ) {
     const zValueCalc = (e: Entity) => e.component(Renderable).zOrder;
-    const zSortedHistoricalKnowledgePositions = Array.from(
-      knowledge.values()
-    ).sort((lhs, rhs) => lhs.k.z - rhs.k.z);
+    const zSortedHistoricalKnowledgePositions = Array.from(knowledge.values())
+      .filter(({ k: pos }) => pos.z >= viewerZPos - 1 && pos.z <= viewerZPos)
+      .sort((lhs, rhs) => lhs.k.z - rhs.k.z);
     for (const { k: seenPos, v: ids } of zSortedHistoricalKnowledgePositions) {
-      const sortedIds = [...ids].sort(
-        (lhs, rhs) =>
-          zValueCalc(this.em.get(lhs)) - zValueCalc(this.em.get(rhs))
-      );
+      const sortedIds = [...ids].sort((lhs, rhs) => {
+        return zValueCalc(this.em.get(lhs)) - zValueCalc(this.em.get(rhs));
+      });
       for (const seenEntityId of sortedIds) {
         this.renderEntity(seenEntityId, stage, tint, seenPos);
       }

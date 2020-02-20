@@ -20,8 +20,8 @@ describe('Add to inventory', () => {
     em = new EntityManager();
     em.indexBy(GridPos);
     logger = msg => console.log(`LOG: ${msg}`);
-    item = em.createEntity().id;
-    collector = em.createEntity(new Inventory({ contents: [] })).id;
+    item = em.create().id;
+    collector = em.create(new Inventory({ contents: [] })).id;
     msg = { protagId: collector, targetId: item };
   });
 

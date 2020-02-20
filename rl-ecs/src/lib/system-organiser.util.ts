@@ -198,9 +198,7 @@ export class SystemOrganiser {
     this.areaTransitioned$ = this.effectModified$.pipe(
       tap(msg => console.log(`Checking for area transition`)),
       filter(hasAreaTransition),
-      map(msg =>
-        area(msg, this.em, areaId => this.areaResolver.resolveArea(areaId))
-      ),
+      map(msg => area(msg, this.em, this.areaResolver)),
       tap(msg => console.log(`Area transitioned`))
     );
 

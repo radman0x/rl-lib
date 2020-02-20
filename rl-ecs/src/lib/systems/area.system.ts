@@ -1,12 +1,11 @@
-import { EntityManager, EntityId } from 'rad-ecs';
+import { EntityId, EntityManager, Entity } from 'rad-ecs';
+import { AreaResolver } from '../area-resolver.model';
 import { OperationStep } from '../operation-step.model';
-import { TransitionAreaOut } from './transition-area.system';
-import { radClone } from '../systems.utils';
-import { Area } from '../area-resolver.model';
 import { TargetEntity } from '../systems.types';
+import { radClone } from '../systems.utils';
+import { TransitionAreaOut } from './transition-area.system';
 import { GridPos } from '../components/position.model';
-import { Knowledge } from '../components/knowledge.model';
-import { ValueMap } from '@rad/rl-utils';
+import { AreaIngress } from '../components/area-ingress';
 
 type Args = Required<TransitionAreaOut> & TargetEntity;
 export type AreaArgs = Args;
@@ -19,26 +18,25 @@ export type AreaOut = Out;
 function areaStep<T extends Args>(
   msg: T,
   em: EntityManager,
-  areaResolver: (areaId: string) => Area
+  areaResolver: AreaResolver
 ): T & Out {
-  const area = areaResolver(msg.areaTransition.areaId);
-  console.log(`Loading new area: ${msg.areaTransition.areaId}`);
-  const targetEntity = radClone(em.get(msg.targetId));
+  const targetEntity = em.get(msg.targetId);
+  const targetPos = targetEntity.component(GridPos);
+  em.remove(msg.targetId);
+  const prevArea = em.export();
+  areaResolver.setSaved(areaResolver.currentArea(), prevArea.entities);
   em.clear();
-  em.indexBy(GridPos);
-  for (const entityComponents of area.entities) {
-    em.createEntity(...entityComponents);
-  }
-  const targetId = em.createEntity(
-    ...targetEntity.allComponents().map(entry => entry.component)
-  ).id;
-  em.setComponent(targetId, new GridPos(area.startPos));
-  em.setComponent(
-    targetId,
-    new Knowledge({ current: new ValueMap(), history: new ValueMap() })
-  );
+  areaResolver.load(msg.areaTransition.areaId, em);
 
-  return { ...radClone(msg), viewerEntity: targetId };
+  em.add(targetEntity);
+  em.each((e: Entity, ai: AreaIngress) => {
+    if (ai.label === msg.areaTransition.ingressLabel) {
+      console.log(`Matched ingress label`);
+      em.setComponent(targetEntity.id, radClone(e.component(GridPos)));
+    }
+  }, AreaIngress);
+
+  return { ...radClone(msg), viewerEntity: msg.targetId };
 }
 
 type StepFunc = OperationStep<Args, Out>;

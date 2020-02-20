@@ -39,14 +39,14 @@ describe('System organiser utility', () => {
     beforeEach(() => {
       basics = theBasics();
       doorPos = new GridPos({ x: 0, y: 0, z: 0 });
-      toggleEffect = basics.em.createEntity(
+      toggleEffect = basics.em.create(
         new Targeted({ range: 1 }),
         new ToggleLock({ lockId: 'X' }),
         new SingleTarget()
       ).id;
       lockedImage = 'locked-image';
       unlockedImage = 'unlocked-image';
-      lock = basics.em.createEntity(
+      lock = basics.em.create(
         doorPos,
         new Renderable({ image: 'start-image', zOrder: 100 }),
         new Lock({
@@ -135,8 +135,8 @@ describe('System organiser utility', () => {
       startPos = new GridPos({ x: 1, y: 1, z: 1 });
       endPos = new GridPos({ x: 2, y: 1, z: 1 });
       endGroupPos = new GridPos({ x: 2, y: 1, z: 0 });
-      mover = basics.em.createEntity(new GridPos(startPos)).id;
-      ground = basics.em.createEntity(
+      mover = basics.em.create(new GridPos(startPos)).id;
+      ground = basics.em.create(
         new GridPos(endGroupPos),
         new Physical({ size: Size.FILL })
       ).id;
@@ -151,7 +151,7 @@ describe('System organiser utility', () => {
     });
 
     it('should fail to move if another entity is filling the target space', () => {
-      basics.em.createEntity(endPos, new Physical({ size: Size.FILL }));
+      basics.em.create(endPos, new Physical({ size: Size.FILL }));
 
       basics.org.moveRequest$.next({
         protagId: mover,
@@ -161,10 +161,7 @@ describe('System organiser utility', () => {
     });
 
     it('should fail to move if another entity is blocking the target', () => {
-      basics.em.createEntity(
-        endPos,
-        new Blockage({ active: true, triggers: [] })
-      );
+      basics.em.create(endPos, new Blockage({ active: true, triggers: [] }));
 
       basics.org.moveRequest$.next({
         protagId: mover,
@@ -192,11 +189,11 @@ describe('System organiser utility', () => {
     beforeEach(() => {
       basics = theBasics();
       actionPos = new GridPos({ x: 1, y: 1, z: 1 });
-      collectorId = basics.em.createEntity(
+      collectorId = basics.em.create(
         new Inventory({ contents: [] }),
         new GridPos(actionPos)
       ).id;
-      itemId = basics.em.createEntity(new GridPos(actionPos)).id;
+      itemId = basics.em.create(new GridPos(actionPos)).id;
     });
     it('should successfully add an item to the inventory of the protagonist', () => {
       basics.org.requestCollectLocal$.next({ protagId: collectorId });
@@ -229,16 +226,14 @@ describe('System organiser utility', () => {
     beforeEach(() => {
       basics = theBasics();
       targetPos = new GridPos({ x: 1, y: 1, z: 1 });
-      effect = basics.em.createEntity(
-        new Burn({ amount: 500 }),
-        new SingleTarget()
-      ).id;
+      effect = basics.em.create(new Burn({ amount: 500 }), new SingleTarget())
+        .id;
 
-      target = basics.em.createEntity(
+      target = basics.em.create(
         new GridPos({ ...targetPos }),
         new Integrity({ max: 100, current: 100 })
       ).id;
-      target2 = basics.em.createEntity(
+      target2 = basics.em.create(
         new GridPos({ x: 2, y: 2, z: 1 }),
         new FireResistance({ factor: 5 }),
         new Integrity({ max: 100, current: 100 })

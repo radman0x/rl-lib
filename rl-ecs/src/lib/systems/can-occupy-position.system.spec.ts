@@ -12,9 +12,9 @@ describe('Can occupy position', () => {
 
   beforeEach(() => {
     em = new EntityManager();
-    em.createEntity(new Physical({ size: Size.FILL }), new GridPos(fillPos));
-    em.createEntity(new Physical({ size: Size.SMALL }), new GridPos(smallPos));
-    em.createEntity(new GridPos(noPhysicalPos));
+    em.create(new Physical({ size: Size.FILL }), new GridPos(fillPos));
+    em.create(new Physical({ size: Size.SMALL }), new GridPos(smallPos));
+    em.create(new GridPos(noPhysicalPos));
   });
 
   it(`should raise an error when targetPos isn't set`, () => {

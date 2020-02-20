@@ -1,62 +1,106 @@
-import * as ROT from 'rot-js';
-import { Renderable, GridPos, Physical, Size } from '..';
 import { popRandomElement } from '@rad/rl-utils';
-import { Component } from 'rad-ecs';
-import { GridPosData } from './components/position.model';
+import { EntityData, EntityManager } from 'rad-ecs';
+import * as ROT from 'rot-js';
+import { Climbable, Effects, GridPos, Physical, Renderable, Size } from '..';
+import { allComponentIndex } from './component-utils.model';
+import { AreaIngress } from './components/area-ingress';
+import { AreaTransition } from './components/area-transition.model';
+import { radClone } from './systems.utils';
 
-export interface Area {
-  entities: Component[][];
-  startPos: GridPosData;
-}
-export interface Areas {
-  [areaId: string]: Area;
-}
+export type AreaBuilder = (em: EntityManager) => void;
 
 const BLOCKED = 1;
 const OPEN = 0;
+
 export class AreaResolver {
-  private areas: Areas;
+  private areaBuilders: {
+    [areaId: string]: AreaBuilder;
+  } = {};
+  private savedAreas: {
+    [areaId: string]: EntityData;
+  } = {};
+  private currentAreaId: string | null = null;
+
   constructor() {
+    this.areaBuilders['secondLevel'] = (em: EntityManager) =>
+      this.hardcodeBuilder(em);
+  }
+
+  load(areaId: string, em: EntityManager) {
+    if (areaId in this.savedAreas) {
+      console.log(`Loading saved area: ${areaId}`);
+      em.import(
+        { indexed: ['GridPos'], entities: this.savedAreas[areaId] },
+        allComponentIndex()
+      );
+    } else if (areaId in this.areaBuilders) {
+      em.indexBy(GridPos);
+      console.log(`Building new area: ${areaId}`);
+      this.areaBuilders[areaId](em);
+    } else {
+      throw Error(`Area requested: ${areaId} doesn't exist!`);
+    }
+    this.currentAreaId = areaId;
+  }
+
+  setSaved(areaId: string, area: EntityData) {
+    console.log(`setting saved area: ${areaId}`);
+    this.savedAreas[areaId] = radClone(area);
+  }
+
+  setBuilder(areaId: string, builder: AreaBuilder) {
+    this.areaBuilders[areaId] = builder;
+  }
+
+  currentArea(areaId?: string): string {
+    if (areaId) {
+      this.currentAreaId = areaId;
+    }
+    return this.currentAreaId;
+  }
+
+  hardcodeBuilder(em: EntityManager) {
     const world = new ROT.Map.Uniform(38, 10, {
       roomDugPercentage: 0.9
     });
-
-    const entities: Component[][] = [];
     world.create((x: number, y: number, contents: number) => {
       if (contents === BLOCKED) {
-        entities.push([
+        em.create(
           new Renderable({ image: 'Wall-110.png', zOrder: 1 }),
-          new GridPos({ x, y, z: 1 }),
+          new GridPos({ x, y, z: -1 }),
           new Physical({ size: Size.FILL })
-        ]);
+        );
       } else if (contents === OPEN) {
-        entities.push([
+        em.create(
           new Renderable({ image: 'Floor-144.png', zOrder: 1 }),
-          new GridPos({ x, y, z: 0 }),
+          new GridPos({ x, y, z: -2 }),
           new Physical({ size: Size.FILL })
-        ]);
+        );
       }
     });
+
     let rooms = world.getRooms();
     let playerRoom = popRandomElement(rooms);
     let startPos = new GridPos({
       x: playerRoom.getCenter()[0],
       y: playerRoom.getCenter()[1],
-      z: 1
+      z: -1
     });
-    this.areas = {
-      secondLevel: {
-        startPos,
-        entities
-      }
-    };
-  }
-
-  resolveArea(areaId: string) {
-    if (areaId in this.areas) {
-      return this.areas[areaId];
-    } else {
-      throw Error(`Area requested: ${areaId} doesn't exist!!`);
-    }
+    em.create(
+      startPos,
+      new AreaIngress({ label: 'entry1' }),
+      new Renderable({ image: 'Tile-12.png', zOrder: 0 }),
+      new Effects({
+        contents: [
+          em.create(
+            new Climbable(),
+            new AreaTransition({
+              areaId: 'firstLevel',
+              ingressLabel: 'entry1'
+            })
+          ).id
+        ]
+      })
+    );
   }
 }
