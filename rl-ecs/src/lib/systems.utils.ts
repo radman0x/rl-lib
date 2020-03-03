@@ -7,7 +7,12 @@ import { DisplayOnly } from './components/display-only.model';
 import { LockState } from './components/lock.model';
 import { GridPos, GridPosData } from './components/position.model';
 import { Renderable } from './components/renderable.model';
-import { ActiveEffect, TargetPos, Teleported } from './systems.types';
+import {
+  ActiveEffect,
+  TargetPos,
+  Teleported,
+  LockChange
+} from './systems.types';
 import { ClimbableData } from './components/climbable.model';
 import { AreaTransition } from './components/area-transition.model';
 import { TransitionAreaOut } from './systems/transition-area.system';
@@ -126,7 +131,7 @@ export function hasSpatialChange<T>(a: T): a is T & { teleport: Teleported } {
   return a['teleport'] !== undefined;
 }
 
-export function hasLockChange<T>(a: T): a is T & { lockChange: LockState } {
+export function hasLockChange<T>(a: T): a is T & Required<LockChange> {
   return a['lockChange'] !== undefined;
 }
 

@@ -56,6 +56,9 @@ import { toggleLock } from './systems/toggle-lock.system';
 import { transitionArea } from './systems/transition-area.system';
 import { AreaResolver } from './area-resolver.model';
 import { area } from './systems/area.system';
+import { lockQuality } from './systems/lock-quality.system';
+import { EndType } from './components/end-state.model';
+import { endState } from './systems/end-state.system';
 
 export class SystemOrganiser {
   aoeTargetPositions: Observable<{ targetPos: GridPosData } & EffectStart>;
@@ -124,7 +127,8 @@ export class SystemOrganiser {
   constructor(
     private em: EntityManager,
     private logger: Logger,
-    private areaResolver: AreaResolver
+    private areaResolver: AreaResolver,
+    private ender: (et: EndType) => void
   ) {
     hookEntitiesAtProtagPos(
       this.requestCollectLocal$,
@@ -155,6 +159,7 @@ export class SystemOrganiser {
     );
 
     merge(
+      this.effectOnEntity$.pipe(map(msg => endState(msg, this.em, this.ender))),
       this.effectOnEntity$.pipe(map(msg => burn(msg, this.em))),
       this.effectOnEntity$.pipe(map(msg => freeze(msg, this.em))),
       this.effectOnEntity$.pipe(map(msg => toggleLock(msg, this.em))),
@@ -164,6 +169,7 @@ export class SystemOrganiser {
 
     this.effectProduced$
       .pipe(map(msg => fireResist(msg, this.em)))
+      .pipe(map(msg => lockQuality(msg, this.em)))
       .subscribe(this.effectModified$);
 
     this.effectModified$

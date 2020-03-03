@@ -4,7 +4,7 @@ import { TargetEntity, LockChange } from '../systems.types';
 import { Lock, oppositeLockState, LockState } from '../components/lock.model';
 import { Renderable } from '../components/renderable.model';
 
-type Args = TargetEntity & LockChange;
+type Args = TargetEntity & Required<LockChange>;
 export type LockArgs = Args;
 
 interface Out {}

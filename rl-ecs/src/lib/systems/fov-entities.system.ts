@@ -9,6 +9,7 @@ import { OperationStepMulti } from '../operation-step.model';
 import { hasProtagId } from '../systems.utils';
 import { ProtagonistEntity } from '../systems.types';
 import { radClone } from '../systems.utils';
+import { Blockage } from '../components/blockage.model';
 
 export interface HookFovEntitiesArgs {
   protagId: EntityId;
@@ -53,10 +54,13 @@ function fovEntitiesStep<T extends Args>(
     let blocking = em
       .matchingIndex(new GridPos({ x, y, z: msg.viewerPos.z }))
       .filter((e: Entity) => {
-        if (e.has(GridPos) && e.has(Physical)) {
-          let [position, physical] = e.components(GridPos, Physical);
-          return physical.size === Size.FILL && position.z === msg.viewerPos.z;
+        if (e.has(Physical) && e.component(Physical).size === Size.FILL) {
+          return true;
         }
+        if (e.has(Blockage) && e.component(Blockage).active === true) {
+          return true;
+        }
+        return false;
       });
     return blocking.length === 0;
   };

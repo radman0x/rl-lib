@@ -70,5 +70,7 @@ export interface Collected {
 }
 
 export interface LockChange {
-  lockChange: LockState;
+  lockChange?: {
+    lockId?: string;
+  };
 }
