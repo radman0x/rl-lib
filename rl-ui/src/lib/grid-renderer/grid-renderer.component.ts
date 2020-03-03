@@ -51,6 +51,9 @@ export class GridRendererComponent implements OnInit {
   }
 
   ngOnInit() {
+    if (!this.em) {
+      throw Error(`No entity manager provided to grid renderer`);
+    }
     this.desiredDisplayWidthPx =
       this.settings.tileSize * this.settings.displayWidthInTiles;
   }
