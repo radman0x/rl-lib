@@ -116,30 +116,32 @@ export class GridRendererComponent implements OnInit {
       GridPos
     );
 
-    let currentKnowledge: KnowledgeMap;
-    let historicalKnowledge: KnowledgeMap;
-    let viewerZPos: number;
     if (this.viewerId !== undefined) {
-      viewerZPos = this.em.getComponent(this.viewerId, GridPos).z;
+      const viewerZPos = this.em.getComponent(this.viewerId, GridPos).z;
       const viewerKnowledge = this.em.getComponent(this.viewerId, Knowledge);
-      currentKnowledge = viewerKnowledge.current;
-      historicalKnowledge = viewerKnowledge.history;
-    }
+      const currentKnowledge = viewerKnowledge.current;
+      const historicalKnowledge = viewerKnowledge.history;
 
-    // NOTE: Replaced this with the below, only making not visible had the sprites appearing somewhat randomly about the place after transitioning levels :P
-    // for (const [, sprite] of this.sprites) {
-    //   sprite.visible = false;
-    // }
-    for (const [, sprite] of this.sprites) {
-      sprite.destroy();
-    }
-    this.sprites.clear();
+      // NOTE: Replaced this with the below, only making not visible had the sprites appearing somewhat randomly about the place after transitioning levels :P
+      // for (const [, sprite] of this.sprites) {
+      //   sprite.visible = false;
+      // }
+      for (const [, sprite] of this.sprites) {
+        sprite.destroy();
+      }
+      this.sprites.clear();
 
-    this.renderFromKnowledge(historicalKnowledge, viewerZPos, stage, 0x999999);
-    this.renderFromKnowledge(currentKnowledge, viewerZPos, stage, 0xffffff);
-    stage.scale.set(
-      this.renderer.pixiApp.renderer.width / this.desiredDisplayWidthPx
-    );
+      this.renderFromKnowledge(
+        historicalKnowledge,
+        viewerZPos,
+        stage,
+        0x999999
+      );
+      this.renderFromKnowledge(currentKnowledge, viewerZPos, stage, 0xffffff);
+      stage.scale.set(
+        this.renderer.pixiApp.renderer.width / this.desiredDisplayWidthPx
+      );
+    }
   }
 
   get tileSize() {
