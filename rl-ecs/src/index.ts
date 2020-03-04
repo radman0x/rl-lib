@@ -10,3 +10,5 @@ export * from './lib/components/teleport.model';
 export * from './lib/ecs.types';
 export * from './lib/system-organiser.util';
 export * from './lib/systems.utils';
+
+export * from './lib/areas/area-spec.model';

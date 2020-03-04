@@ -79,6 +79,7 @@ function fovEntitiesStep<T extends Args>(
   );
 
   const viewedEntities = viewedPositions.map(pos => {
+    // console.log(`FOV: position ${pos} currently in view`);
     return em
       .matchingIndex(pos)
       .map(e => ({ ...radClone(msg), viewed: { entityId: e.id, atPos: pos } }));

@@ -29,12 +29,21 @@ function areaStep<T extends Args>(
   areaResolver.load(msg.areaTransition.areaId, em);
 
   em.add(targetEntity);
+  let ingressFound = false;
   em.each((e: Entity, ai: AreaIngress) => {
     if (ai.label === msg.areaTransition.ingressLabel) {
       console.log(`Matched ingress label`);
-      em.setComponent(targetEntity.id, radClone(e.component(GridPos)));
+      const playerAt = radClone(e.component(GridPos));
+      console.log(`Player placed at: ${playerAt} in new area`);
+      em.setComponent(targetEntity.id, playerAt);
+      ingressFound = true;
     }
   }, AreaIngress);
+  if (!ingressFound) {
+    throw Error(
+      `Ingress label: ${msg.areaTransition.ingressLabel} not found in new level!!`
+    );
+  }
 
   return { ...radClone(msg), viewerEntity: msg.targetId };
 }

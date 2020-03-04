@@ -21,6 +21,7 @@ import { Teleport } from './components/teleport.model';
 import { ToggleLock } from './components/toggle-lock.model';
 import { Damage } from './components/damage.model';
 import { AreaIngress } from './components/area-ingress';
+import { EndState } from './components/end-state.model';
 
 export function allComponentIndex(): {
   [name: string]: new (...args: any[]) => any;
@@ -49,6 +50,7 @@ export function allComponentIndex(): {
     SingleTarget: SingleTarget,
     Targeted: Targeted,
     Teleport: Teleport,
-    ToggleLock: ToggleLock
+    ToggleLock: ToggleLock,
+    EndState: EndState
   };
 }
