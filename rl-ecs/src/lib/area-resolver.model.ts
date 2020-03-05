@@ -28,11 +28,13 @@ export class AreaResolver {
 
   load(areaId: string, em: EntityManager) {
     if (areaId in this.savedAreas) {
-      console.log(`Loading saved area: ${areaId}`);
-      em.import(
-        { indexed: ['GridPos'], entities: this.savedAreas[areaId] },
-        allComponentIndex()
-      );
+      return;
+      // radNOTE: temporarily removed, this could be added back in if the game needs to be optimised in the future
+      // console.log(`Loading saved area: ${areaId}`);
+      // em.import(
+      //   { indexed: ['GridPos'], entities: this.savedAreas[areaId] },
+      //   allComponentIndex()
+      // );
     } else if (areaId in this.areaBuilders) {
       em.indexBy(GridPos);
       console.log(`Building new area: ${areaId}`);

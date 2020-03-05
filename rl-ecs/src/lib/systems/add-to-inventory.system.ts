@@ -6,6 +6,7 @@ import { GridPos } from '../components/position.model';
 import { Logger } from '../ecs.types';
 import { OperationStep } from '../operation-step.model';
 import { Collected, ProtagonistEntity, TargetEntity } from '../systems.types';
+import { Fixed } from '../components/fixed.model';
 
 type Args = ProtagonistEntity & TargetEntity;
 export type AddToInventoryArgs = Args;
@@ -43,6 +44,7 @@ export function hookAddToInventory<T extends AddToInventoryArgs>(
   source
     .pipe(
       filter(msg => em.hasComponent(msg.protagId, Inventory)),
+      filter(msg => !em.hasComponent(msg.targetId, Fixed)),
       map(msg => addToInventoryStep(msg, em, logger))
     )
     .subscribe(dest);

@@ -178,10 +178,13 @@ export class GridRendererComponent implements OnInit {
     const zSortedHistoricalKnowledgePositions = Array.from(knowledge.values())
       .filter(({ k: pos }) => pos.z >= viewerZPos - 1 && pos.z <= viewerZPos)
       .sort((lhs, rhs) => lhs.k.z - rhs.k.z);
+
     for (const { k: seenPos, v: ids } of zSortedHistoricalKnowledgePositions) {
-      const sortedIds = [...ids].sort((lhs, rhs) => {
-        return zValueCalc(this.em.get(lhs)) - zValueCalc(this.em.get(rhs));
-      });
+      const sortedIds = [...ids]
+        .filter(id => this.em.getComponent(id, Renderable) !== undefined)
+        .sort((lhs, rhs) => {
+          return zValueCalc(this.em.get(lhs)) - zValueCalc(this.em.get(rhs));
+        });
       for (const seenEntityId of sortedIds) {
         this.renderEntity(seenEntityId, stage, tint, seenPos);
       }

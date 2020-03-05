@@ -111,7 +111,7 @@ export class SystemOrganiser {
     ProtagonistEntity & TargetEntity & Collected
   >();
 
-  public turnEnded$ = new Subject();
+  public turnEnded$ = new Subject<any>();
   public houseKeepKnowledge$ = new Subject<ProtagonistEntity>();
   public processSighted$ = new Subject<ProtagonistEntity>();
   public entityInVision$ = new Subject<ProtagonistEntity & FOVEntitiesOut>();
@@ -123,6 +123,7 @@ export class SystemOrganiser {
   public effectOnEnvironment$ = new Subject<ActiveEffect>();
 
   public areaTransitioned$ = new Observable<{ viewerEntity: EntityId }>();
+  public lockStateChanged$ = new Subject<any>();
 
   constructor(
     private em: EntityManager,
@@ -188,11 +189,7 @@ export class SystemOrganiser {
         filter(hasLockChange),
         map(msg => lock(msg, this.em))
       )
-      .subscribe(() => {});
-
-    this.effectModified$
-      .pipe(map(msg => blocking(msg, this.em)))
-      .subscribe(() => {});
+      .subscribe(this.lockStateChanged$);
 
     this.effectModified$
       .pipe(
@@ -210,7 +207,8 @@ export class SystemOrganiser {
 
     this.movePerformed$.subscribe(this.turnEnded$);
 
-    this.turnEnded$.subscribe(msg => console.log(`turn ended!`));
+    this.turnEnded$.subscribe(() => console.log(`turn ended!`));
+    this.turnEnded$.subscribe(msg => blocking(msg, this.em));
     hookEntitiesWithComponent(
       this.turnEnded$,
       this.houseKeepKnowledge$,
