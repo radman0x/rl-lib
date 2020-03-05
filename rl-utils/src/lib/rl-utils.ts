@@ -172,3 +172,15 @@ export function withinRange(range: number, target: Coord, start: Coord) {
     Math.abs(target.z - start.z) <= range
   );
 }
+export interface Vec3 {
+  x: number;
+  y: number;
+  z: number;
+}
+export function addVec3(lhs: Vec3, rhs: Vec3) {
+  return {
+    x: lhs.x + rhs.x,
+    y: lhs.y + rhs.y,
+    z: lhs.z + rhs.z
+  };
+}

@@ -21,7 +21,6 @@ function areaStep<T extends Args>(
   areaResolver: AreaResolver
 ): T & Out {
   const targetEntity = em.get(msg.targetId);
-  const targetPos = targetEntity.component(GridPos);
   em.remove(msg.targetId);
   const prevArea = em.export();
   areaResolver.setSaved(areaResolver.currentArea(), prevArea.entities);
