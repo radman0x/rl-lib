@@ -137,6 +137,28 @@ export const compassDirectionToUnitVector: Map<
 
 export const DIR_FROM_KEY = new Map<string, CompassDirection>([
   ['1', CompassDirection.SW],
+
+  ['ArrowDown', CompassDirection.S],
+  ['2', CompassDirection.S],
+
+  ['3', CompassDirection.SE],
+
+  ['ArrowLeft', CompassDirection.W],
+  ['4', CompassDirection.W],
+
+  ['ArrowRight', CompassDirection.E],
+  ['6', CompassDirection.E],
+
+  ['7', CompassDirection.NW],
+
+  ['ArrowUp', CompassDirection.N],
+  ['8', CompassDirection.N],
+
+  ['9', CompassDirection.NE]
+]);
+
+export const DIR_FROM_KEY_VI = new Map<string, CompassDirection>([
+  ['1', CompassDirection.SW],
   ['b', CompassDirection.SW],
 
   ['ArrowDown', CompassDirection.S],

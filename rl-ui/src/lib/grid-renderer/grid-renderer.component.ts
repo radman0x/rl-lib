@@ -19,6 +19,7 @@ import { KnowledgeMap, Knowledge } from '@rad/rl-ecs';
 export interface RendererSettings {
   tileSize: number;
   displayWidthInTiles: number;
+  displayHeightInTiles: number;
 }
 
 @Component({
@@ -38,6 +39,7 @@ export class GridRendererComponent implements OnInit {
 
   private sprites = new Map<number, PIXI.Sprite>();
   private desiredDisplayWidthPx: number;
+  private desiredDisplayHeightPx: number;
 
   public maxTileY: number;
   public maxTileX: number;
@@ -56,6 +58,8 @@ export class GridRendererComponent implements OnInit {
     }
     this.desiredDisplayWidthPx =
       this.settings.tileSize * this.settings.displayWidthInTiles;
+    this.desiredDisplayHeightPx =
+      this.settings.tileSize * this.settings.displayHeightInTiles;
   }
 
   ngAfterViewInit(): void {
@@ -106,18 +110,30 @@ export class GridRendererComponent implements OnInit {
     const stage = this.renderer.pixiApp.stage;
     const TILE_SIZE = this.settings.tileSize;
 
-    this.maxTileY = -1;
-    this.maxTileX = -1;
-    this.em.each(
-      (e, r, p) => {
-        if (!r.uiElem) {
-          this.maxTileY = Math.max(this.maxTileY, p.y * TILE_SIZE);
-          this.maxTileX = Math.max(this.maxTileX, p.x * TILE_SIZE);
-        }
-      },
-      Renderable,
-      GridPos
-    );
+    // radNOTE:
+    // This is dynamic calculation of the dimensions of the world rendering based off what's in the ECS. This could be
+    // useful where level sizes vary and you want the render area to dynamically expand to fit. However with the advent
+    // of multiple levels and not currently clearing existing it works off anything that existed ever. I've swapped to
+    // a static config specfication but I can see that the dynamic calculation could be useful when I want to make the
+    // render control more sophisticated.
+    //
+    // this.maxTileY = -1;
+    // this.maxTileX = -1;
+    // this.em.each(
+    //   (e, r, p) => {
+    //     if (!r.uiElem) {
+    //       this.maxTileY = Math.max(this.maxTileY, p.y * TILE_SIZE);
+    //       this.maxTileX = Math.max(this.maxTileX, p.x * TILE_SIZE);
+    //     }
+    //   },
+    //   Renderable,
+    //   GridPos
+    // );
+    // this.maxTileX += 1 * TILE_SIZE;
+    // this.maxTileY += 1 * TILE_SIZE;
+
+    this.maxTileX = this.desiredDisplayWidthPx - TILE_SIZE;
+    this.maxTileY = this.desiredDisplayHeightPx - TILE_SIZE;
 
     if (this.viewerId !== undefined) {
       const viewerZPos = this.em.getComponent(this.viewerId, GridPos).z;
@@ -125,7 +141,7 @@ export class GridRendererComponent implements OnInit {
       const currentKnowledge = viewerKnowledge.current;
       const historicalKnowledge = viewerKnowledge.history;
 
-      // NOTE: Replaced this with the below, only making not visible had the sprites appearing somewhat randomly about the place after transitioning levels :P
+      // radNOTE: Replaced this with the below, only making not visible had the sprites appearing somewhat randomly about the place after transitioning levels :P
       // for (const [, sprite] of this.sprites) {
       //   sprite.visible = false;
       // }
@@ -141,9 +157,11 @@ export class GridRendererComponent implements OnInit {
         0x999999
       );
       this.renderFromKnowledge(currentKnowledge, viewerZPos, stage, 0xffffff);
-      stage.scale.set(
-        this.renderer.pixiApp.renderer.width / this.desiredDisplayWidthPx
-      );
+      const widthLimit =
+        this.renderer.pixiApp.renderer.width / this.desiredDisplayWidthPx;
+      const heightLimit =
+        this.renderer.pixiApp.renderer.height / this.desiredDisplayHeightPx;
+      stage.scale.set(Math.min(widthLimit, heightLimit));
     }
   }
 
