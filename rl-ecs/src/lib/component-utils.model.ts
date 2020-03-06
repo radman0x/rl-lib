@@ -10,8 +10,8 @@ import { Freeze } from './components/freeze.model';
 import { Inventory } from './components/inventory.model';
 import { Knowledge } from './components/knowledge.model';
 import { Lock } from './components/lock.model';
-import { Physical } from './components/physical.model';
-import { GridPos } from './components/position.model';
+import { Physical, Size } from './components/physical.model';
+import { GridPos, GridPosData } from './components/position.model';
 import { Renderable } from './components/renderable.model';
 import { FireResistance, ColdResistance } from './components/resistance.model';
 import { Sighted } from './components/sighted.model';
@@ -20,10 +20,13 @@ import { Targeted } from './components/targeted.model';
 import { Teleport } from './components/teleport.model';
 import { ToggleLock } from './components/toggle-lock.model';
 import { Damage } from './components/damage.model';
-import { AreaIngress } from './components/area-ingress';
+import { AreaIngress, AreaIngressData } from './components/area-ingress';
 import { EndState } from './components/end-state.model';
 import { Usable } from './components/usable.model';
 import { Fixed } from './components/fixed.model';
+import { Description } from './components/description.model';
+import { EntityManager } from 'rad-ecs';
+import { EgressDirection, Egress } from './areas/area-spec.model';
 
 export function allComponentIndex(): {
   [name: string]: new (...args: any[]) => any;
@@ -55,6 +58,43 @@ export function allComponentIndex(): {
     ToggleLock: ToggleLock,
     EndState: EndState,
     [Usable.name]: Usable,
-    Fixed: Fixed
+    Fixed: Fixed,
+    Description: Description
   };
+}
+
+export function staircasePrefab(
+  em: EntityManager,
+  position: GridPosData,
+  areaIngress: AreaIngressData,
+  egress: Egress
+) {
+  const stairImage = (direction: EgressDirection) =>
+    direction === EgressDirection.DOWN ? 'Tile-13.png' : 'Tile-12.png';
+  const stairTypeName = (direction: EgressDirection) =>
+    direction === EgressDirection.DOWN ? 'down' : 'up';
+  em.create(
+    new GridPos(position),
+    new Renderable({
+      image: stairImage(egress.egressDirection),
+      zOrder: 0
+    }),
+    new AreaIngress(areaIngress),
+    new Physical({ size: Size.MEDIUM }),
+    new Description({
+      short: `a staircase ${stairTypeName(egress.egressDirection)}`
+    }),
+    new Fixed({}),
+    new Effects({
+      contents: [
+        em.create(
+          new Climbable(),
+          new AreaTransition({
+            areaId: egress.egressArea,
+            ingressLabel: egress.egressAreaIngressLabel
+          })
+        ).id
+      ]
+    })
+  );
 }

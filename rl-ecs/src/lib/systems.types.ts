@@ -14,6 +14,10 @@ export interface ProtagonistEntity {
   protagId: EntityId;
 }
 
+export interface NoteworthyEntity {
+  noteworthyId: EntityId;
+}
+
 export interface TargetPos {
   targetPos: GridPosData;
 }

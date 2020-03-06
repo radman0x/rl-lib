@@ -1,7 +1,14 @@
-import { ValueMap } from '@rad/rl-utils';
+import { ValueMap, CompassDirection } from '@rad/rl-utils';
 import { EntityId, EntityManager } from 'rad-ecs';
-import { merge, Observable, of, Subject } from 'rxjs';
-import { filter, map, mergeMap, tap } from 'rxjs/operators';
+import {
+  merge,
+  Observable,
+  of,
+  Subject,
+  BehaviorSubject,
+  ReplaySubject
+} from 'rxjs';
+import { filter, map, mergeMap, tap, reduce } from 'rxjs/operators';
 import { Climbable } from './components/climbable.model';
 import { Knowledge } from './components/knowledge.model';
 import { GridPosData } from './components/position.model';
@@ -17,7 +24,8 @@ import {
   ProtagonistEntity,
   TargetEntity,
   TargetPos,
-  Teleported
+  Teleported,
+  NoteworthyEntity
 } from './systems.types';
 import {
   hasClimbable,
@@ -59,6 +67,7 @@ import { area } from './systems/area.system';
 import { lockQuality } from './systems/lock-quality.system';
 import { EndType } from './components/end-state.model';
 import { endState } from './systems/end-state.system';
+import { Description } from './components/description.model';
 
 export class SystemOrganiser {
   aoeTargetPositions: Observable<{ targetPos: GridPosData } & EffectStart>;
@@ -103,7 +112,7 @@ export class SystemOrganiser {
   }>;
 
   public moveOrdered$ = new Subject<CanOccupyPositionArgs & CanStandAtArgs>();
-  public movePerformed$ = new Subject<ProtagonistEntity & EnteredPos>();
+  public positionEntered$ = new Subject<ProtagonistEntity & EnteredPos>();
 
   public requestCollectLocal$ = new Subject<ProtagonistEntity>();
   public performCollection$ = new Subject<ProtagonistEntity & TargetEntity>();
@@ -131,21 +140,6 @@ export class SystemOrganiser {
     private areaResolver: AreaResolver,
     private ender: (et: EndType) => void
   ) {
-    hookEntitiesAtProtagPos(
-      this.requestCollectLocal$,
-      this.performCollection$,
-      this.em
-    );
-    hookAddToInventory(
-      this.performCollection$,
-      this.entityCollected$,
-      this.em,
-      this.logger
-    );
-    hookMoveOrder(this.moveRequest$, this.moveOrdered$, this.em);
-    hookCombatOrder(this.moveRequest$, this.meleeAttack$, this.em);
-    hookPerformMove(this.moveOrdered$, this.movePerformed$, this.em);
-
     hookSingleTarget(
       this.applyTargetedEffect$,
       this.effectAtPosition$,
@@ -205,7 +199,7 @@ export class SystemOrganiser {
       tap(msg => console.log(`Area transitioned`))
     );
 
-    this.movePerformed$.subscribe(this.turnEnded$);
+    this.positionEntered$.subscribe(this.turnEnded$);
 
     this.turnEnded$.subscribe(() => console.log(`turn ended!`));
     this.turnEnded$.subscribe(msg => blocking(msg, this.em));
@@ -270,7 +264,7 @@ export class SystemOrganiser {
       )
       .subscribe(this.effectOnEntity$);
 
-    this.hookErrorReporting(this.movePerformed$);
+    this.hookErrorReporting(this.positionEntered$);
     this.hookErrorReporting(this.performCollection$);
     this.hookErrorReporting(this.entityCollected$);
     this.hookErrorReporting(this.effectProduced$);
@@ -280,6 +274,66 @@ export class SystemOrganiser {
     this.hookErrorReporting(this.processSighted$);
     this.hookErrorReporting(this.entityInVision$);
     this.hookErrorReporting(this.entityInVision$);
+  }
+
+  collectItemFlow(protagId: EntityId) {
+    const collectItem = new Subject<ProtagonistEntity>();
+    const performCollection = new Subject<ProtagonistEntity & TargetEntity>();
+    const itemCollected = new Subject<
+      ProtagonistEntity & TargetEntity & Collected
+    >();
+    hookEntitiesAtProtagPos(collectItem, performCollection, this.em);
+    hookAddToInventory(performCollection, itemCollected, this.em, this.logger);
+    const collections = itemCollected.pipe(
+      reduce(
+        (acc, curr) => {
+          acc.push(curr);
+          return acc;
+        },
+        [] as (ProtagonistEntity & TargetEntity & Collected)[]
+      )
+    );
+    const outputObs = new ReplaySubject<
+      (ProtagonistEntity & TargetEntity & Collected)[]
+    >();
+    collections.subscribe(outputObs);
+    collectItem.next({ protagId });
+    collectItem.complete();
+    return outputObs;
+  }
+
+  orderMoveFlow(protagId: EntityId, direction: CompassDirection) {
+    const moveRequest$ = new Subject<PositionNextToEntityArgs>();
+    const moveOrdered$ = new Subject<CanOccupyPositionArgs & CanStandAtArgs>();
+    const meleeAttack$ = new Subject<CombatTarget & ProtagonistEntity>();
+    const positionEntered$ = new ReplaySubject<
+      ProtagonistEntity & EnteredPos
+    >();
+    const entitiesAtNewPos$ = new Subject<ProtagonistEntity & TargetEntity>();
+    const noteworthyAtNeWPos$ = new ReplaySubject<
+      (ProtagonistEntity & TargetEntity)[]
+    >();
+    hookMoveOrder(moveRequest$, moveOrdered$, this.em);
+    hookCombatOrder(moveRequest$, meleeAttack$, this.em);
+    hookPerformMove(moveOrdered$, positionEntered$, this.em);
+
+    hookEntitiesAtProtagPos(positionEntered$, entitiesAtNewPos$, this.em);
+    entitiesAtNewPos$
+      .pipe(
+        filter(msg => this.em.hasComponent(msg.targetId, Description)),
+        reduce(
+          (acc, curr) => {
+            acc.push(curr);
+            return acc;
+          },
+          [] as (ProtagonistEntity & TargetEntity)[]
+        )
+      )
+      .subscribe(noteworthyAtNeWPos$);
+
+    moveRequest$.next({ protagId, direction });
+    moveRequest$.complete();
+    return { positionEntered$, noteworthyAtNeWPos$ };
   }
 
   errorEncountered(message: string) {
