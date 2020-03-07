@@ -145,6 +145,15 @@ export function hasCombatTarget<T>(
   return a['combatTargetId'] !== undefined;
 }
 
+export function hasOutcomeDescription<T>(
+  a: T
+): a is T & {
+  worldStateChangeDescription: string;
+  activeEffectDescription: string;
+} {
+  return a['worldStateChangeDescription'] && a['activeEffectDescription'];
+}
+
 export function noCombatTarget<T>(a: T): a is T & { combatTargetId: EntityId } {
   return !hasCombatTarget(a);
 }

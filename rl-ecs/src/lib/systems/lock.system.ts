@@ -3,11 +3,15 @@ import { EntityManager } from 'rad-ecs';
 import { TargetEntity, LockChange } from '../systems.types';
 import { Lock, oppositeLockState, LockState } from '../components/lock.model';
 import { Renderable } from '../components/renderable.model';
+import { radClone } from '../systems.utils';
+import { Description } from '../components/description.model';
 
 type Args = TargetEntity & Required<LockChange>;
 export type LockArgs = Args;
 
-interface Out {}
+interface Out {
+  worldStateChangeDescription?: string;
+}
 export type LockOut = Out;
 
 function lockStep<T extends Args>(msg: T, em: EntityManager): T & Out {
@@ -27,8 +31,17 @@ function lockStep<T extends Args>(msg: T, em: EntityManager): T & Out {
       );
       console.log(`LOCK-STATE: updating renderable to: ${stateImage}`);
     }
+    const lockStateDesc = (state: LockState) =>
+      state === LockState.UNLOCKED ? 'unlocks' : 'locks';
+    const targetDescription = em.hasComponent(msg.targetId, Description)
+      ? em.getComponent(msg.targetId, Description).short
+      : 'Target';
+    const worldStateChangeDescription = `${targetDescription} ${lockStateDesc(
+      newState
+    )}`;
+    return { ...radClone(msg), worldStateChangeDescription };
   }
-  return msg;
+  return { ...radClone(msg) };
 }
 
 type StepFunc = OperationStep<Args, Out>;

@@ -73,6 +73,8 @@ export function staircasePrefab(
     direction === EgressDirection.DOWN ? 'Tile-13.png' : 'Tile-12.png';
   const stairTypeName = (direction: EgressDirection) =>
     direction === EgressDirection.DOWN ? 'down' : 'up';
+  const stairActionName = (direction: EgressDirection) =>
+    direction === EgressDirection.DOWN ? 'descend' : 'ascend';
   em.create(
     new GridPos(position),
     new Renderable({
@@ -88,6 +90,9 @@ export function staircasePrefab(
     new Effects({
       contents: [
         em.create(
+          new Description({
+            short: `${stairActionName(egress.egressDirection)} the stairs`
+          }),
           new Climbable(),
           new AreaTransition({
             areaId: egress.egressArea,

@@ -1,17 +1,13 @@
-import { ValueMap, CompassDirection } from '@rad/rl-utils';
+import { CompassDirection, ValueMap } from '@rad/rl-utils';
 import { EntityId, EntityManager } from 'rad-ecs';
-import {
-  merge,
-  Observable,
-  of,
-  Subject,
-  BehaviorSubject,
-  ReplaySubject
-} from 'rxjs';
-import { filter, map, mergeMap, tap, reduce } from 'rxjs/operators';
+import { merge, Observable, of, ReplaySubject, Subject } from 'rxjs';
+import { filter, map, mergeMap, reduce, tap } from 'rxjs/operators';
+import { AreaResolver } from './area-resolver.model';
+import { Blockage } from './components/blockage.model';
 import { Climbable } from './components/climbable.model';
+import { Description } from './components/description.model';
+import { EndType } from './components/end-state.model';
 import { Knowledge } from './components/knowledge.model';
-import { GridPosData } from './components/position.model';
 import { Sighted } from './components/sighted.model';
 import { Logger } from './ecs.types';
 import {
@@ -24,16 +20,16 @@ import {
   ProtagonistEntity,
   TargetEntity,
   TargetPos,
-  Teleported,
-  NoteworthyEntity
+  Teleported
 } from './systems.types';
 import {
+  hasAreaTransition,
   hasClimbable,
   hasDamage,
   hasLockChange,
+  hasOutcomeDescription,
   hasSpatialChange,
-  radClone,
-  hasAreaTransition
+  radClone
 } from './systems.utils';
 import { hookAoeTarget } from './systems/acquire-aoe-targets.system';
 import { acquireEffects } from './systems/acquire-effects.system';
@@ -44,10 +40,11 @@ import {
   hookMoveOrder,
   hookPerformMove
 } from './systems/aggregators.system';
-import { blocking } from './systems/blocking.system';
+import { area } from './systems/area.system';
 import { burn } from './systems/burn.system';
 import { CanOccupyPositionArgs } from './systems/can-occupy-position.system';
 import { CanStandAtArgs } from './systems/can-stand-at-position.system';
+import { endState } from './systems/end-state.system';
 import { hookEntitiesAtPosition } from './systems/entities-at-position.system';
 import { hookEntitiesWithComponent } from './systems/entities-with-component.system';
 import { fireResist } from './systems/fire-resist.system';
@@ -55,162 +52,206 @@ import { FOVEntitiesOut, hookFOVEntities } from './systems/fov-entities.system';
 import { freeze } from './systems/freeze.system';
 import { grimReaper } from './systems/grim-reaper.system';
 import { integrity } from './systems/integrity.system';
+import { lockQuality } from './systems/lock-quality.system';
 import { lock } from './systems/lock.system';
 import { PositionNextToEntityArgs } from './systems/position-next-to-entity.system';
 import { hookSingleTarget } from './systems/single-target.system';
 import { spatial } from './systems/spatial.system';
 import { teleport } from './systems/teleport.system';
 import { toggleLock } from './systems/toggle-lock.system';
-import { transitionArea } from './systems/transition-area.system';
-import { AreaResolver } from './area-resolver.model';
-import { area } from './systems/area.system';
-import { lockQuality } from './systems/lock-quality.system';
-import { EndType } from './components/end-state.model';
-import { endState } from './systems/end-state.system';
-import { Description } from './components/description.model';
+import {
+  transitionArea,
+  TransitionAreaOut
+} from './systems/transition-area.system';
 
 export class SystemOrganiser {
-  aoeTargetPositions: Observable<{ targetPos: GridPosData } & EffectStart>;
-  animationSystem: Observable<{ effectId: EntityId }>;
-  applyDamageSystem: Observable<{}>;
+  public runTargetedEffectFlow(effectStart: EffectStart) {
+    this.applyTargetedEffectFlow().applyTargetedEffect$.next(effectStart);
+  }
 
-  public readonly applyTargetedEffect$ = new Subject<EffectStart>();
-
-  public readonly effectAtPosition$ = new Subject<TargetPos & ActiveEffect>();
-  public readonly effectOnEntity$ = new Subject<TargetEntity & ActiveEffect>();
-  public readonly effectProduced$ = new Subject<
-    Damaged & TargetEntity & ActiveEffect
-  >();
-  public readonly effectModified$ = new Subject<
-    Damaged & TargetEntity & ActiveEffect & Teleported
-  >();
-  public readonly integrityModified$ = new Subject<TargetEntity>();
-
-  public readonly moveRequest$ = new Subject<PositionNextToEntityArgs>();
-
-  public readonly meleeAttack$ = new Subject<
-    CombatTarget & ProtagonistEntity
-  >();
-  public readonly tileEntered$ = new Subject<{}>();
-
-  public singleTargetAttempt = new Subject<{
-    selectedPos?: GridPosData;
-    effectId: EntityId;
-  }>();
-  public singleTargetAction: Observable<{
-    targetPos: GridPosData;
-    effectId: EntityId;
-  }>;
-
-  public aoeTargetAttempt = new Subject<{
-    selectedPos?: GridPosData;
-    effectId: EntityId;
-  }>();
-  public aoeTargetAction: Observable<{
-    targetPos: GridPosData;
-    effectId: EntityId;
-  }>;
-
-  public moveOrdered$ = new Subject<CanOccupyPositionArgs & CanStandAtArgs>();
-  public positionEntered$ = new Subject<ProtagonistEntity & EnteredPos>();
-
-  public requestCollectLocal$ = new Subject<ProtagonistEntity>();
-  public performCollection$ = new Subject<ProtagonistEntity & TargetEntity>();
-  public entityCollected$ = new Subject<
-    ProtagonistEntity & TargetEntity & Collected
-  >();
-
-  public turnEnded$ = new Subject<any>();
-  public houseKeepKnowledge$ = new Subject<ProtagonistEntity>();
-  public processSighted$ = new Subject<ProtagonistEntity>();
-  public entityInVision$ = new Subject<ProtagonistEntity & FOVEntitiesOut>();
-  public entitySeen$ = new Subject<ProtagonistEntity & FOVEntitiesOut>();
-
-  public climbRequest$ = new Subject<ProtagonistEntity>();
-  public climbOrdered$ = new Subject<ProtagonistEntity & TargetEntity>();
-
-  public effectOnEnvironment$ = new Subject<ActiveEffect>();
-
-  public areaTransitioned$ = new Observable<{ viewerEntity: EntityId }>();
-  public lockStateChanged$ = new Subject<any>();
-
-  constructor(
-    private em: EntityManager,
-    private logger: Logger,
-    private areaResolver: AreaResolver,
-    private ender: (et: EndType) => void
-  ) {
+  public applyTargetedEffectFlow() {
+    const flowPoints = {
+      applyTargetedEffect$: new Subject<EffectStart>(),
+      effectAtPosition$: new Subject<TargetPos & ActiveEffect>(),
+      effectOnEntity$: new Subject<TargetEntity & ActiveEffect>(),
+      effectProduced$: new Subject<Damaged & TargetEntity & ActiveEffect>(),
+      effectModified$: new Subject<
+        Damaged & TargetEntity & ActiveEffect & Teleported
+      >(),
+      integrityModified$: new Subject<TargetEntity>(),
+      lockStateChanged$: new Subject<any>(),
+      areaTransitioned$: new Subject<
+        Damaged &
+          TargetEntity &
+          ActiveEffect &
+          Teleported &
+          Required<TransitionAreaOut>
+      >(),
+      spatialChanged$: new Subject<TargetEntity & Required<Teleported>>(),
+      outcomeDescriptions$: new ReplaySubject<
+        { worldStateChangeDescription: string; activeEffectDescription }[]
+      >()
+    };
     hookSingleTarget(
-      this.applyTargetedEffect$,
-      this.effectAtPosition$,
+      flowPoints.applyTargetedEffect$,
+      flowPoints.effectAtPosition$,
       this.em
     );
-    hookAoeTarget(this.applyTargetedEffect$, this.effectAtPosition$, this.em);
-
+    hookAoeTarget(
+      flowPoints.applyTargetedEffect$,
+      flowPoints.effectAtPosition$,
+      this.em
+    );
     hookEntitiesAtPosition(
-      this.effectAtPosition$,
-      this.effectOnEntity$,
+      flowPoints.effectAtPosition$,
+      flowPoints.effectOnEntity$,
       this.em
     );
 
     merge(
-      this.effectOnEntity$.pipe(map(msg => endState(msg, this.em, this.ender))),
-      this.effectOnEntity$.pipe(map(msg => burn(msg, this.em))),
-      this.effectOnEntity$.pipe(map(msg => freeze(msg, this.em))),
-      this.effectOnEntity$.pipe(map(msg => toggleLock(msg, this.em))),
-      this.effectOnEntity$.pipe(map(msg => teleport(msg, this.em))),
-      this.effectOnEntity$.pipe(map(msg => transitionArea(msg, this.em)))
-    ).subscribe(this.effectProduced$);
+      flowPoints.effectOnEntity$.pipe(
+        map(msg => endState(msg, this.em, this.ender))
+      ),
+      flowPoints.effectOnEntity$.pipe(map(msg => burn(msg, this.em))),
+      flowPoints.effectOnEntity$.pipe(map(msg => freeze(msg, this.em))),
+      flowPoints.effectOnEntity$.pipe(map(msg => toggleLock(msg, this.em))),
+      flowPoints.effectOnEntity$.pipe(map(msg => teleport(msg, this.em))),
+      flowPoints.effectOnEntity$.pipe(map(msg => transitionArea(msg, this.em)))
+    ).subscribe(flowPoints.effectProduced$);
 
-    this.effectProduced$
+    flowPoints.effectProduced$
       .pipe(map(msg => fireResist(msg, this.em)))
       .pipe(map(msg => lockQuality(msg, this.em)))
-      .subscribe(this.effectModified$);
+      .subscribe(flowPoints.effectModified$);
 
-    this.effectModified$
+    flowPoints.effectModified$
       .pipe(
         filter(hasDamage),
         map(msg => integrity(msg, this.em))
       )
-      .subscribe(this.integrityModified$);
+      .subscribe(flowPoints.integrityModified$);
 
-    this.integrityModified$
+    flowPoints.integrityModified$
       .pipe(tap(msg => grimReaper(msg, this.em)))
       .subscribe(() => {});
 
-    this.effectModified$
+    flowPoints.effectModified$
       .pipe(
         filter(hasLockChange),
         map(msg => lock(msg, this.em))
       )
-      .subscribe(this.lockStateChanged$);
+      .subscribe(flowPoints.lockStateChanged$);
 
-    this.effectModified$
+    flowPoints.effectModified$
       .pipe(
         filter(hasSpatialChange),
         map(msg => spatial(msg, this.em))
       )
-      .subscribe(this.turnEnded$);
+      .subscribe(flowPoints.spatialChanged$);
 
-    this.areaTransitioned$ = this.effectModified$.pipe(
-      tap(msg => console.log(`Checking for area transition`)),
-      filter(hasAreaTransition),
-      map(msg => area(msg, this.em, this.areaResolver)),
-      tap(msg => console.log(`Area transitioned`))
-    );
+    flowPoints.effectModified$
+      .pipe(
+        filter(hasAreaTransition),
+        map(msg => area(msg, this.em, this.areaResolver))
+      )
+      .subscribe(flowPoints.areaTransitioned$);
 
-    this.positionEntered$.subscribe(this.turnEnded$);
+    merge(flowPoints.lockStateChanged$, flowPoints.areaTransitioned$)
+      .pipe(
+        tap(msg => `OUTCOME: ${console.log(JSON.stringify(msg, null, 2))}`),
+        filter(hasOutcomeDescription),
+        reduce(
+          (acc, curr) => {
+            acc.push(curr);
+            return acc;
+          },
+          [] as {
+            activeEffectDescription: string;
+            worldStateChangeDescription: string;
+          }[]
+        )
+      )
+      .subscribe(flowPoints.outcomeDescriptions$);
 
-    this.turnEnded$.subscribe(() => console.log(`turn ended!`));
-    this.turnEnded$.subscribe(msg => blocking(msg, this.em));
+    return flowPoints;
+  }
+
+  climbRequestFlow(protagId: EntityId) {
+    const climbRequest$ = new Subject<ProtagonistEntity>();
+    const climbCandidate$ = new Subject<ProtagonistEntity & TargetEntity>();
+    hookEntitiesAtProtagPos(climbRequest$, climbCandidate$, this.em);
+
+    const effectFlow = this.applyTargetedEffectFlow();
+
+    climbCandidate$
+      .pipe(
+        mergeMap(msg => of(...acquireEffects(msg, this.em))),
+        filter(msg => this.em.hasComponent(msg.effectId, Climbable)),
+        map(msg => ({
+          ...radClone(msg),
+          climbable: this.em.getComponent(msg.effectId, Climbable)
+        })),
+        filter(msg => hasClimbable(msg)),
+        map(msg => ({ ...radClone(msg), targetId: msg.protagId }))
+      )
+      .subscribe(effectFlow.effectOnEntity$);
+
+    climbRequest$.next({ protagId });
+    climbRequest$.complete();
+    return effectFlow.outcomeDescriptions$;
+  }
+
+  processEndOfTurn() {
+    this.turnEndedFlow().turnEnded$.next({});
+  }
+
+  turnEndedFlow() {
+    const flowPoints = {
+      turnEnded$: new Subject<any>(),
+      housekeepKnowledge$: new Subject<ProtagonistEntity>(),
+      processSighted$: new Subject<ProtagonistEntity>(),
+      entityInVision$: new Subject<ProtagonistEntity & FOVEntitiesOut>(),
+      entitySeen$: new Subject<ProtagonistEntity & FOVEntitiesOut>(),
+      blockageEntity$: new Subject<ProtagonistEntity>()
+    };
+
+    flowPoints.turnEnded$.subscribe(() => console.log(`turn ended!`));
+
     hookEntitiesWithComponent(
-      this.turnEnded$,
-      this.houseKeepKnowledge$,
-      em,
+      flowPoints.turnEnded$,
+      flowPoints.blockageEntity$,
+      this.em,
+      Blockage
+    );
+    flowPoints.blockageEntity$.subscribe(msg => {
+      const b = this.em.getComponent(msg.protagId, Blockage);
+      if (b) {
+        for (const trigger of b.triggers) {
+          const x = this.em.getComponentByName(
+            msg.protagId,
+            trigger.componentName
+          );
+          if (x && x[trigger.property] === trigger.value) {
+            console.log(
+              `BLOCKING: trigger hit!, setting active to: ${trigger.active}`
+            );
+            this.em.setComponent(
+              msg.protagId,
+              new Blockage({ ...b, active: trigger.active })
+            );
+          }
+        }
+      }
+    });
+
+    hookEntitiesWithComponent(
+      flowPoints.turnEnded$,
+      flowPoints.housekeepKnowledge$,
+      this.em,
       Knowledge
     );
 
-    this.houseKeepKnowledge$.subscribe(msg => {
+    flowPoints.housekeepKnowledge$.subscribe(msg => {
       const knowledge = this.em.getComponent(msg.protagId, Knowledge);
       for (const [pos, ids] of knowledge.current) {
         knowledge.history.set(pos, ids);
@@ -225,56 +266,41 @@ export class SystemOrganiser {
     });
 
     hookEntitiesWithComponent(
-      this.turnEnded$,
-      this.processSighted$,
-      em,
+      flowPoints.turnEnded$,
+      flowPoints.processSighted$,
+      this.em,
       Sighted
     );
 
-    hookFOVEntities(this.processSighted$, this.entityInVision$, em);
+    hookFOVEntities(
+      flowPoints.processSighted$,
+      flowPoints.entityInVision$,
+      this.em
+    );
 
-    this.entityInVision$.subscribe(this.entitySeen$);
+    flowPoints.entityInVision$.subscribe(flowPoints.entitySeen$);
 
-    this.entitySeen$.subscribe(msg => {
-      const knowledge = em.getComponent(msg.protagId, Knowledge);
+    flowPoints.entitySeen$.subscribe(msg => {
+      const knowledge = this.em.getComponent(msg.protagId, Knowledge);
       const currentKnowledge = knowledge.current;
       let knowledgeAtPos = currentKnowledge.get(msg.viewed.atPos) || [];
       knowledgeAtPos.push(msg.viewed.entityId);
       currentKnowledge.set(msg.viewed.atPos, knowledgeAtPos);
-      em.setComponent(
+      this.em.setComponent(
         msg.protagId,
         new Knowledge({ current: currentKnowledge, history: knowledge.history })
       );
     });
 
-    const climbCandidate$ = new Subject<ProtagonistEntity & TargetEntity>();
-    hookEntitiesAtProtagPos(this.climbRequest$, climbCandidate$, this.em);
-
-    climbCandidate$
-      .pipe(
-        mergeMap(msg => of(...acquireEffects(msg, em))),
-        filter(msg => em.hasComponent(msg.effectId, Climbable)),
-        map(msg => ({
-          ...radClone(msg),
-          climbable: em.getComponent(msg.effectId, Climbable)
-        })),
-        filter(msg => hasClimbable(msg)),
-        map(msg => ({ ...radClone(msg), targetId: msg.protagId })),
-        tap(msg => console.log(JSON.stringify(msg, null, 2)))
-      )
-      .subscribe(this.effectOnEntity$);
-
-    this.hookErrorReporting(this.positionEntered$);
-    this.hookErrorReporting(this.performCollection$);
-    this.hookErrorReporting(this.entityCollected$);
-    this.hookErrorReporting(this.effectProduced$);
-    this.hookErrorReporting(this.effectModified$);
-    this.hookErrorReporting(this.integrityModified$);
-    this.hookErrorReporting(this.turnEnded$);
-    this.hookErrorReporting(this.processSighted$);
-    this.hookErrorReporting(this.entityInVision$);
-    this.hookErrorReporting(this.entityInVision$);
+    return flowPoints;
   }
+
+  constructor(
+    private em: EntityManager,
+    private logger: Logger,
+    private areaResolver: AreaResolver,
+    private ender: (et: EndType) => void
+  ) {}
 
   collectItemFlow(protagId: EntityId) {
     const collectItem = new Subject<ProtagonistEntity>();

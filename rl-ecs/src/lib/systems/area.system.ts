@@ -11,7 +11,7 @@ type Args = Required<TransitionAreaOut> & TargetEntity;
 export type AreaArgs = Args;
 
 interface Out {
-  viewerEntity: EntityId;
+  worldStateChangeDescription?: string;
 }
 export type AreaOut = Out;
 
@@ -44,7 +44,10 @@ function areaStep<T extends Args>(
     );
   }
 
-  return { ...radClone(msg), viewerEntity: msg.targetId };
+  return {
+    ...radClone(msg),
+    worldStateChangeDescription: `enter ${msg.areaTransition.areaId}`
+  };
 }
 
 type StepFunc = OperationStep<Args, Out>;
