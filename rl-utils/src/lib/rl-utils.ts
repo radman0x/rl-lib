@@ -86,7 +86,7 @@ export function randomElement<T>(array: T[]): T {
 }
 
 export function popRandomElement<T>(array: T[]): T {
-  const index = randomInt(0, array.length);
+  const index = randomInt(0, array.length - 1);
   const chosen = array[index];
   array.splice(index, 1);
   return chosen;

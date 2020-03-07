@@ -1,0 +1,14 @@
+<p-panel [showHeader]="false">
+  <div class="d-flex justify-content-center">
+    <div
+      *ngFor="let entry of stats; let i = index"
+      [ngClass]="{ 'border-left': i === 0 }"
+      class="d-flex flex-column align-items-center pr-2 pl-2 pt-1 pb-1 border-right border-top border-bottom border-light"
+    >
+      <p class="statDesc">
+        {{ entry.desc }}
+      </p>
+      <p class="statValue">{{ entry.value }}</p>
+    </div>
+  </div>
+</p-panel>
