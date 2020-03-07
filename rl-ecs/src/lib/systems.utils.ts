@@ -11,7 +11,8 @@ import {
   ActiveEffect,
   TargetPos,
   Teleported,
-  LockChange
+  LockChange,
+  StrikeResult
 } from './systems.types';
 import { ClimbableData } from './components/climbable.model';
 import { AreaTransition } from './components/area-transition.model';
@@ -115,6 +116,22 @@ export function hasProtagId<T>(a: T): a is T & { protagId: EntityId } {
 
 export function hasSelectedPos<T>(a: T): a is T & { selectedPos: GridPosData } {
   return a['selectedPos'] !== undefined;
+}
+
+export function strikeSuccess<T>(a: T): a is T & { strikeSuccess: true } {
+  return a['strikeSuccess'] === true;
+}
+
+export function strikeFailure<T>(a: T): a is T & { strikeSuccess: false } {
+  return a['strikeSuccess'] === false;
+}
+
+export function woundSuccess<T>(a: T): a is T & { woundSuccess: true } {
+  return a['woundSuccess'] === true;
+}
+
+export function woundFailure<T>(a: T): a is T & { woundSuccess: false } {
+  return a['woundSuccess'] === false;
 }
 
 export function hasDamage<T>(a: T): a is T & { damage: DamageData } {

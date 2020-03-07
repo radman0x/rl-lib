@@ -20,7 +20,10 @@ import {
   ProtagonistEntity,
   TargetEntity,
   TargetPos,
-  Teleported
+  Teleported,
+  StrikeResult,
+  WoundResult,
+  WoundsInflicted
 } from './systems.types';
 import {
   hasAreaTransition,
@@ -29,7 +32,10 @@ import {
   hasLockChange,
   hasOutcomeDescription,
   hasSpatialChange,
-  radClone
+  radClone,
+  woundFailure,
+  strikeFailure,
+  strikeSuccess
 } from './systems.utils';
 import { hookAoeTarget } from './systems/acquire-aoe-targets.system';
 import { acquireEffects } from './systems/acquire-effects.system';
@@ -63,8 +69,143 @@ import {
   transitionArea,
   TransitionAreaOut
 } from './systems/transition-area.system';
+import { resolveStrike } from './systems/resolve-strike.system';
+import { resolveWound } from './systems/resolve-wound.system';
+import { resolveMeleeAttackDamage } from './systems/resolve-melee-attack-damage.system';
 
 export class SystemOrganiser {
+  constructor(
+    private em: EntityManager,
+    private logger: Logger,
+    private areaResolver: AreaResolver,
+    private ender: (et: EndType) => void
+  ) {}
+
+  collectItemFlow(protagId: EntityId) {
+    const collectItem = new Subject<ProtagonistEntity>();
+    const performCollection = new Subject<ProtagonistEntity & TargetEntity>();
+    const itemCollected = new Subject<
+      ProtagonistEntity & TargetEntity & Collected
+    >();
+    hookEntitiesAtProtagPos(collectItem, performCollection, this.em);
+    hookAddToInventory(performCollection, itemCollected, this.em, this.logger);
+    const collections = itemCollected.pipe(
+      reduce(
+        (acc, curr) => {
+          acc.push(curr);
+          return acc;
+        },
+        [] as (ProtagonistEntity & TargetEntity & Collected)[]
+      )
+    );
+    const outputObs = new ReplaySubject<
+      (ProtagonistEntity & TargetEntity & Collected)[]
+    >();
+    collections.subscribe(outputObs);
+    collectItem.next({ protagId });
+    collectItem.complete();
+    return outputObs;
+  }
+
+  orderMoveFlow(protagId: EntityId, direction: CompassDirection) {
+    const flowPoints = {
+      moveRequest$: new Subject<PositionNextToEntityArgs>(),
+      moveOrdered$: new Subject<CanOccupyPositionArgs & CanStandAtArgs>(),
+      positionEntered$: new ReplaySubject<ProtagonistEntity & EnteredPos>(),
+      entitiesAtNewPos$: new Subject<ProtagonistEntity & TargetEntity>(),
+      noteworthyAtNewPos$: new ReplaySubject<
+        (ProtagonistEntity & TargetEntity)[]
+      >(),
+      meleeAttack$: new Subject<CombatTarget & ProtagonistEntity>(),
+      strikeResolved$: new Subject<
+        CombatTarget & ProtagonistEntity & StrikeResult
+      >(),
+      woundResolved$: new Subject<
+        CombatTarget & ProtagonistEntity & WoundResult & StrikeResult
+      >(),
+      damageInflicted$: new Subject<
+        CombatTarget &
+          ProtagonistEntity &
+          WoundsInflicted &
+          WoundResult &
+          StrikeResult
+      >(),
+      combatResult$: new ReplaySubject<
+        CombatTarget &
+          ProtagonistEntity &
+          StrikeResult &
+          Partial<WoundResult> &
+          Partial<WoundsInflicted>
+      >()
+    };
+
+    hookMoveOrder(flowPoints.moveRequest$, flowPoints.moveOrdered$, this.em);
+    hookPerformMove(
+      flowPoints.moveOrdered$,
+      flowPoints.positionEntered$,
+      this.em
+    );
+
+    hookEntitiesAtProtagPos(
+      flowPoints.positionEntered$,
+      flowPoints.entitiesAtNewPos$,
+      this.em
+    );
+    flowPoints.entitiesAtNewPos$
+      .pipe(
+        filter(msg => this.em.hasComponent(msg.targetId, Description)),
+        reduce(
+          (acc, curr) => {
+            acc.push(curr);
+            return acc;
+          },
+          [] as (ProtagonistEntity & TargetEntity)[]
+        )
+      )
+      .subscribe(flowPoints.noteworthyAtNewPos$);
+
+    hookCombatOrder(flowPoints.moveRequest$, flowPoints.meleeAttack$, this.em);
+    flowPoints.meleeAttack$
+      .pipe(map(msg => resolveStrike(msg, this.em)))
+      .subscribe(flowPoints.strikeResolved$);
+
+    // strike failed
+    flowPoints.strikeResolved$
+      .pipe(filter(strikeFailure))
+      .subscribe(flowPoints.combatResult$);
+
+    // strike succeeded
+    flowPoints.strikeResolved$
+      .pipe(
+        filter(strikeSuccess),
+        map(msg => resolveWound(msg, this.em))
+      )
+      .subscribe(flowPoints.woundResolved$);
+
+    // wound failed
+    flowPoints.woundResolved$
+      .pipe(filter(woundFailure))
+      .subscribe(flowPoints.combatResult$);
+
+    // wound succeeded
+    flowPoints.woundResolved$
+      .pipe(
+        filter(msg => msg.woundSuccess),
+        map(msg => resolveMeleeAttackDamage(msg, this.em))
+      )
+      .subscribe(flowPoints.damageInflicted$);
+
+    flowPoints.damageInflicted$.subscribe(flowPoints.combatResult$);
+
+    flowPoints.moveRequest$.next({ protagId, direction });
+    flowPoints.moveRequest$.complete();
+    return {
+      positionEntered$: flowPoints.positionEntered$,
+      noteworthyAtNewPos$: flowPoints.noteworthyAtNewPos$,
+      combatResult$: flowPoints.combatResult$
+    };
+  }
+
   public runTargetedEffectFlow(effectStart: EffectStart) {
     this.applyTargetedEffectFlow().applyTargetedEffect$.next(effectStart);
   }
@@ -158,7 +299,6 @@ export class SystemOrganiser {
 
     merge(flowPoints.lockStateChanged$, flowPoints.areaTransitioned$)
       .pipe(
-        tap(msg => `OUTCOME: ${console.log(JSON.stringify(msg, null, 2))}`),
         filter(hasOutcomeDescription),
         reduce(
           (acc, curr) => {
@@ -293,73 +433,6 @@ export class SystemOrganiser {
     });
 
     return flowPoints;
-  }
-
-  constructor(
-    private em: EntityManager,
-    private logger: Logger,
-    private areaResolver: AreaResolver,
-    private ender: (et: EndType) => void
-  ) {}
-
-  collectItemFlow(protagId: EntityId) {
-    const collectItem = new Subject<ProtagonistEntity>();
-    const performCollection = new Subject<ProtagonistEntity & TargetEntity>();
-    const itemCollected = new Subject<
-      ProtagonistEntity & TargetEntity & Collected
-    >();
-    hookEntitiesAtProtagPos(collectItem, performCollection, this.em);
-    hookAddToInventory(performCollection, itemCollected, this.em, this.logger);
-    const collections = itemCollected.pipe(
-      reduce(
-        (acc, curr) => {
-          acc.push(curr);
-          return acc;
-        },
-        [] as (ProtagonistEntity & TargetEntity & Collected)[]
-      )
-    );
-    const outputObs = new ReplaySubject<
-      (ProtagonistEntity & TargetEntity & Collected)[]
-    >();
-    collections.subscribe(outputObs);
-    collectItem.next({ protagId });
-    collectItem.complete();
-    return outputObs;
-  }
-
-  orderMoveFlow(protagId: EntityId, direction: CompassDirection) {
-    const moveRequest$ = new Subject<PositionNextToEntityArgs>();
-    const moveOrdered$ = new Subject<CanOccupyPositionArgs & CanStandAtArgs>();
-    const meleeAttack$ = new Subject<CombatTarget & ProtagonistEntity>();
-    const positionEntered$ = new ReplaySubject<
-      ProtagonistEntity & EnteredPos
-    >();
-    const entitiesAtNewPos$ = new Subject<ProtagonistEntity & TargetEntity>();
-    const noteworthyAtNeWPos$ = new ReplaySubject<
-      (ProtagonistEntity & TargetEntity)[]
-    >();
-    hookMoveOrder(moveRequest$, moveOrdered$, this.em);
-    hookCombatOrder(moveRequest$, meleeAttack$, this.em);
-    hookPerformMove(moveOrdered$, positionEntered$, this.em);
-
-    hookEntitiesAtProtagPos(positionEntered$, entitiesAtNewPos$, this.em);
-    entitiesAtNewPos$
-      .pipe(
-        filter(msg => this.em.hasComponent(msg.targetId, Description)),
-        reduce(
-          (acc, curr) => {
-            acc.push(curr);
-            return acc;
-          },
-          [] as (ProtagonistEntity & TargetEntity)[]
-        )
-      )
-      .subscribe(noteworthyAtNeWPos$);
-
-    moveRequest$.next({ protagId, direction });
-    moveRequest$.complete();
-    return { positionEntered$, noteworthyAtNeWPos$ };
   }
 
   errorEncountered(message: string) {

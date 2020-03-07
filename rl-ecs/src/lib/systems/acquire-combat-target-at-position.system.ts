@@ -7,6 +7,7 @@ import {
 } from './entities-at-position.system';
 import { renameKey } from '../systems.utils';
 import { CombatTarget } from '../systems.types';
+import { Martial } from '../components/martial.model';
 
 type Args = EntitiesAtPositionArgs;
 export type AcquireCombatTargetAtPositionArgs = Args;
@@ -19,10 +20,10 @@ function acquireCombatTargetAtPositionStep<T extends Args>(
   em: EntityManager
 ): T & Out {
   const acquired = entitiesAtPosition(msg, em, candidate =>
-    candidate.has(Integrity)
+    candidate.has(Martial)
   );
   if (acquired.length !== 0) {
-    console.log(`Combat target: ${acquired[0]} was acquired`);
+    // console.log(`Combat target: ${JSON.stringify(acquired[0], null, 2)} was acquired`);
     return (renameKey(
       acquired[0],
       'targetId',

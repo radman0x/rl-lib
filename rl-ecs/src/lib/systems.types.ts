@@ -39,6 +39,18 @@ export interface Damaged {
   damage?: DamageData;
 }
 
+export interface StrikeResult {
+  strikeSuccess: boolean;
+}
+
+export interface WoundResult {
+  woundSuccess: boolean;
+}
+
+export interface WoundsInflicted {
+  woundsInflicted: number;
+}
+
 export interface Teleported {
   teleport?: { targetLocation: GridPosData };
 }

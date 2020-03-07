@@ -7,6 +7,9 @@ export * from './lib/components/effects.model';
 export * from './lib/components/climbable.model';
 export * from './lib/components/teleport.model';
 export * from './lib/components/inventory.model';
+export * from './lib/components/martial.model';
+export * from './lib/components/wounds.model';
+export * from './lib/components/attacks.model';
 
 export * from './lib/ecs.types';
 export * from './lib/system-organiser.util';
