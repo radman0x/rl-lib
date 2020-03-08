@@ -14,5 +14,6 @@ export * from './lib/components/attacks.model';
 export * from './lib/ecs.types';
 export * from './lib/system-organiser.util';
 export * from './lib/systems.utils';
+export * from './lib/ecs.helpers';
 
 export * from './lib/areas/area-spec.model';

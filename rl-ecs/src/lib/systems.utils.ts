@@ -12,7 +12,8 @@ import {
   TargetPos,
   Teleported,
   LockChange,
-  StrikeResult
+  StrikeResult,
+  ReapedEntity
 } from './systems.types';
 import { ClimbableData } from './components/climbable.model';
 import { AreaTransition } from './components/area-transition.model';
@@ -154,6 +155,10 @@ export function hasLockChange<T>(a: T): a is T & Required<LockChange> {
 
 export function hasClimbable<T>(a: T): a is T & { climbable: ClimbableData } {
   return a['climbable'] !== undefined;
+}
+
+export function hasReaped<T>(a: T): a is T & ReapedEntity {
+  return a['reapedEntity'] !== undefined;
 }
 
 export function hasCombatTarget<T>(

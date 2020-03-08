@@ -1,7 +1,10 @@
 import { EntityId, EntityManager } from 'rad-ecs';
 import { Observable, of, Subject } from 'rxjs';
 import { filter, map, mergeMap } from 'rxjs/operators';
-import { OperationStepMulti } from '../operation-step.model';
+import {
+  OperationStepMulti,
+  OperationStepMultiNoEm
+} from '../operation-step.model';
 import {
   AreaOfEffect,
   AreaOfEffectData
@@ -12,6 +15,7 @@ import {
   positionsWithinRadius,
   radClone
 } from '../systems.utils';
+import { equalsVec3 } from '@rad/rl-utils';
 
 export interface HookAoeTargetArgs {
   selectedPos?: GridPosData;
@@ -21,7 +25,8 @@ export interface HookAoeTargetArgs {
 export function hookAoeTarget<T extends HookAoeTargetArgs>(
   source: Observable<T>,
   dest: Subject<AcquireAoeTargetsOut & T>,
-  em: EntityManager
+  em: EntityManager,
+  ignorePositions?: GridPosData[]
 ) {
   source
     .pipe(
@@ -31,7 +36,7 @@ export function hookAoeTarget<T extends HookAoeTargetArgs>(
         ...radClone(msg),
         areaOfEffect: radClone(em.getComponent(msg.effectId, AreaOfEffect)!)
       })),
-      mergeMap(msg => of(...acquireAoePositions(msg)))
+      mergeMap(msg => of(...acquireAoePositions(msg, ignorePositions)))
     )
     .subscribe(dest);
 }
@@ -47,7 +52,10 @@ interface Out {
 }
 export type AcquireAoeTargetsOut = Out;
 
-function acquireAoePositionsStep<T extends Args>(msg: T): (T & Out)[] {
+function acquireAoePositionsStep<T extends Args>(
+  msg: T,
+  ignorePositions?: GridPosData[]
+): (T & Out)[] {
   if (!msg.areaOfEffect) {
     throw Error(`AOE params not provided!`);
   }
@@ -62,13 +70,17 @@ function acquireAoePositionsStep<T extends Args>(msg: T): (T & Out)[] {
   } else {
     console.log(`AOE: Target positions found: ${targetPositions.length}}`);
   }
-  return targetPositions.map(p => ({
-    ...radClone(msg),
-    targetPos: p
-  }));
+  return targetPositions
+    .filter(
+      p => !(ignorePositions && ignorePositions.find(ip => equalsVec3(ip, p)))
+    )
+    .map(p => ({
+      ...radClone(msg),
+      targetPos: p
+    }));
 }
 
-type StepFunc = OperationStepMulti<Args, Out>;
+type StepFunc = OperationStepMultiNoEm<Args, Out>;
 const typeCheck: StepFunc = acquireAoePositionsStep;
 
 export const acquireAoePositions = typeCheck as typeof acquireAoePositionsStep;

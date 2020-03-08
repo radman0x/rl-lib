@@ -1,47 +1,19 @@
-import { EntityManager, Entity, EntityId } from 'rad-ecs';
-import { Observable, Subject, of } from 'rxjs';
-import { filter, map, mergeMap, tap } from 'rxjs/operators';
-import { acquireCombatTargetAtPosition } from './acquire-combat-target-at-position.system';
+import { Entity, EntityManager } from 'rad-ecs';
+import { Observable, of, Subject } from 'rxjs';
+import { filter, map, mergeMap } from 'rxjs/operators';
 import {
-  positionNextToEntity,
-  PositionNextToEntityArgs
-} from './position-next-to-entity.system';
-import {
-  hasCombatTarget,
-  noCombatTarget,
-  canOccupyStandAndNotBlocked,
-  radClone
-} from '../systems.utils';
-import {
-  ProtagonistEntity,
-  TargetPos,
-  CombatTarget,
   EnteredPos,
+  ProtagonistEntity,
   TargetEntity,
-  ActiveEffect
+  TargetPos
 } from '../systems.types';
+import { canOccupyStandAndNotBlocked } from '../systems.utils';
+import { acquireEntityPosition } from './acquire-entity-position.system';
 import { canOccupyPosition } from './can-occupy-position.system';
 import { canStandAtPosition } from './can-stand-at-position.system';
-import { placeEntityAt } from './place-entity-at.system';
-import { acquireEntityPosition } from './acquire-entity-position.system';
 import { entitiesAtPosition } from './entities-at-position.system';
+import { placeEntityAt } from './place-entity-at.system';
 import { positionBlocked } from './position-blocked.system';
-import { Effects } from '../components/effects.model';
-import { Climbable } from '../components/climbable.model';
-
-export function hookMoveOrder<T extends PositionNextToEntityArgs>(
-  source: Observable<T>,
-  dest: Subject<TargetPos & ProtagonistEntity>,
-  em: EntityManager
-) {
-  source
-    .pipe(
-      map(msg => positionNextToEntity(msg, em)),
-      map(msg => acquireCombatTargetAtPosition(msg, em)),
-      filter(noCombatTarget)
-    )
-    .subscribe(dest);
-}
 
 export function hookPerformMove<T extends TargetPos & ProtagonistEntity>(
   source: Observable<T>,
@@ -55,20 +27,6 @@ export function hookPerformMove<T extends TargetPos & ProtagonistEntity>(
       map(msg => canStandAtPosition(msg, em)),
       filter(canOccupyStandAndNotBlocked),
       map(msg => placeEntityAt(msg, em))
-    )
-    .subscribe(dest);
-}
-
-export function hookCombatOrder<T extends PositionNextToEntityArgs>(
-  source: Observable<T>,
-  dest: Subject<CombatTarget & ProtagonistEntity>,
-  em: EntityManager
-) {
-  source
-    .pipe(
-      map(msg => positionNextToEntity(msg, em)),
-      map(msg => acquireCombatTargetAtPosition(msg, em)),
-      filter(hasCombatTarget)
     )
     .subscribe(dest);
 }

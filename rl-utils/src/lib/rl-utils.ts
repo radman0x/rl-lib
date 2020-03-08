@@ -199,6 +199,9 @@ export interface Vec3 {
   y: number;
   z: number;
 }
+export function equalsVec3(lhs: Vec3, rhs: Vec3) {
+  return lhs.x === rhs.x && lhs.y === rhs.y && lhs.z === rhs.z;
+}
 export function addVec3(lhs: Vec3, rhs: Vec3) {
   return {
     x: lhs.x + rhs.x,

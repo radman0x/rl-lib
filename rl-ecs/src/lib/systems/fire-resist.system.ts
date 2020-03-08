@@ -1,11 +1,11 @@
+import * as cloneDeep from 'clone-deep';
 import { EntityManager } from 'rad-ecs';
-import { OperationStep } from '../operation-step.model';
+import { Observable } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
 import { DamageData } from '../components/damage.model';
 import { FireResistance } from '../components/resistance.model';
-import { EffectType, TargetEntity } from '../systems.types';
-import * as cloneDeep from 'clone-deep';
-import { Observable, Subject } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { OperationStep } from '../operation-step.model';
+import { DamageType, TargetEntity } from '../systems.types';
 import { hasDamage, radClone } from '../systems.utils';
 
 type HookFireArgs = { damage?: DamageData } & TargetEntity;
@@ -35,7 +35,7 @@ function fireResistStep<T extends Args>(msg: T, em: EntityManager): T & Out {
   if (resist) {
     console.log(`FIRE RESIST: Target has fire resistance!`);
   }
-  if (resist && msg.damage.type === EffectType.FIRE) {
+  if (resist && msg.damage.type === DamageType.FIRE) {
     const finalDamage = msg.damage.amount - resist.factor;
     if (finalDamage <= 0) {
       console.log(`FIRE RESIST: Damage reduced to 0 or below, removing`);

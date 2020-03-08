@@ -135,7 +135,7 @@ export class GridRendererComponent implements OnInit {
     this.maxTileX = this.desiredDisplayWidthPx - TILE_SIZE;
     this.maxTileY = this.desiredDisplayHeightPx - TILE_SIZE;
 
-    if (this.viewerId !== undefined) {
+    if (this.viewerId !== undefined && this.em.exists(this.viewerId)) {
       const viewerZPos = this.em.getComponent(this.viewerId, GridPos).z;
       const viewerKnowledge = this.em.getComponent(this.viewerId, Knowledge);
       const currentKnowledge = viewerKnowledge.current;
@@ -199,7 +199,11 @@ export class GridRendererComponent implements OnInit {
 
     for (const { k: seenPos, v: ids } of zSortedHistoricalKnowledgePositions) {
       const sortedIds = [...ids]
-        .filter(id => this.em.getComponent(id, Renderable) !== undefined)
+        .filter(
+          id =>
+            this.em.exists(id) &&
+            this.em.getComponent(id, Renderable) !== undefined
+        )
         .sort((lhs, rhs) => {
           return zValueCalc(this.em.get(lhs)) - zValueCalc(this.em.get(rhs));
         });

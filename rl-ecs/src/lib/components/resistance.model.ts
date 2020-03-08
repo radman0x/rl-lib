@@ -1,14 +1,14 @@
 import { Component } from 'rad-ecs';
-import { EffectType } from '../systems.types';
+import { DamageType } from '../systems.types';
 
 export interface ResistanceData {
   factor: number;
-  type: EffectType;
+  type: DamageType;
 }
 
 export abstract class Resistance extends Component {
   public readonly factor: number;
-  public readonly type: EffectType;
+  public readonly type: DamageType;
 
   constructor(data: ResistanceData) {
     super();
@@ -18,12 +18,12 @@ export abstract class Resistance extends Component {
 
 export class FireResistance extends Resistance {
   constructor(data: { factor: number }) {
-    super({ ...data, type: EffectType.FIRE });
+    super({ ...data, type: DamageType.FIRE });
   }
 }
 
 export class ColdResistance extends Resistance {
   constructor(data: { factor: number }) {
-    super({ ...data, type: EffectType.COLD });
+    super({ ...data, type: DamageType.COLD });
   }
 }

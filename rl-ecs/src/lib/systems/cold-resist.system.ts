@@ -1,6 +1,6 @@
 import { EntityManager } from 'rad-ecs';
 import { OperationStep } from '../operation-step.model';
-import { EffectType, TargetEntity, Damaged } from '../systems.types';
+import { DamageType, TargetEntity, Damaged } from '../systems.types';
 import { ColdResistance } from '../components/resistance.model';
 
 type Args = Damaged & TargetEntity;

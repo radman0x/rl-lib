@@ -3,11 +3,13 @@ import { DamageData } from './components/damage.model';
 import { LockState } from './components/lock.model';
 import { GridPosData } from './components/position.model';
 import { EntityId } from './ecs.types';
+import { Entity } from 'rad-ecs';
 
-export enum EffectType {
+export enum DamageType {
   FIRE,
   SLEEP,
-  COLD
+  COLD,
+  PHYSICAL
 }
 
 export interface ProtagonistEntity {
@@ -89,4 +91,14 @@ export interface LockChange {
   lockChange?: {
     lockId?: string;
   };
+}
+
+export type CombatResult = ProtagonistEntity &
+  CombatTarget &
+  StrikeResult &
+  Partial<WoundResult> &
+  Partial<WoundsInflicted>;
+
+export interface ReapedEntity {
+  reapedEntity: Entity;
 }

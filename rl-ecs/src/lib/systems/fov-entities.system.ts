@@ -85,7 +85,11 @@ function fovEntitiesStep<T extends Args>(
       .map(e => ({ ...radClone(msg), viewed: { entityId: e.id, atPos: pos } }));
   });
 
-  return [].concat(...viewedEntities);
+  const flattenedEntities = [].concat(...viewedEntities);
+  // console.log(
+  //   `Entities in view: ${flattenedEntities.map(entry => entry.viewed.entityId)}`
+  // );
+  return flattenedEntities;
 }
 
 type StepFunc = OperationStepMulti<Args, Out>;

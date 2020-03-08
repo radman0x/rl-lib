@@ -1,11 +1,10 @@
-import { EntityManager } from 'rad-ecs';
+import { EntityManager, Entity } from 'rad-ecs';
 import { OperationStep } from '../operation-step.model';
-import { Integrity } from '../components/physical.model';
 import {
   entitiesAtPosition,
   EntitiesAtPositionArgs
 } from './entities-at-position.system';
-import { renameKey } from '../systems.utils';
+import { renameKey, radClone } from '../systems.utils';
 import { CombatTarget } from '../systems.types';
 import { Martial } from '../components/martial.model';
 
@@ -17,21 +16,25 @@ export type AcquireCombatTargetAtPositionOut = Out;
 
 function acquireCombatTargetAtPositionStep<T extends Args>(
   msg: T,
-  em: EntityManager
+  em: EntityManager,
+  predicate?: (e: Entity) => boolean
 ): T & Out {
-  const acquired = entitiesAtPosition(msg, em, candidate =>
-    candidate.has(Martial)
+  const acquired = entitiesAtPosition(
+    msg,
+    em,
+    candidate =>
+      candidate.has(Martial) &&
+      (!predicate || (predicate && predicate(candidate)))
   );
   if (acquired.length !== 0) {
-    // console.log(`Combat target: ${JSON.stringify(acquired[0], null, 2)} was acquired`);
     return (renameKey(
       acquired[0],
       'targetId',
       'combatTargetId'
     ) as unknown) as T & Out;
   } else {
-    console.log(`Combat target NOT acquired`);
-    return msg;
+    // console.log(`Combat target NOT acquired`);
+    return { ...radClone(msg) };
   }
 }
 

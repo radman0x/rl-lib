@@ -1,9 +1,9 @@
-import { EffectType } from './systems.types';
+import { DamageType } from './systems.types';
 
 export type EntityId = number;
 
 export interface DamageResisted {
-  type: EffectType;
+  type: DamageType;
   resistedAmount: number;
 }
 

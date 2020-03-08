@@ -3,6 +3,7 @@ import { OperationStep } from '../operation-step.model';
 import { GridPos } from '../components/position.model';
 import { EntityId } from '../ecs.types';
 import { CompassDirection, compassDirectionToUnitVector } from '@rad/rl-utils';
+import { radClone } from '../systems.utils';
 
 interface Args {
   protagId: EntityId;
@@ -23,7 +24,7 @@ function positionNextToEntityStep<T extends Args>(
   const agentPos = em.get(msg.protagId).component(GridPos);
   const targetPos = agentPos.add(new GridPos(directionVec));
   console.log(`pos next to entity: ${targetPos}`);
-  return { ...msg, targetPos };
+  return { ...radClone(msg), targetPos };
 }
 
 type StepFunc = OperationStep<Args, Out>;

@@ -6,6 +6,7 @@ import * as cloneDeep from 'clone-deep';
 import { Observable, Subject, of } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
 import { DisplayOnly } from '../components/display-only.model';
+import { radClone } from '../systems.utils';
 
 export function hookEntitiesAtPosition<T extends EntitiesAtPositionArgs>(
   source: Observable<T>,
@@ -36,21 +37,21 @@ type TargetPredicate = (entity: Entity) => boolean;
 function entitiesAtPositionStep<T extends Args>(
   msg: T,
   em: EntityManager,
-  predicate: TargetPredicate
+  predicate?: TargetPredicate
 ): (T & Out)[] {
   const targetIds: EntityId[] = [];
   for (const candidate of em.matchingIndex(new GridPos(msg.targetPos))) {
-    if (predicate(candidate)) {
+    if (predicate && predicate(candidate)) {
       targetIds.push(candidate.id);
     }
   }
 
   if (targetIds.length === 0) {
-    console.log(`TARGETING: No targets acquired`);
+    // console.log(`TARGETING: No targets acquired`);
   } else {
     console.log(`TARGETING: targets acquired: [${targetIds.join(',')}]`);
   }
-  return targetIds.map(id => ({ ...cloneDeep(msg), targetId: id }));
+  return targetIds.map(id => ({ ...radClone(msg), targetId: id }));
 }
 
 type StepFunc = OperationStepMulti<Args, Out>;

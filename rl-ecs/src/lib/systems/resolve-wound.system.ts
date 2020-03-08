@@ -16,7 +16,7 @@ function resolveWoundStep<T extends Args>(msg: T, em: EntityManager): T & Out {
   const targetMartial = em.getComponent(msg.combatTargetId, Martial);
   const BASE_TO_WOUND = 6;
   const stDiff = protagMartial.strength - targetMartial.toughness;
-  const actualToWound = BASE_TO_WOUND + stDiff;
+  const actualToWound = BASE_TO_WOUND - stDiff;
   const woundRoll = d10();
   let woundSuccess = false;
   if (woundRoll === 10) {
