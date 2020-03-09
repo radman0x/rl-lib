@@ -1,46 +1,19 @@
-import { ValueMap, xyPositionsAround } from '@rad/rl-utils';
-import { alg, Graph } from 'graphlib';
 import { EntityId, EntityManager } from 'rad-ecs';
 import { merge, Observable, of, Subject } from 'rxjs';
-import { filter, map, mergeMap, reduce, tap } from 'rxjs/operators';
+import { filter, map, mergeMap, tap } from 'rxjs/operators';
+import { aiTurnFlow } from './ai-agents.system';
 import { AreaResolver } from './area-resolver.model';
-import { Blockage } from './components/blockage.model';
+import { AttackingAgent } from './components/attacking-agent.model';
 import { Climbable } from './components/climbable.model';
-import { DistanceMap } from './components/distance-map.model';
 import { EndType } from './components/end-state.model';
-import { Knowledge } from './components/knowledge.model';
-import { Physical, Size } from './components/physical.model';
-import { GridPos, GridPosData } from './components/position.model';
-import { Sighted } from './components/sighted.model';
+import { MovingAgent } from './components/moving-agent.model';
 import { Logger } from './ecs.types';
 import { applyTargetedEffectFlow } from './effects.system';
+import { housekeepingFlow } from './housekeeping.system';
 import { ProtagonistEntity, TargetEntity } from './systems.types';
-import {
-  hasClimbable,
-  radClone,
-  notAttackingAI,
-  isAttackingAI,
-  hasCombatTarget
-} from './systems.utils';
+import { hasClimbable, radClone } from './systems.utils';
 import { acquireEffects } from './systems/acquire-effects.system';
 import { hookEntitiesAtProtagPos } from './systems/aggregators.system';
-import {
-  entitiesWithComponents,
-  hookEntitiesWithComponents
-} from './systems/entities-with-component.system';
-import { FOVEntitiesOut, hookFOVEntities } from './systems/fov-entities.system';
-import { housekeepingFlow } from './housekeeping.system';
-import { MovingAgent } from './components/moving-agent.model';
-import { AttackingAgent } from './components/attacking-agent.model';
-import { acquireEntityPosition } from './systems/acquire-entity-position.system';
-import { acquireAoePositions } from './systems/acquire-aoe-targets.system';
-import { acquireCombatTargetAtPosition } from './systems/acquire-combat-target-at-position.system';
-import { PlayerAgent } from './components/player-agent.model';
-import { Description } from './components/description.model';
-import { attackEntityFlow } from './combat.system';
-import { bumpMoveFlow, moveRequestFlow } from './movement.system';
-import { entitiesWithOneOfComponents } from './systems/entities-with-one-of-components.systems';
-import { aiTurnFlow } from './ai-agents.system';
 
 export class SystemOrganiser {
   constructor(
