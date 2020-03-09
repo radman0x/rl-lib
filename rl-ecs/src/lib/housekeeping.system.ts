@@ -2,7 +2,7 @@ import { ValueMap, xyPositionsAround } from '@rad/rl-utils';
 import { alg, Graph } from 'graphlib';
 import { EntityId, EntityManager } from 'rad-ecs';
 import { merge, of, Subject } from 'rxjs';
-import { filter, map, mergeMap, reduce } from 'rxjs/operators';
+import { filter, map, mergeMap, reduce, tap } from 'rxjs/operators';
 import { Blockage } from './components/blockage.model';
 import { DistanceMap } from './components/distance-map.model';
 import { Knowledge } from './components/knowledge.model';
@@ -19,7 +19,7 @@ import { FOVEntitiesOut, hookFOVEntities } from './systems/fov-entities.system';
 
 export function housekeepingFlow(em: EntityManager) {
   const flowPoints = {
-    housekeepStart$: new Subject<any>(),
+    housekeepStart$: new Subject(),
     updateKnowledge$: new Subject<ProtagonistEntity>(),
     updateSighted$: new Subject<ProtagonistEntity>(),
     entityInVision$: new Subject<ProtagonistEntity & FOVEntitiesOut>(),
@@ -42,9 +42,9 @@ export function housekeepingFlow(em: EntityManager) {
       for (const trigger of b.triggers) {
         const x = em.getComponentByName(msg.protagId, trigger.componentName);
         if (x && x[trigger.property] === trigger.value) {
-          // console.log(
-          //   `BLOCKING: trigger hit!, setting active to: ${trigger.active}`
-          // );
+          console.log(
+            `BLOCKING: trigger hit!, setting active to: ${trigger.active}`
+          );
           em.setComponent(
             msg.protagId,
             new Blockage({ ...b, active: trigger.active })
@@ -62,6 +62,7 @@ export function housekeepingFlow(em: EntityManager) {
   );
 
   flowPoints.updateKnowledge$.subscribe(msg => {
+    console.log(`Update knowledge`);
     const knowledge = em.getComponent(msg.protagId, Knowledge);
     for (const [pos, ids] of knowledge.current) {
       knowledge.history.set(pos, ids);
@@ -94,6 +95,7 @@ export function housekeepingFlow(em: EntityManager) {
     .subscribe(flowPoints.seenEntities$);
 
   flowPoints.seenEntities$.subscribe(msgs => {
+    console.log(`Update seeing`);
     if (msgs.length !== 0) {
       const protagId = msgs[0].protagId;
       const knowledge = em.getComponent(protagId, Knowledge);
@@ -142,6 +144,7 @@ export function housekeepingFlow(em: EntityManager) {
         ...radClone(msg),
         filled: em.getComponent(msg.protagId, GridPos)
       })),
+      mergeMap(msg => of(msg)),
       reduce(
         (acc, msg) => {
           if (acc === null) {
@@ -173,6 +176,11 @@ export function housekeepingFlow(em: EntityManager) {
     )
     .subscribe(msg => {
       console.log(`Processing walkable map`);
+      if (msg === null) {
+        console.log(
+          `Input to distance map calc is null, it's possible you completed the housekeeping observable before any next!`
+        );
+      }
       const worldGraph = new Graph();
       const walkableMap = msg.walkable.map;
       for (const [, { k: pos, v: passable }] of walkableMap.entries()) {

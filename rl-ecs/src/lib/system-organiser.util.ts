@@ -85,13 +85,23 @@ export class SystemOrganiser {
   }
 
   public processEndOfTurn() {
-    console.log(`End of player turn process started`);
+    const flowPoints = {
+      endOfTurnStart$: new Subject()
+    };
     const playerTurnHouseKeeping = housekeepingFlow(this.em);
+    const aiTurn = this.processAIAgents();
+    flowPoints.endOfTurnStart$.subscribe(
+      playerTurnHouseKeeping.housekeepStart$
+    );
+
     playerTurnHouseKeeping.housekeepingFlowFinished$.subscribe(() => {
       console.log(`End of player turn housekeeping complete`);
     });
 
-    const aiTurn = this.processAIAgents();
+    playerTurnHouseKeeping.housekeepStart$.subscribe(() =>
+      console.log(`End of player turn process started`)
+    );
+
     playerTurnHouseKeeping.housekeepingFlowFinished$
       .pipe(tap(msg => console.log(`AI Turn starts...`)))
       .subscribe(aiTurn.processAIAgentsStart$);
@@ -106,8 +116,22 @@ export class SystemOrganiser {
     aiTurnHousekeeping.housekeepingFlowFinished$.subscribe(() => {
       console.log(`AI Turn housekeeping complete`);
     });
-    playerTurnHouseKeeping.housekeepStart$.next({});
-    playerTurnHouseKeeping.housekeepStart$.complete();
+
+    const endOfTurnProcessFinished$ = new Subject();
+    const allFlowPoints = {
+      ...flowPoints,
+      ...playerTurnHouseKeeping,
+      ...aiTurn,
+      ...aiTurnHousekeeping
+    };
+    merge(...Object.values(allFlowPoints)).subscribe({
+      complete: () => {
+        endOfTurnProcessFinished$.next();
+        endOfTurnProcessFinished$.complete();
+      }
+    });
+
+    return { ...allFlowPoints, endOfTurnProcessFinished$ };
   }
 
   public processAIAgents() {
@@ -137,8 +161,10 @@ export class SystemOrganiser {
 
     const aiProcessingFinished$ = new Subject();
     const allFlowPoints = [].concat(
-      ...singleAIFlows.map(flow => Object.values(flow))
+      ...singleAIFlows.map(flow => Object.values(flow)),
+      flowPoints.processAIAgentsStart$
     );
+
     merge(...allFlowPoints).subscribe({
       complete: () => {
         aiProcessingFinished$.next();
