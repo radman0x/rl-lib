@@ -102,3 +102,10 @@ export type CombatResult = ProtagonistEntity &
 export interface ReapedEntity {
   reapedEntity: Entity;
 }
+
+export interface DistanceTo {
+  distance: {
+    pos: GridPosData;
+    travelTime: number;
+  };
+}

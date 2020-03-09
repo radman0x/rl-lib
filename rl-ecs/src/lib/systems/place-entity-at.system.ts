@@ -17,7 +17,7 @@ type Out = EnteredPos;
 export type PlaceEntityAtOut = Out;
 
 function placeEntityAtStep<T extends Args>(msg: T, em: EntityManager): T & Out {
-  console.log(`MOVE: Moving entity ${msg.protagId} to ${msg.targetPos}`);
+  // console.log(`MOVE: Moving entity ${msg.protagId} to ${msg.targetPos}`);
   em.setComponent(msg.protagId, new GridPos(msg.targetPos));
   return { ...radClone(msg), enteredPos: msg.targetPos };
 }

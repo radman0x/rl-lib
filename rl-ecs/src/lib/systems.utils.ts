@@ -161,6 +161,13 @@ export function hasReaped<T>(a: T): a is T & ReapedEntity {
   return a['reapedEntity'] !== undefined;
 }
 
+export function isAttackingAI<T>(a: T): a is T & { attackingAI: true } {
+  return a['attackingAI'] === true;
+}
+
+export function notAttackingAI<T>(a: T): a is T & { attackingAI: false } {
+  return a['attackingAI'] === false;
+}
 export function hasCombatTarget<T>(
   a: T
 ): a is T & { combatTargetId: EntityId } {
@@ -183,6 +190,13 @@ export function noCombatTarget<T>(a: T): a is T & { combatTargetId: EntityId } {
 export function canOccupyStandAndNotBlocked<
   T extends { canOccupy: boolean; canStand: boolean; isBlocked: boolean }
 >(a: T): a is T & { canOccupy: true; canStand: true; isBlocked: false } {
-  console.log(`Testing move: ${JSON.stringify(a, null, 2)}`);
   return a.canOccupy && a.canStand && !a.isBlocked; /*?*/
+}
+
+export function cannotOccupyStandOrIsBlocked<
+  T extends { canOccupy: boolean; canStand: boolean; isBlocked: boolean }
+>(
+  a: T
+): a is T & { canOccupy: boolean; canStand: boolean; isBlocked: boolean } {
+  return !a.canOccupy || !a.canStand || a.isBlocked; /*?*/
 }

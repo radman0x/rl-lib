@@ -68,7 +68,7 @@ function acquireAoePositionsStep<T extends Args>(
       `AOE: No target positions found for radius: ${msg.areaOfEffect.radius} and target: ${msg.selectedPos}`
     );
   } else {
-    console.log(`AOE: Target positions found: ${targetPositions.length}}`);
+    // console.log(`AOE: Target positions found: ${targetPositions.length}}`);
   }
   return targetPositions
     .filter(

@@ -17,8 +17,7 @@ export type AddToInventoryOut = Out;
 
 function addToInventoryStep<T extends Args>(
   msg: T,
-  em: EntityManager,
-  logger: Logger
+  em: EntityManager
 ): T & Out {
   em.removeComponent(msg.targetId, GridPos);
   const currInventory = em.get(msg.protagId).component(Inventory).contents;
@@ -27,7 +26,6 @@ function addToInventoryStep<T extends Args>(
     msg.protagId,
     new Inventory({ contents: [...currInventory, msg.targetId] })
   );
-  logger(`Item: ${msg.targetId} collected by player`);
   return { ...msg, collectedId: msg.targetId };
 }
 
@@ -39,15 +37,14 @@ export const addToInventory = typeCheck as typeof addToInventoryStep;
 export function hookAddToInventory<T extends AddToInventoryArgs>(
   source: Observable<T>,
   dest: Subject<AddToInventoryOut & T>,
-  em: EntityManager,
-  logger: Logger
+  em: EntityManager
 ) {
   source
     .pipe(
       filter(msg => em.hasComponent(msg.protagId, Inventory)),
       filter(msg => !em.hasComponent(msg.targetId, Fixed)),
       filter(msg => em.hasComponent(msg.targetId, Physical)),
-      map(msg => addToInventoryStep(msg, em, logger))
+      map(msg => addToInventoryStep(msg, em))
     )
     .subscribe(dest);
 }

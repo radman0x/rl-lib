@@ -34,9 +34,9 @@ function canOccupyPositionStep<T extends Args>(
     GridPos
   );
 
-  console.log(
-    `MOVE: ${msg.targetPos} ${canOccupy ? 'can' : 'CANNOT'} be occupied`
-  );
+  // console.log(
+  //   `MOVE: ${msg.targetPos} ${canOccupy ? 'can' : 'CANNOT'} be occupied`
+  // );
   return { ...msg, canOccupy };
 }
 
