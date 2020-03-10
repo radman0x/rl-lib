@@ -1,16 +1,8 @@
-import { popRandomElement } from '@rad/rl-utils';
 import { EntityData, EntityManager } from 'rad-ecs';
-import * as ROT from 'rot-js';
-import { Climbable, Effects, GridPos, Physical, Renderable, Size } from '..';
-import { allComponentIndex } from './component-utils.model';
-import { AreaIngress } from './components/area-ingress';
-import { AreaTransition } from './components/area-transition.model';
+import { GridPos } from '..';
 import { radClone } from './systems.utils';
 
 export type AreaBuilder = (em: EntityManager) => void;
-
-const BLOCKED = 1;
-const OPEN = 0;
 
 export class AreaResolver {
   private areaBuilders: {
@@ -21,10 +13,7 @@ export class AreaResolver {
   } = {};
   private currentAreaId: string | null = null;
 
-  constructor() {
-    this.areaBuilders['secondLevel'] = (em: EntityManager) =>
-      this.hardcodeBuilder(em);
-  }
+  constructor() {}
 
   load(areaId: string, em: EntityManager) {
     if (areaId in this.savedAreas) {
@@ -59,50 +48,5 @@ export class AreaResolver {
       this.currentAreaId = areaId;
     }
     return this.currentAreaId;
-  }
-
-  hardcodeBuilder(em: EntityManager) {
-    const world = new ROT.Map.Uniform(38, 10, {
-      roomDugPercentage: 0.9
-    });
-    world.create((x: number, y: number, contents: number) => {
-      if (contents === BLOCKED) {
-        em.create(
-          new Renderable({ image: 'Wall-110.png', zOrder: 1 }),
-          new GridPos({ x, y, z: -1 }),
-          new Physical({ size: Size.FILL })
-        );
-      } else if (contents === OPEN) {
-        em.create(
-          new Renderable({ image: 'Floor-144.png', zOrder: 1 }),
-          new GridPos({ x, y, z: -2 }),
-          new Physical({ size: Size.FILL })
-        );
-      }
-    });
-
-    let rooms = world.getRooms();
-    let playerRoom = popRandomElement(rooms);
-    let startPos = new GridPos({
-      x: playerRoom.getCenter()[0],
-      y: playerRoom.getCenter()[1],
-      z: -1
-    });
-    em.create(
-      startPos,
-      new AreaIngress({ label: 'entry1' }),
-      new Renderable({ image: 'Tile-12.png', zOrder: 0 }),
-      new Effects({
-        contents: [
-          em.create(
-            new Climbable(),
-            new AreaTransition({
-              areaId: 'firstLevel',
-              ingressLabel: 'entry1'
-            })
-          ).id
-        ]
-      })
-    );
   }
 }

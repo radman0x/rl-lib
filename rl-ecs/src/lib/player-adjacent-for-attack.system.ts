@@ -1,7 +1,7 @@
 import { Coord, xyPositionsAround } from '@rad/rl-utils';
 import { EntityManager } from 'rad-ecs';
-import { of, Subject, merge } from 'rxjs';
-import { filter, map, mergeMap, reduce, tap } from 'rxjs/operators';
+import { merge, of, Subject } from 'rxjs';
+import { filter, map, mergeMap, reduce } from 'rxjs/operators';
 import { PlayerAgent } from './components/player-agent.model';
 import { GridPos } from './components/position.model';
 import { CombatTarget, ProtagonistEntity } from './systems.types';
@@ -38,7 +38,6 @@ export function playerAdjacentForCombatFlow(em: EntityManager) {
 
   flowPoints.playerAdjacentForCombatStart$
     .pipe(
-      tap(msg => console.log(`A`)),
       map(msg => acquireEntityPosition(msg, em)),
       map(msg =>
         radClone({
@@ -56,9 +55,7 @@ export function playerAdjacentForCombatFlow(em: EntityManager) {
 
   flowPoints.positionsAcquired$
     .pipe(
-      tap(msg => console.log(`C`)),
       filter(hasPlayerSearchPositions),
-      tap(msg => console.log(`D`)),
       mergeMap(msg =>
         of(
           ...msg.playerSearchPositions.map(p => ({
@@ -88,24 +85,15 @@ export function playerAdjacentForCombatFlow(em: EntityManager) {
     .subscribe(flowPoints.attackCandidatesAcquired$);
 
   flowPoints.attackCandidatesAcquired$
-    .pipe(
-      filter(hasCombatTarget),
-      tap(msg => console.log(`G`))
-    )
+    .pipe(filter(hasCombatTarget))
     .subscribe(flowPoints.playerAttackable$);
 
   flowPoints.attackCandidatesAcquired$
-    .pipe(
-      filter(noCombatTarget),
-      tap(msg => console.log(`F: ${JSON.stringify(msg, null, 2)}`))
-    )
+    .pipe(filter(noCombatTarget))
     .subscribe(flowPoints.playerNotFound$);
 
   flowPoints.positionsAcquired$
-    .pipe(
-      filter(msg => msg.playerSearchPositions.length === 0),
-      tap(msg => console.log(`B`))
-    )
+    .pipe(filter(msg => msg.playerSearchPositions.length === 0))
     .subscribe(flowPoints.playerNotFound$);
 
   const playerAdjacentAcquireFinished$ = new Subject();
@@ -118,6 +106,3 @@ export function playerAdjacentForCombatFlow(em: EntityManager) {
   });
   return { ...flowPoints, playerAdjacentAcquireFinished$ };
 }
-
-// filter(hasCombatTarget),
-// tap(msg => em.getComponent(msg.combatTargetId, DistanceMap).map)
