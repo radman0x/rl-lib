@@ -3,19 +3,27 @@ import { EntityManager } from 'rad-ecs';
 import { radClone } from '../systems.utils';
 import {
   ProtagonistEntity,
-  CombatTarget,
+  CombatTargetEntity,
   StrikeResult
 } from '../systems.types';
 import { Martial } from '../components/martial.model';
-import { d10 } from '@rad/rl-utils';
 
-type Args = ProtagonistEntity & CombatTarget;
+import * as Chance from 'chance';
+
+type Args = ProtagonistEntity & Partial<CombatTargetEntity>;
 export type ResolveStrikeArgs = Args;
 
 type Out = StrikeResult;
 export type ResolveStrikeOut = Out;
 
-function resolveStrikeStep<T extends Args>(msg: T, em: EntityManager): T & Out {
+function resolveStrikeStep<T extends Args>(
+  msg: T,
+  em: EntityManager,
+  rand: Chance.Chance
+): T & Out {
+  if (msg.combatTargetId === null) {
+    return { ...radClone(msg), strikeSuccess: null };
+  }
   const targetMartial = em.getComponent(msg.combatTargetId, Martial);
   if (targetMartial.weaponSkill === 0) {
     return { ...radClone(msg), strikeSuccess: true };
@@ -24,7 +32,7 @@ function resolveStrikeStep<T extends Args>(msg: T, em: EntityManager): T & Out {
   const BASE_TO_HIT = 6;
   const wsDiff = protagMartial.weaponSkill - targetMartial.weaponSkill;
   const actualToHit = BASE_TO_HIT - wsDiff;
-  const hitRoll = d10();
+  const hitRoll = rand.d10();
   let strikeSuccess = false;
   const AUTO_HIT = 10;
   const AUTO_MISS = 1;

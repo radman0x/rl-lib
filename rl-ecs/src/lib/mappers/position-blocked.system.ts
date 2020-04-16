@@ -23,17 +23,14 @@ function positionBlockedStep<T extends Args>(
   em.each(
     (e, b, p) => {
       if (deepEqual(p, msg.targetPos) && b.active) {
-        // console.log(`it's blocked`);
         isBlocked = true;
-      } else {
-        // console.log(`not blocked`);
       }
     },
     Blockage,
     GridPos
   );
 
-  // console.log(`BLOCKAGE: ${msg.targetPos} ${isBlocked ? 'BLOCKED!' : 'clear'}`);
+  console.log(`BLOCKAGE: ${msg.targetPos} ${isBlocked ? 'BLOCKED!' : 'clear'}`);
   return { ...radClone(msg), isBlocked };
 }
 

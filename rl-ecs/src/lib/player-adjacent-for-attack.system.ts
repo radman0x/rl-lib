@@ -4,10 +4,10 @@ import { merge, of, Subject } from 'rxjs';
 import { filter, map, mergeMap, reduce } from 'rxjs/operators';
 import { PlayerAgent } from './components/player-agent.model';
 import { GridPos } from './components/position.model';
-import { CombatTarget, ProtagonistEntity } from './systems.types';
+import { CombatTargetEntity, ProtagonistEntity } from './systems.types';
 import { radClone } from './systems.utils';
-import { acquireCombatTargetAtPosition } from './systems/acquire-combat-target-at-position.system';
-import { acquireEntityPosition } from './systems/acquire-entity-position.system';
+import { acquireCombatTargetAtPosition } from './mappers/acquire-combat-target-at-position.system';
+import { acquireEntityPosition } from './mappers/acquire-entity-position.system';
 
 function hasPlayerSearchPositions<T>(
   a: T
@@ -15,11 +15,11 @@ function hasPlayerSearchPositions<T>(
   return a['playerSearchPositions'] && a['playerSearchPositions'].length !== 0;
 }
 
-function hasCombatTarget<T>(a: T): a is T & CombatTarget {
+function hasCombatTarget<T>(a: T): a is T & CombatTargetEntity {
   return a && a['combatTargetId'] !== undefined;
 }
 
-function noCombatTarget<T>(a: T): a is T & Partial<CombatTarget> {
+function noCombatTarget<T>(a: T): a is T & Partial<CombatTargetEntity> {
   return a && a['combatTargetId'] === undefined;
 }
 
@@ -27,12 +27,12 @@ export function playerAdjacentForCombatFlow(em: EntityManager) {
   const flowPoints = {
     playerAdjacentForCombatStart$: new Subject<ProtagonistEntity>(),
     playerNotFound$: new Subject<ProtagonistEntity>(),
-    playerAttackable$: new Subject<ProtagonistEntity & CombatTarget>(),
+    playerAttackable$: new Subject<ProtagonistEntity & CombatTargetEntity>(),
     positionsAcquired$: new Subject<
       ProtagonistEntity & { playerSearchPositions: Coord[] }
     >(),
     attackCandidatesAcquired$: new Subject<
-      ProtagonistEntity & Partial<CombatTarget>
+      ProtagonistEntity & Partial<CombatTargetEntity>
     >()
   };
 
@@ -78,7 +78,7 @@ export function playerAdjacentForCombatFlow(em: EntityManager) {
           }
           return acc;
         },
-        [] as (ProtagonistEntity & Partial<CombatTarget>)[]
+        [] as (ProtagonistEntity & Partial<CombatTargetEntity>)[]
       ),
       mergeMap(msg => of(...msg))
     )

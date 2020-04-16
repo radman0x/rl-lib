@@ -5,13 +5,13 @@ import {
   EntitiesAtPositionArgs
 } from './entities-at-position.system';
 import { renameKey, radClone } from '../systems.utils';
-import { CombatTarget } from '../systems.types';
+import { CombatTargetEntity } from '../systems.types';
 import { Martial } from '../components/martial.model';
 
 type Args = EntitiesAtPositionArgs;
 export type AcquireCombatTargetAtPositionArgs = Args;
 
-type Out = Partial<CombatTarget>;
+type Out = CombatTargetEntity;
 export type AcquireCombatTargetAtPositionOut = Out;
 
 function acquireCombatTargetAtPositionStep<T extends Args>(
@@ -27,14 +27,11 @@ function acquireCombatTargetAtPositionStep<T extends Args>(
       (!predicate || (predicate && predicate(candidate)))
   );
   if (acquired.length !== 0) {
-    return (renameKey(
-      acquired[0],
-      'targetId',
-      'combatTargetId'
-    ) as unknown) as T & Out;
+    console.log(`COMBAT: target acquired: ${acquired[0].targetId}`);
+    return { ...radClone(msg), combatTargetId: acquired[0].targetId };
   } else {
-    // console.log(`Combat target NOT acquired`);
-    return { ...radClone(msg) };
+    console.log(`Combat target NOT acquired`);
+    return { ...radClone(msg), combatTargetId: null };
   }
 }
 

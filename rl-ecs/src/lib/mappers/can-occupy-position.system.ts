@@ -1,14 +1,11 @@
-import { EntityManager } from 'rad-ecs';
-import { OperationStep } from '../operation-step.model';
-import { Physical, Size } from '../components/physical.model';
-import { GridPos, GridPosData } from '../components/position.model';
-
 import * as deepEqual from 'fast-deep-equal';
-import { Blockage } from '../components/blockage.model';
+import { EntityManager } from 'rad-ecs';
+import { Physical, Size } from '../components/physical.model';
+import { GridPos } from '../components/position.model';
+import { OperationStep } from '../operation-step.model';
+import { TargetPos } from '../systems.types';
 
-interface Args {
-  targetPos: GridPosData;
-}
+type Args = TargetPos;
 export type CanOccupyPositionArgs = Args;
 
 interface Out {
@@ -34,9 +31,9 @@ function canOccupyPositionStep<T extends Args>(
     GridPos
   );
 
-  // console.log(
-  //   `MOVE: ${msg.targetPos} ${canOccupy ? 'can' : 'CANNOT'} be occupied`
-  // );
+  console.log(
+    `OCCUPY: ${msg.targetPos} ${canOccupy ? 'can' : 'CANNOT'} be occupied`
+  );
   return { ...msg, canOccupy };
 }
 

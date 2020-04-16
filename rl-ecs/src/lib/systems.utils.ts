@@ -2,22 +2,21 @@ import * as deepClone from 'clone-deep';
 import { EntityId, EntityManager } from 'rad-ecs';
 import { Observable } from 'rxjs';
 import { delay, map, tap } from 'rxjs/operators';
+import { ClimbableData } from './components/climbable.model';
 import { DamageData } from './components/damage.model';
 import { DisplayOnly } from './components/display-only.model';
-import { LockState } from './components/lock.model';
 import { GridPos, GridPosData } from './components/position.model';
 import { Renderable } from './components/renderable.model';
 import {
   ActiveEffect,
+  LockChange,
+  ReapedEntity,
   TargetPos,
   Teleported,
-  LockChange,
-  StrikeResult,
-  ReapedEntity
+  NewPosition
 } from './systems.types';
-import { ClimbableData } from './components/climbable.model';
-import { AreaTransition } from './components/area-transition.model';
-import { TransitionAreaOut } from './systems/transition-area.system';
+import { TransitionAreaOut } from './mappers/transition-area.system';
+// import { positionBlocked } from './systems/position-blocked.system';
 
 type Rename<T, K extends keyof T, N extends string> = Pick<
   T,
@@ -54,6 +53,27 @@ export function renameKey<T, K extends keyof T, N extends string>(
     delete o[key];
     return (o as unknown) as Rename<T, K, N>;
   }
+}
+
+/** Add a property to an object, returning the type with the added property
+ */
+export type PropObject<PropKeys extends string, ValueType> = {
+  [K in PropKeys]: ValueType;
+};
+
+export function addProperty<O extends object, K extends string, V>(
+  msg: O,
+  key: K,
+  value: V
+): O & PropObject<K, V> {
+  const copy = radClone(msg);
+  Object.defineProperty(copy, key, {
+    value: radClone(value),
+    enumerable: true,
+    writable: true,
+    configurable: true
+  });
+  return copy as O & PropObject<K, V>;
 }
 
 export function positionsWithinRadius(
@@ -171,7 +191,12 @@ export function notAttackingAI<T>(a: T): a is T & { attackingAI: false } {
 export function hasCombatTarget<T>(
   a: T
 ): a is T & { combatTargetId: EntityId } {
-  return a['combatTargetId'] !== undefined;
+  console.log(`Has combat target?: ${a['combatTargetId']}`);
+  return a['combatTargetId'] !== null && a['combatTargetId'] !== undefined;
+}
+
+export function noCombatTarget<T>(a: T): a is T {
+  return !hasCombatTarget(a);
 }
 
 export function hasOutcomeDescription<T>(
@@ -181,10 +206,6 @@ export function hasOutcomeDescription<T>(
   activeEffectDescription: string;
 } {
   return a['worldStateChangeDescription'] && a['activeEffectDescription'];
-}
-
-export function noCombatTarget<T>(a: T): a is T & { combatTargetId: EntityId } {
-  return !hasCombatTarget(a);
 }
 
 export function canOccupyStandAndNotBlocked<
@@ -199,4 +220,12 @@ export function cannotOccupyStandOrIsBlocked<
   a: T
 ): a is T & { canOccupy: boolean; canStand: boolean; isBlocked: boolean } {
   return !a.canOccupy || !a.canStand || a.isBlocked; /*?*/
+}
+
+export function hasNewPosition<T>(a: T): a is T & NewPosition {
+  return a['newPosition'] !== null && a['newPosition'] !== undefined;
+}
+
+export function noNewPosition<T>(a: T): a is T {
+  return !hasNewPosition(a);
 }

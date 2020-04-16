@@ -1,30 +1,32 @@
-import { EntityManager, EntityId } from 'rad-ecs';
-import { OperationStep } from '../operation-step.model';
-import { TargetEntity, ReapedEntity } from '../systems.types';
+import { EntityManager } from 'rad-ecs';
 import { Wounds } from '../components/wounds.model';
+import { OperationStep } from '../operation-step.model';
+import { DamageTargetEntity, ReapedEntity } from '../systems.types';
 import { radClone } from '../systems.utils';
 
-type Args = TargetEntity;
+type Args = DamageTargetEntity;
 export type GrimReaperArgs = Args;
 
 type Out = Partial<ReapedEntity>;
 export type GrimReaperOut = Out;
 
 function grimReaperStep<T extends Args>(msg: T, em: EntityManager): T & Out {
-  console.log(`reaping`);
-  if (!em.hasComponent(msg.targetId, Wounds)) {
+  if (msg.damageTargetId === null) {
     return { ...radClone(msg) };
   }
-  const targetIntegrity = em.get(msg.targetId).component(Wounds);
+  if (!em.hasComponent(msg.damageTargetId, Wounds)) {
+    return { ...radClone(msg) };
+  }
+  console.log(`REAPER: More work`);
+  const targetIntegrity = em.get(msg.damageTargetId).component(Wounds);
   console.log(`Durability remaining: ${targetIntegrity.current})`);
   if (targetIntegrity.current <= 0) {
-    console.log(
-      `Entity ${msg.targetId} reduced to < 0 durability (${targetIntegrity.current}) and will now be removed`
-    );
-    const reapedEntity = em.get(msg.targetId);
-    em.remove(msg.targetId);
+    const reapedEntity = em.get(msg.damageTargetId);
+    em.remove(msg.damageTargetId);
+    console.log(`REAPER: Entity reaped: ${msg.damageTargetId}`);
     return { ...radClone(msg), reapedEntity };
   }
+  console.log(`REAPER: Reap not required`);
   return { ...radClone(msg) };
 }
 

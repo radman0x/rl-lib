@@ -16,12 +16,28 @@ export interface ProtagonistEntity {
   protagId: EntityId;
 }
 
+export interface MovingEntity {
+  movingId: EntityId;
+}
+
+export interface DamageTargetEntity {
+  damageTargetId: EntityId;
+}
+
 export interface NoteworthyEntity {
   noteworthyId: EntityId;
 }
 
 export interface TargetPos {
   targetPos: GridPosData;
+}
+
+export interface CanStand {
+  canStand: boolean;
+}
+
+export interface CanOccupy {
+  canOccupy: boolean;
 }
 
 export interface EffectFromItem {
@@ -34,23 +50,23 @@ export interface ActiveEffect {
 }
 
 export interface TargetEntity {
-  targetId: EntityId;
+  targetId: EntityId | null;
 }
 
 export interface Damaged {
-  damage?: DamageData;
+  damage: DamageData | null;
 }
 
 export interface StrikeResult {
-  strikeSuccess: boolean;
+  strikeSuccess: boolean | null;
 }
 
 export interface WoundResult {
-  woundSuccess: boolean;
+  woundSuccess: boolean | null;
 }
 
 export interface WoundsInflicted {
-  woundsInflicted: number;
+  woundsInflicted: number | null;
 }
 
 export interface Teleported {
@@ -75,8 +91,8 @@ export interface EffectStartedDirection {
   selectedDirection: CompassDirection;
 }
 
-export interface CombatTarget {
-  combatTargetId: EntityId;
+export interface CombatTargetEntity {
+  combatTargetId: EntityId | null;
 }
 
 export interface EnteredPos {
@@ -93,11 +109,15 @@ export interface LockChange {
   };
 }
 
+export interface NewPosition {
+  newPosition: GridPosData | null;
+}
+
 export type CombatResult = ProtagonistEntity &
-  CombatTarget &
+  CombatTargetEntity &
   StrikeResult &
-  Partial<WoundResult> &
-  Partial<WoundsInflicted>;
+  WoundResult &
+  Damaged;
 
 export interface ReapedEntity {
   reapedEntity: Entity;

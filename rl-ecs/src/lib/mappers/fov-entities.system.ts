@@ -11,31 +11,31 @@ import { ProtagonistEntity } from '../systems.types';
 import { radClone } from '../systems.utils';
 import { Blockage } from '../components/blockage.model';
 
-export interface HookFovEntitiesArgs {
-  protagId: EntityId;
-}
+// export interface HookFovEntitiesArgs {
+//   protagId: EntityId;
+// }
 
-export function hookFOVEntities<T extends HookFovEntitiesArgs>(
-  source: Observable<T>,
-  dest: Subject<FOVEntitiesOut & T>,
-  em: EntityManager
-) {
-  source
-    .pipe(
-      filter(hasProtagId),
-      filter(msg => em.hasComponent(msg.protagId, Sighted)),
-      filter(msg => em.hasComponent(msg.protagId, GridPos)),
-      map(msg => ({
-        ...radClone(msg),
-        sighted: radClone(em.getComponent(msg.protagId, Sighted)!),
-        viewerPos: radClone(em.getComponent(msg.protagId, GridPos)!)
-      })),
-      mergeMap(msg => of(...fovEntities(msg, em)))
-    )
-    .subscribe(dest);
-}
+// export function hookFOVEntities<T extends HookFovEntitiesArgs>(
+//   source: Observable<T>,
+//   dest: Subject<FOVEntitiesOut & T>,
+//   em: EntityManager
+// ) {
+//   source
+//     .pipe(
+//       filter(hasProtagId),
+//       filter(msg => em.hasComponent(msg.protagId, Sighted)),
+//       filter(msg => em.hasComponent(msg.protagId, GridPos)),
+//       map(msg => ({
+//         ...radClone(msg),
+//         sighted: radClone(em.getComponent(msg.protagId, Sighted)!),
+//         viewerPos: radClone(em.getComponent(msg.protagId, GridPos)!)
+//       })),
+//       mergeMap(msg => of(...fovEntities(msg, em)))
+//     )
+//     .subscribe(dest);
+// }
 
-type Args = ProtagonistEntity & { sighted: SightedData; viewerPos: GridPos };
+type Args = { sightedId: EntityId; sighted: SightedData; viewerPos: GridPos };
 export type FOVEntitiesArgs = Args;
 
 interface Out {
@@ -79,7 +79,7 @@ function fovEntitiesStep<T extends Args>(
   );
 
   const viewedEntities = viewedPositions.map(pos => {
-    // console.log(`FOV: position ${pos} currently in view`);
+    console.log(`FOV: position ${pos} currently in view`);
     return em
       .matchingIndex(pos)
       .map(e => ({ ...radClone(msg), viewed: { entityId: e.id, atPos: pos } }));

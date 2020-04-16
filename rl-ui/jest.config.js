@@ -5,5 +5,14 @@ module.exports = {
   snapshotSerializers: [
     'jest-preset-angular/AngularSnapshotSerializer.js',
     'jest-preset-angular/HTMLCommentSerializer.js'
-  ]
+  ],
+  setupTestFrameworkScriptFile: './src/test-setup.ts',
+  globals: {
+    'ts-jest': {
+      tsConfig: './tsconfig.spec.json',
+      diagnostics: { warnOnly: true },
+      stringifyContentPathRegex: '\\.html$',
+      astTransformers: ['jest-preset-angular/InlineHtmlStripStylesTransformer']
+    }
+  }
 };

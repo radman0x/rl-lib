@@ -15,12 +15,15 @@ export * from './lib/components/distance-map.model';
 export * from './lib/ecs.types';
 export * from './lib/system-organiser.util';
 export * from './lib/systems.utils';
+export * from './lib/systems.types';
 export * from './lib/ecs.helpers';
 
 export * from './lib/collect-item.system';
 export * from './lib/movement.system';
 export * from './lib/effects.system';
 export * from './lib/combat.system';
-export * from './lib/housekeeping.system';
+export * from './lib/flows/housekeeping.flow';
 
 export * from './lib/areas/area-spec.model';
+
+export * from './lib/flows/bump-move.flow';

@@ -36,7 +36,7 @@ function canStandAtPositionStep<T extends Args>(
   );
 
   console.log(
-    `MOVE: Pos ${msg.targetPos.toString()} ${
+    `STAND: Pos ${msg.targetPos.toString()} ${
       canStand ? `can` : `CANNOT`
     } be stood on`
   );
