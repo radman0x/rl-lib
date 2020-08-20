@@ -16,6 +16,7 @@ import {
   radClone
 } from '../systems.utils';
 import { equalsVec3 } from '@rad/rl-utils';
+import { Id } from '@rad/rl-applib';
 
 export interface HookAoeTargetArgs {
   selectedPos?: GridPosData;
@@ -55,7 +56,7 @@ export type AcquireAoeTargetsOut = Out;
 function acquireAoePositionsStep<T extends Args>(
   msg: T,
   ignorePositions?: GridPosData[]
-): (T & Out)[] {
+): Id<T & Out>[] {
   if (!msg.areaOfEffect) {
     throw Error(`AOE params not provided!`);
   }

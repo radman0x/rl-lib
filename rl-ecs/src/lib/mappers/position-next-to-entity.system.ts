@@ -4,6 +4,7 @@ import { GridPos } from '../components/position.model';
 import { EntityId } from '../ecs.types';
 import { CompassDirection, compassDirectionToUnitVector } from '@rad/rl-utils';
 import { radClone } from '../systems.utils';
+import { Id } from '@rad/rl-applib';
 
 interface Args {
   protagId: EntityId;
@@ -19,7 +20,7 @@ export type PositionNextToEntityOut = Out;
 function positionNextToEntityStep<T extends Args>(
   msg: T,
   em: EntityManager
-): T & Out {
+): Id<T & Out> {
   const directionVec = compassDirectionToUnitVector.get(msg.direction)!;
   const agentPos = em.get(msg.protagId).component(GridPos);
   const targetPos = agentPos.add(new GridPos(directionVec));

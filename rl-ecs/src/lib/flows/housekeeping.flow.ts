@@ -1,14 +1,35 @@
-import { EntityManager } from 'rad-ecs';
+import { EntityManager, EntityId } from 'rad-ecs';
 import { merge, of, Subject } from 'rxjs';
-import { map, mergeMap, reduce, tap, take } from 'rxjs/operators';
+import {
+  map,
+  mergeMap,
+  reduce,
+  tap,
+  take,
+  concatMap,
+  toArray
+} from 'rxjs/operators';
 import { deprecateKnowledge } from '../actioners/deprecate-knowledge.actioner';
 import { Knowledge } from '../components/knowledge.model';
 import { GridPos } from '../components/position.model';
 import { Sighted } from '../components/sighted.model';
 import { entitiesWithComponents } from '../mappers/entities-with-component.system';
-import { fovEntities, FOVEntitiesOut } from '../mappers/fov-entities.system';
+import {
+  fovEntities,
+  FOVEntitiesOut,
+  FOVEntitiesArgs
+} from '../mappers/fov-entities.system';
 import { ProtagonistEntity } from '../systems.types';
 import { addProperty, radClone } from '../systems.utils';
+import { Id, selSuggest, selAddToArray } from '@rad/rl-applib';
+import { ValueMap } from '@rad/rl-utils';
+
+import * as _ from 'lodash';
+import {
+  SeenBreakdown,
+  addSeenToKnowledge
+} from '../actioners/add-seen-to-knowledge.actioner';
+import { aggregateViewed } from '../operators/aggregate-viewed.operator';
 
 export function housekeepingFlow(em: EntityManager) {
   const flowPoints = {
@@ -51,9 +72,13 @@ export function housekeepingFlow(em: EntityManager) {
     .pipe(
       take(1),
       map(() => addProperty({}, 'componentTypes', [Knowledge])),
-      mergeMap(msg => of(...entitiesWithComponents(msg, em, 'knowledgeId'))),
-      tap(msg => deprecateKnowledge(msg, em)),
-      reduce((acc, curr) => acc, null as null),
+      mergeMap(msg => of(...entitiesWithComponents(msg, em, 'knowledgeId')))
+    )
+    .subscribe(msg => deprecateKnowledge(msg, em));
+
+  flowPoints.housekeepStart$
+    .pipe(
+      take(1),
       map(() => addProperty({}, 'componentTypes', [Sighted, GridPos])),
       mergeMap(msg => of(...entitiesWithComponents(msg, em, 'sightedId'))),
       map(msg => ({
@@ -61,23 +86,10 @@ export function housekeepingFlow(em: EntityManager) {
         sighted: radClone(em.getComponent(msg.sightedId, Sighted)!),
         viewerPos: radClone(em.getComponent(msg.sightedId, GridPos)!)
       })),
-      mergeMap(msg => of(...fovEntities(msg, em)))
+      mergeMap(msg => of(...fovEntities(msg, em))),
+      aggregateViewed
     )
-    .subscribe(msg => {
-      const sightedId = msg.sightedId;
-      const knowledge = em.getComponent(sightedId, Knowledge);
-      const currentKnowledge = knowledge.current;
-      const knowledgeAtPos = currentKnowledge.get(msg.viewed.atPos) || [];
-      knowledgeAtPos.push(msg.viewed.entityId);
-      currentKnowledge.set(msg.viewed.atPos, knowledgeAtPos);
-      em.setComponent(
-        sightedId,
-        new Knowledge({
-          current: currentKnowledge,
-          history: knowledge.history
-        })
-      );
-    });
+    .subscribe(msg => addSeenToKnowledge(em, msg));
 
   // hookEntitiesWithComponents(
   //   flowPoints.housekeepStart$,

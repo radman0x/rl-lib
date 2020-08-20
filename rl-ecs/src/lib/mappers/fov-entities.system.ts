@@ -10,6 +10,7 @@ import { hasProtagId } from '../systems.utils';
 import { ProtagonistEntity } from '../systems.types';
 import { radClone } from '../systems.utils';
 import { Blockage } from '../components/blockage.model';
+import { Id } from '@rad/rl-applib';
 
 // export interface HookFovEntitiesArgs {
 //   protagId: EntityId;
@@ -49,7 +50,7 @@ export type FOVEntitiesOut = Out;
 function fovEntitiesStep<T extends Args>(
   msg: T,
   em: EntityManager
-): (T & Out)[] {
+): Id<T & Out>[] {
   const canSee = (x: number, y: number) => {
     let blocking = em
       .matchingIndex(new GridPos({ x, y, z: msg.viewerPos.z }))

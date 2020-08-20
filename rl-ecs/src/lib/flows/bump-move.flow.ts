@@ -1,114 +1,95 @@
+import { Id } from '@rad/rl-applib';
 import { CompassDirection } from '@rad/rl-utils';
 import { EntityManager } from 'rad-ecs';
-import { Subject, merge } from 'rxjs';
-import { filter, map, tap, take } from 'rxjs/operators';
-import { AreaResolver } from '../area-resolver.model';
-import { gatherBumpInfo } from '../general.utils';
+import { merge, Subject } from 'rxjs';
+import { filter, map, take } from 'rxjs/operators';
+import { grimReaper } from '../mappers/grim-reaper.system';
+import { integrity } from '../mappers/integrity.system';
+import { positionNextToEntity } from '../mappers/position-next-to-entity.system';
+import { spatial } from '../actioners/spatial.actioner';
+import { gatherBumpInfo } from '../operators/gather-bump-info.operator';
+import { resolveBump } from '../operators/resolve-bump.operator';
 import {
   CanOccupy,
   CanStand,
   CombatResult,
   CombatTargetEntity,
-  DamageType,
-  MovingEntity,
-  TargetPos,
-  DamageTargetEntity,
   Damaged,
+  DamageTargetEntity,
+  MovingEntity,
+  NewPosition,
   ProtagonistEntity,
-  StrikeResult,
-  WoundResult,
-  NewPosition
+  TargetPos
 } from '../systems.types';
 import {
-  noCombatTarget,
-  radClone,
   hasCombatTarget,
   hasNewPosition,
-  noNewPosition
+  noCombatTarget,
+  noNewPosition,
+  radClone
 } from '../systems.utils';
-import { grimReaper } from '../mappers/grim-reaper.system';
-import { integrity } from '../mappers/integrity.system';
-import { positionNextToEntity } from '../mappers/position-next-to-entity.system';
-import { resolveMeleeAttackDamage } from '../mappers/resolve-melee-attack-damage.system';
-import { resolveMove } from '../mappers/resolve-move.system';
-import { resolveStrike } from '../mappers/resolve-strike.system';
-import { resolveWound } from '../mappers/resolve-wound.system';
-import { spatial } from '../mappers/spatial.system';
-
-import * as Chance from 'chance';
+import {
+  bumpMoveAssessor,
+  BumpMoveAssessment
+} from '../assessors/bump-move.assessor';
 
 interface Blocked {
   isBlocked: boolean;
 }
 
-export function attemptMoveFlow(
-  em: EntityManager,
-  areaResolver: AreaResolver,
-  rand: Chance.Chance
-) {
-  type All = MovingEntity &
-    DamageTargetEntity &
-    CombatTargetEntity &
-    ProtagonistEntity &
-    CanStand &
-    CanOccupy &
-    CombatResult &
-    Damaged &
-    TargetPos &
-    Blocked &
-    NewPosition;
+export function attemptMoveFlow(em: EntityManager, rand: Chance.Chance) {
+  type All = Id<
+    MovingEntity &
+      DamageTargetEntity &
+      CombatTargetEntity &
+      ProtagonistEntity &
+      CanStand &
+      CanOccupy &
+      CombatResult &
+      Damaged &
+      TargetPos &
+      Blocked &
+      NewPosition
+  >;
+
+  const assessor = bumpMoveAssessor(em, rand);
 
   const out = {
-    start$: new Subject<MovingEntity & { direction: CompassDirection }>(),
-    finish$: new Subject<All>(),
-    moved$: new Subject(),
-    attacked$: new Subject<
-      ProtagonistEntity & CombatTargetEntity & CombatResult
-    >(),
+    start$: assessor.start$,
+    finish$: new Subject<BumpMoveAssessment>(),
+    moved$: new Subject<BumpMoveAssessment>(),
+    attacked$: new Subject<BumpMoveAssessment>(),
     noActionTaken$: new Subject()
   };
 
-  const internal = {
-    bumpAssessed$: new Subject<All>()
-  };
-
-  out.start$
+  assessor.finish$
     .pipe(
-      take(1),
-      map(msg =>
-        positionNextToEntity({ ...radClone(msg), protagId: msg.movingId }, em)
-      ),
-      gatherBumpInfo(em),
-      map(msg => resolveStrike(msg, em, rand)),
-      map(msg => resolveWound(msg, em, rand)),
-      map(msg => resolveMeleeAttackDamage(msg, em)),
-      map(msg => resolveMove(msg, em))
-    )
-    .subscribe(internal.bumpAssessed$);
-
-  internal.bumpAssessed$
-    .pipe(
-      filter(hasCombatTarget),
-      map(msg => integrity(msg, em)),
-      map(msg => grimReaper(msg, em))
+      filter(msg => !!msg.attack),
+      map(msg => ({
+        ...radClone(msg),
+        damageTargetId: msg.attack.combatTargetId,
+        damage: msg.attack.damage
+      })),
+      map(msg => integrity(msg, em))
     )
     .subscribe(out.attacked$);
 
   out.attacked$.subscribe(() => console.log(`ATTACKED!!!!`));
 
-  internal.bumpAssessed$
+  assessor.finish$
     .pipe(
-      filter(noCombatTarget),
-      filter(hasNewPosition),
+      filter(msg => !!(!msg.attack && msg.move)),
+      map(msg => ({
+        ...radClone(msg),
+        movingId: msg.move.movingId,
+        newPosition: msg.move.newPos
+      })),
       map(msg => spatial(msg, em))
     )
     .subscribe(out.moved$);
 
-  internal.bumpAssessed$
-    .pipe(
-      filter(noCombatTarget),
-      filter(noNewPosition)
-    )
+  assessor.finish$
+    .pipe(filter(msg => !!(!msg.attack && !msg.move)))
     .subscribe(out.noActionTaken$);
 
   merge(out.attacked$, out.moved$, out.noActionTaken$).subscribe(out.finish$);

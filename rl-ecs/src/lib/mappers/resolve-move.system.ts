@@ -1,29 +1,35 @@
-import { OperationStep } from '../operation-step.model';
 import { EntityManager } from 'rad-ecs';
-import { radClone } from '../systems.utils';
+import { OperationStep } from '../operation-step.model';
 import {
-  CanStand,
   CanOccupy,
-  TargetPos,
-  NewPosition,
-  TargetEntity,
-  ProtagonistEntity
+  CanStand,
+  MovingEntity,
+  SpatialChange,
+  TargetPos
 } from '../systems.types';
+import { addProperty } from '../systems.utils';
 
-type Args = ProtagonistEntity & CanStand & CanOccupy & TargetPos;
+type Args = MovingEntity & CanStand & CanOccupy & TargetPos;
 export type ResolveMoveArgs = Args;
 
-type Out = NewPosition & TargetEntity;
+type Out = SpatialChange;
 export type ResolveMoveOut = Out;
 
-function resolveMoveStep<T extends Args>(msg: T, em: EntityManager): T & Out {
-  let newPosition = null;
-  let targetId = null;
-  if (msg.canOccupy && msg.canStand) {
-    newPosition = msg.targetPos;
-    targetId = msg.protagId;
+function resolveMoveStep<T extends Args>(msg: T): T & Out {
+  if (msg.movingId === null || msg.targetPos === null) {
+    return addProperty(msg, 'spatial', null);
   }
-  return { ...radClone(msg), newPosition, targetId };
+  let newPos = null;
+  let movingId = null;
+  if (msg.canOccupy && msg.canStand) {
+    newPos = msg.targetPos;
+    movingId = msg.movingId;
+    return addProperty(msg, 'spatial', {
+      movingId: msg.movingId,
+      newPos: msg.targetPos
+    });
+  }
+  return addProperty(msg, 'spatial', null);
 }
 
 type StepFunc = OperationStep<Args, Out>;

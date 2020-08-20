@@ -17,7 +17,7 @@ export interface ProtagonistEntity {
 }
 
 export interface MovingEntity {
-  movingId: EntityId;
+  movingId: EntityId | null;
 }
 
 export interface DamageTargetEntity {
@@ -29,7 +29,7 @@ export interface NoteworthyEntity {
 }
 
 export interface TargetPos {
-  targetPos: GridPosData;
+  targetPos: GridPosData | null;
 }
 
 export interface CanStand {
@@ -53,6 +53,10 @@ export interface TargetEntity {
   targetId: EntityId | null;
 }
 
+export interface EffectTarget {
+  effectTargetId: EntityId | null;
+}
+
 export interface Damaged {
   damage: DamageData | null;
 }
@@ -69,8 +73,16 @@ export interface WoundsInflicted {
   woundsInflicted: number | null;
 }
 
+export interface ActiveEffectDescription {
+  activeEffectDescription: string | null;
+}
+
+export interface WorldStateChangeDescription {
+  worldStateChangeDescription: string | null;
+}
+
 export interface Teleported {
-  teleport?: { targetLocation: GridPosData };
+  teleport: { targetLocation: GridPosData } | null;
 }
 
 export interface EffectStart {
@@ -104,9 +116,7 @@ export interface Collected {
 }
 
 export interface LockChange {
-  lockChange?: {
-    lockId?: string;
-  };
+  lockChange: { lockId?: string } | null;
 }
 
 export interface NewPosition {
@@ -128,4 +138,12 @@ export interface DistanceTo {
     pos: GridPosData;
     travelTime: number;
   };
+}
+
+export interface SpatialOrder {
+  movingId: EntityId;
+  newPos: GridPosData;
+}
+export interface SpatialChange {
+  spatial: SpatialOrder | null;
 }

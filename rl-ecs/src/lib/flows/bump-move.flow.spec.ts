@@ -23,8 +23,8 @@ describe('Bump move flow', () => {
     em = new EntityManager();
     em.indexBy(GridPos);
     const protagPos: GridPosData = { x: 1, y: 1, z: 1 };
-    for (let x = -1; x < 1; ++x) {
-      for (let y = -1; y < 1; ++y) {
+    for (let x = -1; x <= 1; ++x) {
+      for (let y = -1; y <= 1; ++y) {
         // SOUTH of the player -> NO FLOOR
         if (x === 0 && y === -1) {
           continue;
@@ -59,7 +59,7 @@ describe('Bump move flow', () => {
 
   it('should behave well if completed without receiving a value', () => {
     let finished = false;
-    moveFlow = attemptMoveFlow(em, areaResolver, new Chance());
+    moveFlow = attemptMoveFlow(em, new Chance());
     moveFlow.finish$.subscribe(() => (finished = true));
     moveFlow.start$.complete();
     expect(finished).toEqual(false);
@@ -68,7 +68,7 @@ describe('Bump move flow', () => {
   it('should error out if the moving entity id does not exist in the em', () => {
     const ID_NOT_EXIST = 9999999;
     let errored = false;
-    moveFlow = attemptMoveFlow(em, areaResolver, new Chance());
+    moveFlow = attemptMoveFlow(em, new Chance());
     moveFlow.finish$.subscribe({
       error: msg => {
         errored = true;
@@ -92,7 +92,7 @@ describe('Bump move flow', () => {
       attacked = false;
       noAction = false;
       finished = false;
-      moveFlow = attemptMoveFlow(em, areaResolver, new Chance());
+      moveFlow = attemptMoveFlow(em, new Chance());
       moveFlow.moved$.subscribe(() => (moved = true));
       moveFlow.attacked$.subscribe(() => (attacked = true));
       moveFlow.noActionTaken$.subscribe(() => (noAction = true));
@@ -151,15 +151,15 @@ describe('Bump move flow', () => {
       };
     });
     it('should update the em state when damage successfully inflicted', () => {
-      moveFlow = attemptMoveFlow(em, areaResolver, new Chance(13));
+      moveFlow = attemptMoveFlow(em, new Chance(13));
       subMoveFlow(moveFlow);
       let hit: boolean;
       let wound: boolean;
       let damageInflicted: number;
       moveFlow.finish$.subscribe(msg => {
-        hit = msg.strikeSuccess;
-        wound = msg.woundSuccess;
-        damageInflicted = msg.damage.amount;
+        hit = msg.attack.strikeSuccess;
+        wound = msg.attack.woundSuccess;
+        damageInflicted = msg.attack.damage.amount;
       });
       moveFlow.start$.next({ direction: CompassDirection.E, movingId });
       startEmData.entities[combatTargetId]['Wounds'] = { current: 9, max: 10 };
@@ -170,11 +170,11 @@ describe('Bump move flow', () => {
     });
 
     it('should NOT update the state of the em when the attack was unsuccessful', () => {
-      moveFlow = attemptMoveFlow(em, areaResolver, new Chance(1));
+      moveFlow = attemptMoveFlow(em, new Chance(1));
       subMoveFlow(moveFlow);
       let hit: boolean;
       moveFlow.finish$.subscribe(msg => {
-        hit = msg.strikeSuccess;
+        hit = msg.attack.strikeSuccess;
       });
       moveFlow.start$.next({ direction: CompassDirection.E, movingId });
       expect(hit).toEqual(false);
@@ -182,7 +182,7 @@ describe('Bump move flow', () => {
     });
 
     it('should produce expected events on an attack', () => {
-      moveFlow = attemptMoveFlow(em, areaResolver, new Chance(2));
+      moveFlow = attemptMoveFlow(em, new Chance(2));
       subMoveFlow(moveFlow);
       moveFlow.start$.next({ direction: CompassDirection.E, movingId });
       expect(moved).toEqual(false);

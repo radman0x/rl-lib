@@ -16,6 +16,7 @@ import {
   NewPosition
 } from './systems.types';
 import { TransitionAreaOut } from './mappers/transition-area.system';
+import { Id } from '@rad/rl-applib';
 // import { positionBlocked } from './systems/position-blocked.system';
 
 type Rename<T, K extends keyof T, N extends string> = Pick<
@@ -61,12 +62,14 @@ export type PropObject<PropKeys extends string, ValueType> = {
   [K in PropKeys]: ValueType;
 };
 
+/** Returns a new object that is a copy of the input but with a property added
+ */
 export function addProperty<O extends object, K extends string, V>(
-  msg: O,
+  input: O,
   key: K,
   value: V
-): O & PropObject<K, V> {
-  const copy = radClone(msg);
+): Id<O & PropObject<K, V>> {
+  const copy = radClone(input);
   Object.defineProperty(copy, key, {
     value: radClone(value),
     enumerable: true,

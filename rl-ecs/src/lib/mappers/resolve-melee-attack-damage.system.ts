@@ -1,18 +1,20 @@
-import { EntityManager } from 'rad-ecs';
+import { Id } from '@rad/rl-applib';
+import { EntityId, EntityManager } from 'rad-ecs';
 import { Attacks } from '../components/attacks.model';
 import { OperationStep } from '../operation-step.model';
 import {
-  ProtagonistEntity,
-  WoundResult,
-  Damaged,
-  DamageType,
   CombatTargetEntity,
+  Damaged,
   DamageTargetEntity,
-  StrikeResult
+  DamageType,
+  StrikeResult,
+  WoundResult
 } from '../systems.types';
 import { radClone } from '../systems.utils';
 
-type Args = ProtagonistEntity & StrikeResult & WoundResult & CombatTargetEntity;
+type Args = { aggressorId: EntityId } & StrikeResult &
+  WoundResult &
+  CombatTargetEntity;
 export type ResolveMeleeAttackDamageArgs = Args;
 
 type Out = Damaged & DamageTargetEntity;
@@ -21,13 +23,13 @@ export type ResolveMeleeAttackDamageOut = Out;
 function resolveMeleeAttackDamageStep<T extends Args>(
   msg: T,
   em: EntityManager
-): T & Out {
+): Id<T & Out> {
   if (!msg.woundSuccess || !msg.strikeSuccess) {
     console.log(`COMBAT: Wound not occurring`);
     return { ...radClone(msg), damage: null, damageTargetId: null };
   }
 
-  const attacks = em.getComponent(msg.protagId, Attacks);
+  const attacks = em.getComponent(msg.aggressorId, Attacks);
   let damage = { type: DamageType.PHYSICAL, amount: 0 };
   if (attacks) {
     damage.amount = attacks.damage;

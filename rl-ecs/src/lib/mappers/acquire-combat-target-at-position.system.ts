@@ -7,6 +7,7 @@ import {
 import { renameKey, radClone } from '../systems.utils';
 import { CombatTargetEntity } from '../systems.types';
 import { Martial } from '../components/martial.model';
+import { Id } from '@rad/rl-applib';
 
 type Args = EntitiesAtPositionArgs;
 export type AcquireCombatTargetAtPositionArgs = Args;
@@ -18,10 +19,11 @@ function acquireCombatTargetAtPositionStep<T extends Args>(
   msg: T,
   em: EntityManager,
   predicate?: (e: Entity) => boolean
-): T & Out {
+): Id<T & Out> {
   const acquired = entitiesAtPosition(
     msg,
     em,
+    'targetId',
     candidate =>
       candidate.has(Martial) &&
       (!predicate || (predicate && predicate(candidate)))

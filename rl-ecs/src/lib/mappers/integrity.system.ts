@@ -3,6 +3,7 @@ import { Wounds } from '../components/wounds.model';
 import { OperationStep } from '../operation-step.model';
 import { Damaged, DamageTargetEntity } from '../systems.types';
 import { radClone } from '../systems.utils';
+import { Id } from '@rad/rl-applib';
 
 type Args = Damaged & DamageTargetEntity;
 export type IntegrityArgs = Args;
@@ -10,7 +11,7 @@ export type IntegrityArgs = Args;
 interface Out {}
 export type IntegrityOut = Out;
 
-function integrityStep<T extends Args>(msg: T, em: EntityManager): T & Out {
+function integrityStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
   if (!msg.damage) {
     console.log(`INTEGRITY: exiting`);
     return { ...radClone(msg) };

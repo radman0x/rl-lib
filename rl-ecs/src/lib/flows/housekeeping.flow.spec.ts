@@ -5,6 +5,7 @@ import { GridPos } from '../components/position.model';
 import { Sighted } from '../components/sighted.model';
 import { Physical } from '../components/physical.model';
 import { housekeepingFlow } from './housekeeping.flow';
+import { radClone } from '@rad/rl-ecs';
 
 describe('Housekeeping flow', () => {
   let em: EntityManager;
@@ -31,7 +32,7 @@ describe('Housekeeping flow', () => {
   it('should deprecate knowledge for entities with the knowledge component', () => {
     const current = new ValueMap<GridPos, EntityId[]>();
     current.set(new GridPos({ x: 9, y: 9, z: 9 }), [1111]);
-    const currentAsString = JSON.stringify(current, null, 2);
+    const copy = radClone(current);
     em.setComponent(
       viewerId,
       new Knowledge({ current, history: new ValueMap() })
@@ -40,7 +41,7 @@ describe('Housekeeping flow', () => {
     flow.housekeepStart$.next();
     flow.housekeepStart$.complete();
     const history = em.getComponent(viewerId, Knowledge).history;
-    expect(currentAsString).toEqual(JSON.stringify(history, null, 2));
+    expect(copy).toEqual(history);
   });
 
   it('should update a sighted entities knowledge', () => {

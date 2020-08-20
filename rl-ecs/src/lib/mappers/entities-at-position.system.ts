@@ -1,60 +1,32 @@
+import { Id } from '@rad/rl-applib';
 import { Entity, EntityManager } from 'rad-ecs';
-import { OperationStepMulti } from '../operation-step.model';
 import { GridPos, GridPosData } from '../components/position.model';
 import { EntityId } from '../ecs.types';
-import * as cloneDeep from 'clone-deep';
-import { Observable, Subject, of } from 'rxjs';
-import { mergeMap } from 'rxjs/operators';
-import { DisplayOnly } from '../components/display-only.model';
-import { radClone } from '../systems.utils';
-
-export function hookEntitiesAtPosition<T extends EntitiesAtPositionArgs>(
-  source: Observable<T>,
-  dest: Subject<EntitiesAtPositionOut>,
-  em: EntityManager
-) {
-  source
-    .pipe(
-      mergeMap(msg =>
-        of(...entitiesAtPosition(msg, em, (e: Entity) => !e.has(DisplayOnly)))
-      )
-    )
-    .subscribe(dest);
-}
+import { addProperty, PropObject } from '../systems.utils';
 
 interface Args {
   targetPos: GridPosData;
 }
 export type EntitiesAtPositionArgs = Args;
 
-interface Out {
-  targetId: EntityId;
-}
-export type EntitiesAtPositionOut = Out;
-
 type TargetPredicate = (entity: Entity) => boolean;
 
-function entitiesAtPositionStep<T extends Args>(
+export function entitiesAtPosition<T extends Args, K extends string>(
   msg: T,
   em: EntityManager,
+  outKey: K,
   predicate?: TargetPredicate
-): (T & Out)[] {
+): Id<T & PropObject<K, EntityId>>[] {
   const targetIds: EntityId[] = [];
   for (const candidate of em.matchingIndex(new GridPos(msg.targetPos))) {
-    if (predicate && predicate(candidate)) {
-      targetIds.push(candidate.id);
+    if (predicate && !predicate(candidate)) {
+      continue;
     }
+    targetIds.push(candidate.id);
   }
 
   if (targetIds.length === 0) {
-    // console.log(`TARGETING: No targets acquired`);
-  } else {
-    console.log(`TARGETING: targets acquired: [${targetIds.join(',')}]`);
+    return [addProperty(msg, outKey, null)];
   }
-  return targetIds.map(id => ({ ...radClone(msg), targetId: id }));
+  return targetIds.map(id => addProperty(msg, outKey, id));
 }
-
-type StepFunc = OperationStepMulti<Args, Out>;
-const typeCheck: StepFunc = entitiesAtPositionStep;
-
-export const entitiesAtPosition = typeCheck as typeof entitiesAtPositionStep;

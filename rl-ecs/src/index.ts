@@ -18,7 +18,6 @@ export * from './lib/systems.utils';
 export * from './lib/systems.types';
 export * from './lib/ecs.helpers';
 
-export * from './lib/collect-item.system';
 export * from './lib/movement.system';
 export * from './lib/effects.system';
 export * from './lib/combat.system';
@@ -27,3 +26,6 @@ export * from './lib/flows/housekeeping.flow';
 export * from './lib/areas/area-spec.model';
 
 export * from './lib/flows/bump-move.flow';
+export * from './lib/flows/collect-item.flow';
+
+export * from './lib/assessors/bump-move.assessor';

@@ -1,16 +1,13 @@
 import { OperationStep } from '../operation-step.model';
-import { EntityManager } from 'rad-ecs';
+import { EntityManager, EntityId } from 'rad-ecs';
 import { radClone } from '../systems.utils';
-import {
-  ProtagonistEntity,
-  CombatTargetEntity,
-  StrikeResult
-} from '../systems.types';
+import { CombatTargetEntity, StrikeResult } from '../systems.types';
 import { Martial } from '../components/martial.model';
 
 import * as Chance from 'chance';
+import { Id } from '@rad/rl-applib';
 
-type Args = ProtagonistEntity & Partial<CombatTargetEntity>;
+type Args = { aggressorId: EntityId | null } & Partial<CombatTargetEntity>;
 export type ResolveStrikeArgs = Args;
 
 type Out = StrikeResult;
@@ -20,15 +17,15 @@ function resolveStrikeStep<T extends Args>(
   msg: T,
   em: EntityManager,
   rand: Chance.Chance
-): T & Out {
-  if (msg.combatTargetId === null) {
+): Id<T & Out> {
+  if (msg.combatTargetId === null || msg.aggressorId === null) {
     return { ...radClone(msg), strikeSuccess: null };
   }
   const targetMartial = em.getComponent(msg.combatTargetId, Martial);
   if (targetMartial.weaponSkill === 0) {
     return { ...radClone(msg), strikeSuccess: true };
   }
-  const protagMartial = em.getComponent(msg.protagId, Martial);
+  const protagMartial = em.getComponent(msg.aggressorId, Martial);
   const BASE_TO_HIT = 6;
   const wsDiff = protagMartial.weaponSkill - targetMartial.weaponSkill;
   const actualToHit = BASE_TO_HIT - wsDiff;

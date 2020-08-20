@@ -1,16 +1,13 @@
 import { d10 } from '@rad/rl-utils';
-import { EntityManager } from 'rad-ecs';
+import { EntityManager, EntityId } from 'rad-ecs';
 import { Martial } from '../components/martial.model';
 import { OperationStep } from '../operation-step.model';
-import {
-  CombatTargetEntity,
-  ProtagonistEntity,
-  WoundResult
-} from '../systems.types';
+import { CombatTargetEntity, WoundResult } from '../systems.types';
 import { radClone } from '../systems.utils';
 import * as Chance from 'chance';
+import { Id } from '@rad/rl-applib';
 
-type Args = ProtagonistEntity & CombatTargetEntity;
+type Args = { aggressorId: EntityId | null } & CombatTargetEntity;
 export type ResolveWoundArgs = Args;
 
 type Out = WoundResult;
@@ -20,11 +17,12 @@ function resolveWoundStep<T extends Args>(
   msg: T,
   em: EntityManager,
   rand: Chance.Chance
-): T & Out {
-  if (msg.combatTargetId === null) {
+): Id<T & Out> {
+  msg;
+  if (msg.combatTargetId === null || msg.aggressorId === null) {
     return { ...radClone(msg), woundSuccess: null };
   }
-  const protagMartial = em.getComponent(msg.protagId, Martial);
+  const protagMartial = em.getComponent(msg.aggressorId, Martial);
   const targetMartial = em.getComponent(msg.combatTargetId, Martial);
   const BASE_TO_WOUND = 6;
   const stDiff = protagMartial.strength - targetMartial.toughness;

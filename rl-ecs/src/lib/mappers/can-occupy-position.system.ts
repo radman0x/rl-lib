@@ -4,6 +4,7 @@ import { Physical, Size } from '../components/physical.model';
 import { GridPos } from '../components/position.model';
 import { OperationStep } from '../operation-step.model';
 import { TargetPos } from '../systems.types';
+import { Id } from '@rad/rl-applib';
 
 type Args = TargetPos;
 export type CanOccupyPositionArgs = Args;
@@ -16,7 +17,7 @@ export type CanOccupyPositionOut = Out;
 function canOccupyPositionStep<T extends Args>(
   msg: T,
   em: EntityManager
-): T & Out {
+): Id<T & Out> {
   if (!msg.targetPos) {
     throw Error(`No target pos present so cannot determine occupyability!`);
   }

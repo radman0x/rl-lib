@@ -3,6 +3,7 @@ import { Wounds } from '../components/wounds.model';
 import { OperationStep } from '../operation-step.model';
 import { DamageTargetEntity, ReapedEntity } from '../systems.types';
 import { radClone } from '../systems.utils';
+import { Id } from '@rad/rl-applib';
 
 type Args = DamageTargetEntity;
 export type GrimReaperArgs = Args;
@@ -10,12 +11,15 @@ export type GrimReaperArgs = Args;
 type Out = Partial<ReapedEntity>;
 export type GrimReaperOut = Out;
 
-function grimReaperStep<T extends Args>(msg: T, em: EntityManager): T & Out {
+function grimReaperStep<T extends Args>(
+  msg: T,
+  em: EntityManager
+): Id<T> & Out {
   if (msg.damageTargetId === null) {
-    return { ...radClone(msg) };
+    return radClone(msg);
   }
   if (!em.hasComponent(msg.damageTargetId, Wounds)) {
-    return { ...radClone(msg) };
+    return radClone(msg);
   }
   console.log(`REAPER: More work`);
   const targetIntegrity = em.get(msg.damageTargetId).component(Wounds);
@@ -27,7 +31,7 @@ function grimReaperStep<T extends Args>(msg: T, em: EntityManager): T & Out {
     return { ...radClone(msg), reapedEntity };
   }
   console.log(`REAPER: Reap not required`);
-  return { ...radClone(msg) };
+  return radClone(msg);
 }
 
 type StepFunc = OperationStep<Args, Out>;

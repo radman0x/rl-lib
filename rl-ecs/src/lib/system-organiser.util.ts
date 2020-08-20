@@ -28,15 +28,15 @@ export class SystemOrganiser {
     //   climbRequest$: new Subject<ProtagonistEntity>(),
     //   climbCandidate$: new Subject<ProtagonistEntity & TargetEntity>()
     // };
-    // hookEntitiesAtProtagPos(
-    //   flowPoints.climbRequest$,
-    //   flowPoints.climbCandidate$,
-    //   this.em
-    // );
     // const effectFlow = applyTargetedEffectFlow(
     //   this.em,
     //   this.areaResolver,
     //   this.ender
+    // );
+    // hookEntitiesAtProtagPos(
+    //   flowPoints.climbRequest$,
+    //   flowPoints.climbCandidate$,
+    //   this.em
     // );
     // flowPoints.climbCandidate$
     //   .pipe(

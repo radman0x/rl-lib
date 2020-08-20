@@ -1,26 +1,27 @@
+import { Id } from '@rad/rl-applib';
+import * as deepEqual from 'fast-deep-equal';
 import { EntityManager } from 'rad-ecs';
-import { OperationStep } from '../operation-step.model';
 import { Physical, Size } from '../components/physical.model';
 import { GridPos, GridPosData } from '../components/position.model';
 import { EntityId } from '../ecs.types';
+import { OperationStep } from '../operation-step.model';
+import { addProperty } from '../systems.utils';
+import { TargetPos } from '../systems.types';
 
-import * as deepEqual from 'fast-deep-equal';
-
-interface Args {
-  protagId: EntityId;
-  targetPos: GridPosData;
-}
-export type CanStandAtArgs = Args;
+export type CanStandAtArgs = TargetPos;
 
 interface Out {
-  canStand: boolean;
+  canStand: boolean | null;
 }
 export type CanStandAtOut = Out;
 
-function canStandAtPositionStep<T extends Args>(
+function canStandAtPositionStep<T extends CanStandAtArgs>(
   msg: T,
   em: EntityManager
-): T & Out {
+): Id<T & Out> {
+  if (msg.targetPos === null) {
+    return addProperty(msg, 'canStand', null);
+  }
   let canStand = false;
   em.each(
     (e, y, p) => {
@@ -43,7 +44,7 @@ function canStandAtPositionStep<T extends Args>(
   return { ...msg, canStand };
 }
 
-type StepFunc = OperationStep<Args, Out>;
+type StepFunc = OperationStep<CanStandAtArgs, Out>;
 const typeCheck: StepFunc = canStandAtPositionStep;
 
 export const canStandAtPosition = typeCheck as typeof canStandAtPositionStep;

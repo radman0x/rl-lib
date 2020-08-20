@@ -6,7 +6,7 @@ module.exports = {
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'html'],
   coverageDirectory: '../../coverage/libs/rl-applib',
-  setupTestFrameworkScriptFile: './src/test-setup.ts',
+  setupFilesAfterEnv: ['./src/test-setup.ts'],
   globals: {
     'ts-jest': {
       tsConfig: './tsconfig.spec.json',
