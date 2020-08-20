@@ -1,7 +1,6 @@
 import { EntityManager } from 'rad-ecs';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { CanStandAtArgs } from '../mappers/can-stand-at-position.system';
 import {
   resolveMeleeAttackDamage,
   ResolveMeleeAttackDamageArgs
@@ -15,8 +14,6 @@ import {
   resolveWound,
   ResolveWoundArgs
 } from '../mappers/resolve-wound.system';
-
-import * as Chance from 'chance';
 
 export function resolveBump(em: EntityManager, rand: Chance.Chance) {
   return <T>(

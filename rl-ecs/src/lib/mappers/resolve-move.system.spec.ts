@@ -6,7 +6,8 @@ describe('Resolve move', () => {
       movingId: 1,
       targetPos: { x: 0, y: 0, z: 0 },
       canStand: true,
-      canOccupy: true
+      canOccupy: true,
+      isBlocked: false
     };
   });
 
@@ -27,6 +28,11 @@ describe('Resolve move', () => {
 
   it('should set output to null of occpying the position is not possible', () => {
     const out = resolveMove({ ...msg, canOccupy: false });
+    expect(out).toMatchObject({ spatial: null });
+  });
+
+  it('should set output to null if the position is blocked', () => {
+    const out = resolveMove({ ...msg, isBlocked: true });
     expect(out).toMatchObject({ spatial: null });
   });
 

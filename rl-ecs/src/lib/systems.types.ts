@@ -40,6 +40,10 @@ export interface CanOccupy {
   canOccupy: boolean;
 }
 
+export interface IsBlocked {
+  isBlocked: boolean;
+}
+
 export interface EffectFromItem {
   itemId: EntityId;
   effectId: EntityId;

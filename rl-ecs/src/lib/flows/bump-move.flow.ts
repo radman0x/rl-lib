@@ -1,14 +1,13 @@
 import { Id } from '@rad/rl-applib';
-import { CompassDirection } from '@rad/rl-utils';
 import { EntityManager } from 'rad-ecs';
 import { merge, Subject } from 'rxjs';
-import { filter, map, take } from 'rxjs/operators';
-import { grimReaper } from '../mappers/grim-reaper.system';
-import { integrity } from '../mappers/integrity.system';
-import { positionNextToEntity } from '../mappers/position-next-to-entity.system';
+import { filter, map } from 'rxjs/operators';
 import { spatial } from '../actioners/spatial.actioner';
-import { gatherBumpInfo } from '../operators/gather-bump-info.operator';
-import { resolveBump } from '../operators/resolve-bump.operator';
+import {
+  BumpMoveAssessment,
+  bumpMoveAssessor
+} from '../assessors/bump-move.assessor';
+import { integrity } from '../mappers/integrity.system';
 import {
   CanOccupy,
   CanStand,
@@ -21,37 +20,13 @@ import {
   ProtagonistEntity,
   TargetPos
 } from '../systems.types';
-import {
-  hasCombatTarget,
-  hasNewPosition,
-  noCombatTarget,
-  noNewPosition,
-  radClone
-} from '../systems.utils';
-import {
-  bumpMoveAssessor,
-  BumpMoveAssessment
-} from '../assessors/bump-move.assessor';
+import { radClone } from '../systems.utils';
 
 interface Blocked {
   isBlocked: boolean;
 }
 
 export function attemptMoveFlow(em: EntityManager, rand: Chance.Chance) {
-  type All = Id<
-    MovingEntity &
-      DamageTargetEntity &
-      CombatTargetEntity &
-      ProtagonistEntity &
-      CanStand &
-      CanOccupy &
-      CombatResult &
-      Damaged &
-      TargetPos &
-      Blocked &
-      NewPosition
-  >;
-
   const assessor = bumpMoveAssessor(em, rand);
 
   const out = {

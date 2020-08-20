@@ -5,11 +5,12 @@ import {
   CanStand,
   MovingEntity,
   SpatialChange,
-  TargetPos
+  TargetPos,
+  IsBlocked
 } from '../systems.types';
 import { addProperty } from '../systems.utils';
 
-type Args = MovingEntity & CanStand & CanOccupy & TargetPos;
+type Args = MovingEntity & CanStand & CanOccupy & TargetPos & IsBlocked;
 export type ResolveMoveArgs = Args;
 
 type Out = SpatialChange;
@@ -19,11 +20,7 @@ function resolveMoveStep<T extends Args>(msg: T): T & Out {
   if (msg.movingId === null || msg.targetPos === null) {
     return addProperty(msg, 'spatial', null);
   }
-  let newPos = null;
-  let movingId = null;
-  if (msg.canOccupy && msg.canStand) {
-    newPos = msg.targetPos;
-    movingId = msg.movingId;
+  if (msg.canOccupy && msg.canStand && !msg.isBlocked) {
     return addProperty(msg, 'spatial', {
       movingId: msg.movingId,
       newPos: msg.targetPos
