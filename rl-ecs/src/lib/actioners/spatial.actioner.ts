@@ -1,5 +1,6 @@
+import { Id } from '@rad/rl-applib';
 import { EntityManager } from 'rad-ecs';
-import { GridPos, GridPosData } from '../components/position.model';
+import { GridPos } from '../components/position.model';
 import { OperationStep } from '../operation-step.model';
 import {
   EffectTarget,
@@ -8,10 +9,8 @@ import {
   Teleported,
   WorldStateChangeDescription
 } from '../systems.types';
-import { radClone, addProperty } from '../systems.utils';
-import { Id } from '@rad/rl-applib';
-
-import * as _ from 'lodash';
+import { radClone } from '../systems.utils';
+import { isValidId } from '@rad/rl-utils';
 
 type Args = Partial<MovingEntity> &
   Partial<NewPosition> &
@@ -25,7 +24,7 @@ type Out = {
 export type SpatialOut = Out;
 
 function spatialStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
-  if ((msg.newPosition && msg.movingId) || msg.movingId === 0) {
+  if (msg.newPosition && isValidId(msg.movingId)) {
     console.log(
       `SPATIAL: position of target: ${msg.movingId} updated to ${msg.newPosition}`
     );
@@ -36,9 +35,11 @@ function spatialStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
       worldStateChangeDescription: 'You step into a new pos'
     };
   }
-  if (msg.teleport && (msg.effectTargetId || msg.effectTargetId === 0)) {
+  if (msg.teleport && isValidId(msg.effectTargetId)) {
     console.log(
-      `SPATIAL: teleporting target: blah, to: ${msg.teleport.targetLocation}`
+      `SPATIAL: teleporting target: blah, to: ${JSON.stringify(
+        msg.teleport.targetLocation
+      )}`
     );
     em.setComponent(
       msg.effectTargetId,
@@ -54,8 +55,8 @@ function spatialStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
 
   return {
     ...radClone(msg),
-    worldStateChanged: false,
-    worldStateChangeDescription: null
+    worldStateChanged: msg['worldStateChanged'] || false,
+    worldStateChangeDescription: msg['worldStateChangeDescription'] || null
   };
 }
 

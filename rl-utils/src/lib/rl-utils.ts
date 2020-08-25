@@ -1,3 +1,5 @@
+import { EntityId } from 'rad-ecs';
+
 export interface Coord {
   x: number;
   y: number;
@@ -208,4 +210,8 @@ export function addVec3(lhs: Vec3, rhs: Vec3) {
     y: lhs.y + rhs.y,
     z: lhs.z + rhs.z
   };
+}
+
+export function isValidId(id: EntityId | null | undefined) {
+  return id !== null && id !== undefined;
 }

@@ -11,7 +11,8 @@ import { Id } from '@rad/rl-applib';
 type Args = TargetPos;
 export type PositionBlockedArgs = Args;
 
-export type PositionBlockedOut = IsBlocked;
+type Out = IsBlocked;
+export type PositionBlockedOut = Out;
 
 function positionBlockedStep<T extends Args>(
   msg: T,

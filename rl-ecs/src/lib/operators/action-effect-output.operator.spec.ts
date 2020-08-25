@@ -1,14 +1,17 @@
-import { EntityManager } from 'rad-ecs';
+import { EntityManager, EntityId } from 'rad-ecs';
 import { Subject } from 'rxjs';
 import { GridPos, GridPosData } from '../components/position.model';
-import { Teleported } from '../systems.types';
+import { Teleported, LockChange } from '../systems.types';
 import { actionEffectOutput } from './action-effect-output.operator';
+import { Lock, LockState } from '../components/lock.model';
+
 describe('Action effect output', () => {
   let em: EntityManager;
   let start$: Subject<any>;
   let error: boolean | string;
   let out: any;
   let pos: GridPosData;
+  let effectTargetId: EntityId;
   beforeEach(() => {
     em = new EntityManager();
     em.indexBy(GridPos);
@@ -19,14 +22,38 @@ describe('Action effect output', () => {
       next: msg => (out = msg),
       error: err => (error = err)
     });
-    pos = { x: 0, y: 0, z: 0 };
+    pos = { x: 7, y: 7, z: 1 };
+    effectTargetId = em.create(
+      new Lock({
+        lockId: null,
+        state: LockState.LOCKED,
+        stateImages: {
+          [LockState.LOCKED]: 'Door0-4.png',
+          [LockState.UNLOCKED]: 'Door0-5.png'
+        }
+      }),
+      new GridPos({ x: 1, y: 1, z: 1 })
+    ).id;
   });
+
   it('should action a teleport', () => {
-    const teleport: Teleported = {
-      teleport: { targetLocation: pos }
+    const teleport = {
+      teleport: { targetLocation: pos },
+      effectTargetId
     };
     start$.next(teleport);
     expect(error).toEqual(false);
-    expect(out).toMatchObject({});
+    expect(out).toMatchObject({ worldStateChanged: true });
+    expect(em.getComponent(effectTargetId, GridPos)).toEqual(pos);
+  });
+
+  it('should action a lock state change', () => {
+    const lockChange = {
+      lockChange: {},
+      effectTargetId
+    };
+    start$.next(lockChange);
+    expect(error).toEqual(false);
+    expect(out).toMatchObject({ worldStateChanged: true });
   });
 });

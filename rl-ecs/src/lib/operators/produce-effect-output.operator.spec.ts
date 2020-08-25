@@ -3,6 +3,7 @@ import { Subject } from 'rxjs';
 import { GridPos } from '../components/position.model';
 import { Teleport } from '../components/teleport.model';
 import { produceEffectOutput } from './produce-effect-output.operator';
+import { ToggleLock } from '../components/toggle-lock.model';
 
 describe('Gather effect info', () => {
   let em: EntityManager;
@@ -30,6 +31,16 @@ describe('Gather effect info', () => {
     expect(error).toEqual(false);
     expect(out).toMatchObject({
       teleport: { targetLocation: targetPos }
+    });
+  });
+
+  it('should add the correct elements when the effect contains a toggle lock component', () => {
+    const lockId = 'example';
+    effectId = em.create(new ToggleLock({ lockId })).id;
+    start$.next({ effectId });
+    expect(error).toEqual(false);
+    expect(out).toMatchObject({
+      lockChange: { lockId }
     });
   });
 });

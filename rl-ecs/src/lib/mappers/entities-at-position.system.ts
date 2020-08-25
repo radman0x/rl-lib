@@ -3,10 +3,9 @@ import { Entity, EntityManager } from 'rad-ecs';
 import { GridPos, GridPosData } from '../components/position.model';
 import { EntityId } from '../ecs.types';
 import { addProperty, PropObject } from '../systems.utils';
+import { TargetPos } from '../systems.types';
 
-interface Args {
-  targetPos: GridPosData;
-}
+type Args = TargetPos;
 export type EntitiesAtPositionArgs = Args;
 
 type TargetPredicate = (entity: Entity) => boolean;
@@ -17,6 +16,7 @@ export function entitiesAtPosition<T extends Args, K extends string>(
   outKey: K,
   predicate?: TargetPredicate
 ): Id<T & PropObject<K, EntityId>>[] {
+  console.log(`entities at position`);
   const targetIds: EntityId[] = [];
   for (const candidate of em.matchingIndex(new GridPos(msg.targetPos))) {
     if (predicate && !predicate(candidate)) {
@@ -28,5 +28,6 @@ export function entitiesAtPosition<T extends Args, K extends string>(
   if (targetIds.length === 0) {
     return [addProperty(msg, outKey, null)];
   }
+
   return targetIds.map(id => addProperty(msg, outKey, id));
 }

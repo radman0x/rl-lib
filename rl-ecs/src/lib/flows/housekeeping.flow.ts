@@ -30,6 +30,8 @@ import {
   addSeenToKnowledge
 } from '../actioners/add-seen-to-knowledge.actioner';
 import { aggregateViewed } from '../operators/aggregate-viewed.operator';
+import { Blockage } from '../components/blockage.model';
+import { updateBlockageState } from '../actioners/update-blockage.state.actioner';
 
 export function housekeepingFlow(em: EntityManager) {
   const flowPoints = {
@@ -67,6 +69,14 @@ export function housekeepingFlow(em: EntityManager) {
   //     }
   //   }
   // });
+
+  flowPoints.housekeepStart$
+    .pipe(
+      take(1),
+      map(() => addProperty({}, 'componentTypes', [Blockage])),
+      mergeMap(msg => of(...entitiesWithComponents(msg, em, 'blockageId')))
+    )
+    .subscribe(msg => updateBlockageState(msg, em));
 
   flowPoints.housekeepStart$
     .pipe(

@@ -85,6 +85,10 @@ export interface WorldStateChangeDescription {
   worldStateChangeDescription: string | null;
 }
 
+export interface WorldStateChanged {
+  worldStateChanged: boolean;
+}
+
 export interface Teleported {
   teleport: { targetLocation: GridPosData } | null;
 }

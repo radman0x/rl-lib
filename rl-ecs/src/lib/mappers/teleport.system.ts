@@ -13,13 +13,13 @@ import { Description } from '../components/description.model';
 type Args = ActiveEffect;
 export type TeleportArgs = Args;
 
-type Out = Teleported & ActiveEffectDescription;
+type Out = Partial<Teleported> & ActiveEffectDescription;
 export type TeleportOut = Out;
 
 function teleportStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
   const t = em.getComponent(msg.effectId, Teleport);
   if (t) {
-    console.log(`Actioning teleport to: ${t.target}`);
+    console.log(`Actioning teleport to: ${JSON.stringify(t.target)}`);
     const activeEffectDescription = em.hasComponent(msg.effectId, Description)
       ? em.getComponent(msg.effectId, Description).short
       : 'Some effect';

@@ -1,7 +1,10 @@
 import { EntityId, EntityManager } from 'rad-ecs';
 import { Inventory } from '../components/inventory.model';
 import { GridPos } from '../components/position.model';
-import { addToInventory, AddToInventoryArgs } from './add-to-inventory.system';
+import {
+  addToInventory,
+  AddToInventoryArgs
+} from './add-to-inventory.actioner';
 
 describe('Add to inventory', () => {
   let em: EntityManager;

@@ -10,10 +10,17 @@ import {
   CanStandAtArgs,
   canStandAtPosition
 } from '../mappers/can-stand-at-position.system';
-import { positionBlocked } from '../mappers/position-blocked.system';
+import {
+  positionBlocked,
+  PositionBlockedArgs
+} from '../mappers/position-blocked.system';
 
 export function gatherBumpInfo(em: EntityManager) {
-  return <T>(input: Observable<CanOccupyPositionArgs & CanStandAtArgs & T>) => {
+  return <T>(
+    input: Observable<
+      CanOccupyPositionArgs & CanStandAtArgs & PositionBlockedArgs & T
+    >
+  ) => {
     return input.pipe(
       map(msg => positionBlocked(msg, em)),
       map(msg => canOccupyPosition(msg, em)),
