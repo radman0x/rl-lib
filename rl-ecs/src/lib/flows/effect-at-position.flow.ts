@@ -24,12 +24,16 @@ import {
 import { effectPipeline } from '../operators/effect-pipeline.operator';
 import * as _ from 'lodash';
 import { selAddToArray } from '@rad/rl-applib';
+import { AreaResolver } from '../utils/area-resolver.util';
 
 export interface Summaries {
-  [effectTargetId: string]: ActiveEffectDescription &
-    WorldStateChangeDescription;
+  [effectTargetId: string]: (ActiveEffectDescription &
+    WorldStateChangeDescription)[];
 }
-export function effectAtPositionFlow(em: EntityManager) {
+export function effectAtPositionFlow(
+  em: EntityManager,
+  areaResolver: AreaResolver
+) {
   const out = {
     start$: new Subject<ActiveEffect & TargetPos>(),
     finish$: new Subject(),
@@ -41,13 +45,13 @@ export function effectAtPositionFlow(em: EntityManager) {
     map(msg => entitiesAtPosition(msg, em, 'effectTargetId')),
     mergeMap(msg => of(...msg)),
     share(),
-    effectPipeline(em),
+    effectPipeline(em, areaResolver),
     reduce(
       (acc, msg) => {
         if (msg.worldStateChanged === true) {
           selAddToArray(
             acc,
-            `${msg.effectTargetId}.outcomes`,
+            `${msg.effectTargetId}`,
             _.pick(msg, [
               'activeEffectDescription',
               'worldStateChangeDescription'

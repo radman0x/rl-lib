@@ -17,11 +17,12 @@ describe('Toggle lock output creator', () => {
   it('should do nothing if a ToggleLock component is not present', () => {
     em.removeComponent(effectId, ToggleLock);
     const out = toggleLock(msg, em);
-    expect(out).toStrictEqual(msg);
+    expect(out).toStrictEqual({ ...msg, activeEffectDescription: null });
   });
 
   it('should add appropriate data if a ToggleLock component is present', () => {
     const out = toggleLock(msg, em);
     expect(out).toMatchObject({ effectId, lockChange: { lockId: 'A' } });
+    expect(out.activeEffectDescription).not.toBe(null);
   });
 });

@@ -1,5 +1,5 @@
 import { EntityManager } from 'rad-ecs';
-import { AreaResolver } from './area-resolver.model';
+import { AreaResolver } from './utils/area-resolver.util';
 
 export function moveRequestFlow(em: EntityManager) {
   // const flowPoints = {

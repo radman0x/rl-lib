@@ -4,9 +4,11 @@ import { GridPos, GridPosData } from '../components/position.model';
 import { Teleported, LockChange } from '../systems.types';
 import { actionEffectOutput } from './action-effect-output.operator';
 import { Lock, LockState } from '../components/lock.model';
+import { AreaResolver } from '../utils/area-resolver.util';
 
 describe('Action effect output', () => {
   let em: EntityManager;
+  let areaResolver: AreaResolver;
   let start$: Subject<any>;
   let error: boolean | string;
   let out: any;
@@ -15,10 +17,11 @@ describe('Action effect output', () => {
   beforeEach(() => {
     em = new EntityManager();
     em.indexBy(GridPos);
+    areaResolver = new AreaResolver();
     start$ = new Subject();
     error = false;
     out = null;
-    start$.pipe(actionEffectOutput(em)).subscribe({
+    start$.pipe(actionEffectOutput(em, areaResolver)).subscribe({
       next: msg => (out = msg),
       error: err => (error = err)
     });

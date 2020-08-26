@@ -1,7 +1,7 @@
 import { EntityManager } from 'rad-ecs';
 import { merge, Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { AreaResolver } from './area-resolver.model';
+import { AreaResolver } from './utils/area-resolver.util';
 import { EndType } from './components/end-state.model';
 import { fireResist } from './mappers/fire-resist.system';
 import { lockQuality } from './mappers/lock-quality.system';

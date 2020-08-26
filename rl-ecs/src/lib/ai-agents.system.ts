@@ -20,7 +20,7 @@ import {
 import { attackEntityFlow } from './combat.system';
 import { moveRequestFlow } from './movement.system';
 import { DistanceMap } from './components/distance-map.model';
-import { AreaResolver } from './area-resolver.model';
+import { AreaResolver } from './utils/area-resolver.util';
 import { playerAdjacentForCombatFlow } from './player-adjacent-for-attack.system';
 import { GridPos, GridPosData } from './components/position.model';
 

@@ -6,6 +6,7 @@ import { ToggleLock } from '../components/toggle-lock.model';
 import { Lock, LockState } from '../components/lock.model';
 import { Renderable } from '../components/renderable.model';
 import { Teleport } from '../components/teleport.model';
+import { AreaResolver } from '../utils/area-resolver.util';
 
 function standardLock(em: EntityManager, pos: GridPosData) {
   return em.create(
@@ -24,6 +25,7 @@ function standardLock(em: EntityManager, pos: GridPosData) {
 
 describe('Effect at position flow', () => {
   let em: EntityManager;
+  let areaResolver: AreaResolver;
   let results: {
     outcome: any;
     finished: boolean;
@@ -31,7 +33,7 @@ describe('Effect at position flow', () => {
     error: boolean | string;
   };
   const newFlow = (em: EntityManager) => {
-    const flow = effectAtPositionFlow(em);
+    const flow = effectAtPositionFlow(em, areaResolver);
     flow.finish$.subscribe({
       next: msg => {
         results.outcome = msg;
@@ -48,6 +50,7 @@ describe('Effect at position flow', () => {
   beforeEach(() => {
     em = new EntityManager();
     em.indexBy(GridPos);
+    areaResolver = new AreaResolver();
     results = {
       outcome: null,
       finished: false,
@@ -78,7 +81,7 @@ describe('Effect at position flow', () => {
     process.start$.next({ effectId, targetPos });
     expect(results.error).toBe(false);
     expect(results.summaries).toMatchObject({
-      [effectTargetId]: { outcomes: [{}, {}] }
+      [effectTargetId]: [{}, {}]
     });
   });
   it('should update the state of a locked entity when a toggle lock effect is applied at its position', () => {
@@ -88,7 +91,7 @@ describe('Effect at position flow', () => {
 
     expect(results.error).toBe(false);
     expect(results.summaries).toMatchObject({
-      [effectTargetId]: { outcomes: [{}] }
+      [effectTargetId]: [{}]
     });
     expect(em.getComponent(effectTargetId, Lock)).toMatchObject({
       state: LockState.UNLOCKED

@@ -11,6 +11,7 @@ export * from './lib/components/martial.model';
 export * from './lib/components/wounds.model';
 export * from './lib/components/attacks.model';
 export * from './lib/components/distance-map.model';
+export * from './lib/components/area-transition.model';
 
 export * from './lib/ecs.types';
 export * from './lib/system-organiser.util';

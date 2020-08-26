@@ -4,7 +4,7 @@ import { addVec3, CompassDirection } from '@rad/rl-utils';
 import { Physical, Size } from '../components/physical.model';
 import { attemptMoveFlow } from './bump-move.flow';
 import { Martial } from '../components/martial.model';
-import { AreaResolver } from '../area-resolver.model';
+import { AreaResolver } from '../utils/area-resolver.util';
 
 import * as Chance from 'chance';
 import { Attacks } from '../components/attacks.model';

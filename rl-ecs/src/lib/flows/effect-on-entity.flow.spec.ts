@@ -5,9 +5,11 @@ import { Descriptions, effectOnEntityFlow } from './effect-on-entity.flow';
 import { ToggleLock } from '../components/toggle-lock.model';
 import { Lock, LockState } from '../components/lock.model';
 import { Renderable } from '../components/renderable.model';
+import { AreaResolver } from '../utils/area-resolver.util';
 
 describe('Effect on Entity', () => {
   let em: EntityManager;
+  let areaResolver: AreaResolver;
   let results: {
     outcome: any;
     finished: boolean;
@@ -15,7 +17,7 @@ describe('Effect on Entity', () => {
     error: boolean | string;
   };
   const newFlow = (em: EntityManager) => {
-    const flow = effectOnEntityFlow(em);
+    const flow = effectOnEntityFlow(em, areaResolver);
     flow.finish$.subscribe({
       next: msg => {
         results.outcome = msg;
@@ -31,6 +33,7 @@ describe('Effect on Entity', () => {
   let targetPos: GridPosData;
   beforeEach(() => {
     em = new EntityManager();
+    areaResolver = new AreaResolver();
     results = {
       outcome: null,
       finished: false,

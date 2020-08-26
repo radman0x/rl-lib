@@ -15,7 +15,7 @@ export function entitiesAtPosition<T extends Args, K extends string>(
   em: EntityManager,
   outKey: K,
   predicate?: TargetPredicate
-): Id<T & PropObject<K, EntityId>>[] {
+): Id<T & PropObject<K, EntityId | null>>[] {
   console.log(`entities at position`);
   const targetIds: EntityId[] = [];
   for (const candidate of em.matchingIndex(new GridPos(msg.targetPos))) {

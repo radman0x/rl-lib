@@ -4,6 +4,7 @@ import { LockState } from './components/lock.model';
 import { GridPosData } from './components/position.model';
 import { EntityId } from './ecs.types';
 import { Entity } from 'rad-ecs';
+import { AreaTransitionData } from './components/area-transition.model';
 
 export enum DamageType {
   FIRE,
@@ -154,4 +155,8 @@ export interface SpatialOrder {
 }
 export interface SpatialChange {
   spatial: SpatialOrder | null;
+}
+
+export interface TransitionToArea {
+  areaTransition: AreaTransitionData | null;
 }

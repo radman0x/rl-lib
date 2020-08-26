@@ -7,7 +7,7 @@ import {
   woundFailure,
   woundSuccess
 } from './systems.utils';
-import { AreaResolver } from './area-resolver.model';
+import { AreaResolver } from './utils/area-resolver.util';
 import { modifyActionFlow, processActionFlow } from './effects.system';
 import {
   CombatResult,

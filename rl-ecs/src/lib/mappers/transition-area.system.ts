@@ -4,17 +4,19 @@ import {
   AreaTransitionData
 } from '../components/area-transition.model';
 import { OperationStep } from '../operation-step.model';
-import { ActiveEffect, TargetEntity } from '../systems.types';
+import {
+  ActiveEffect,
+  TargetEntity,
+  ActiveEffectDescription,
+  TransitionToArea
+} from '../systems.types';
 import { radClone } from '../systems.utils';
 import { Description } from '../components/description.model';
 
-type Args = TargetEntity & ActiveEffect;
+type Args = ActiveEffect;
 export type TransitionAreaArgs = Args;
 
-interface Out {
-  areaTransition?: AreaTransitionData;
-  activeEffectDescription?: string;
-}
+type Out = Partial<TransitionToArea> & ActiveEffectDescription;
 export type TransitionAreaOut = Out;
 
 function transitionAreaStep<T extends Args>(
@@ -33,7 +35,7 @@ function transitionAreaStep<T extends Args>(
       activeEffectDescription
     };
   } else {
-    return { ...radClone(msg) };
+    return { ...radClone(msg), activeEffectDescription: null };
   }
 }
 
