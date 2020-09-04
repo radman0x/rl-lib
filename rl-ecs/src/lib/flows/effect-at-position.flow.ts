@@ -1,29 +1,16 @@
-import { EntityManager, EntityId } from 'rad-ecs';
-import { Subject, of, BehaviorSubject } from 'rxjs';
-import { GridPosData } from '../components/position.model';
-import { effectOnEntityFlow, Descriptions } from './effect-on-entity.flow';
+import { selAddToArray } from '@rad/rl-applib';
+import * as _ from 'lodash';
+import { EntityManager } from 'rad-ecs';
+import { of, Subject } from 'rxjs';
+import { map, mergeMap, reduce, share, take } from 'rxjs/operators';
 import { entitiesAtPosition } from '../mappers/entities-at-position.system';
-import {
-  map,
-  mergeMap,
-  switchMap,
-  take,
-  reduce,
-  filter,
-  tap,
-  multicast,
-  publish,
-  share
-} from 'rxjs/operators';
+import { effectPipeline } from '../operators/effect-pipeline.operator';
 import {
   ActiveEffect,
-  TargetPos,
   ActiveEffectDescription,
+  TargetPos,
   WorldStateChangeDescription
 } from '../systems.types';
-import { effectPipeline } from '../operators/effect-pipeline.operator';
-import * as _ from 'lodash';
-import { selAddToArray } from '@rad/rl-applib';
 import { AreaResolver } from '../utils/area-resolver.util';
 
 export interface Summaries {

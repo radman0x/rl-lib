@@ -1,7 +1,7 @@
 import { Id } from '@rad/rl-applib';
 import { EntityManager } from 'rad-ecs';
 import { merge, Subject } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { filter, map, take } from 'rxjs/operators';
 import { spatial } from '../actioners/spatial.actioner';
 import {
   BumpMoveAssessment,
@@ -21,23 +21,42 @@ import {
   TargetPos
 } from '../systems.types';
 import { radClone } from '../systems.utils';
+import { CompassDirection } from '@rad/rl-utils';
+import { positionNextToEntity } from '../mappers/position-next-to-entity.system';
+import { assessBumpMove } from '../operators/bump-move.operator';
 
 interface Blocked {
   isBlocked: boolean;
 }
 
 export function attemptMoveFlow(em: EntityManager, rand: Chance.Chance) {
-  const assessor = bumpMoveAssessor(em, rand);
-
   const out = {
-    start$: assessor.start$,
+    start$: new Subject<MovingEntity & { direction: CompassDirection }>(),
     finish$: new Subject<BumpMoveAssessment>(),
     moved$: new Subject<BumpMoveAssessment>(),
     attacked$: new Subject<BumpMoveAssessment>(),
     noActionTaken$: new Subject()
   };
 
-  assessor.finish$
+  const assessed$ = new Subject<BumpMoveAssessment>();
+  out.start$
+    .pipe(
+      take(1),
+      map(msg =>
+        positionNextToEntity(
+          {
+            ...radClone(msg),
+            protagId: msg.movingId,
+            aggressorId: msg.movingId
+          },
+          em
+        )
+      ),
+      assessBumpMove(em, rand)
+    )
+    .subscribe(assessed$);
+
+  assessed$
     .pipe(
       filter(msg => !!msg.attack),
       map(msg => ({
@@ -51,19 +70,23 @@ export function attemptMoveFlow(em: EntityManager, rand: Chance.Chance) {
 
   out.attacked$.subscribe(() => console.log(`ATTACKED!!!!`));
 
-  assessor.finish$
+  assessed$
     .pipe(
+      map(msg => {
+        console.log(`${JSON.stringify(msg)}`);
+        return msg;
+      }),
       filter(msg => !!(!msg.attack && msg.move)),
       map(msg => ({
         ...radClone(msg),
         movingId: msg.move.movingId,
-        newPosition: msg.move.newPos
+        newPosition: msg.move.newPosition
       })),
       map(msg => spatial(msg, em))
     )
     .subscribe(out.moved$);
 
-  assessor.finish$
+  assessed$
     .pipe(filter(msg => !!(!msg.attack && !msg.move)))
     .subscribe(out.noActionTaken$);
 

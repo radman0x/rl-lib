@@ -53,8 +53,8 @@ function areaStep<T extends Args>(
   }
   return {
     ...radClone(msg),
-    worldStateChangeDescription: null,
-    worldStateChanged: false
+    worldStateChanged: msg['worldStateChanged'] || false,
+    worldStateChangeDescription: msg['worldStateChangeDescription'] || null
   };
 }
 

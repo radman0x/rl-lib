@@ -18,6 +18,7 @@ function resolveStrikeStep<T extends Args>(
   em: EntityManager,
   rand: Chance.Chance
 ): Id<T & Out> {
+  console.log(`STRIKE`);
   if (msg.combatTargetId === null || msg.aggressorId === null) {
     return { ...radClone(msg), strikeSuccess: null };
   }

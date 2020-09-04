@@ -1,32 +1,32 @@
-import { EntityManager } from 'rad-ecs';
+import { Id } from '@rad/rl-applib';
 import { OperationStep } from '../operation-step.model';
 import {
   CanOccupy,
   CanStand,
+  IsBlocked,
+  MoveOrder,
   MovingEntity,
-  SpatialChange,
-  TargetPos,
-  IsBlocked
+  TargetPos
 } from '../systems.types';
 import { addProperty } from '../systems.utils';
+import { isValidId } from '@rad/rl-utils';
 
 type Args = MovingEntity & CanStand & CanOccupy & TargetPos & IsBlocked;
 export type ResolveMoveArgs = Args;
 
-type Out = SpatialChange;
+type Out = MoveOrder;
 export type ResolveMoveOut = Out;
 
-function resolveMoveStep<T extends Args>(msg: T): T & Out {
-  if (msg.movingId === null || msg.targetPos === null) {
-    return addProperty(msg, 'spatial', null);
+function resolveMoveStep<T extends Args>(msg: T): Id<T & Out> {
+  if (
+    msg.canOccupy &&
+    msg.canStand &&
+    !msg.isBlocked &&
+    isValidId(msg.movingId)
+  ) {
+    return addProperty(msg, 'newPosition', msg.targetPos);
   }
-  if (msg.canOccupy && msg.canStand && !msg.isBlocked) {
-    return addProperty(msg, 'spatial', {
-      movingId: msg.movingId,
-      newPos: msg.targetPos
-    });
-  }
-  return addProperty(msg, 'spatial', null);
+  return addProperty(msg, 'newPosition', null);
 }
 
 type StepFunc = OperationStep<Args, Out>;

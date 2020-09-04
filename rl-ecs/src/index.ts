@@ -5,6 +5,7 @@ export * from './lib/components/position.model';
 export * from './lib/components/renderable.model';
 export * from './lib/components/effects.model';
 export * from './lib/components/climbable.model';
+export * from './lib/components/mobile.model';
 export * from './lib/components/teleport.model';
 export * from './lib/components/inventory.model';
 export * from './lib/components/martial.model';
@@ -23,6 +24,7 @@ export * from './lib/movement.system';
 export * from './lib/effects.system';
 export * from './lib/combat.system';
 
+export * from './lib/flows/all-agent-update.flow';
 export * from './lib/flows/housekeeping.flow';
 export * from './lib/flows/bump-move.flow';
 export * from './lib/flows/effect-at-position.flow';

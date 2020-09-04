@@ -1,11 +1,12 @@
-import { EntityManager, EntityId } from 'rad-ecs';
+import { radClone } from '@rad/rl-ecs';
 import { ValueMap } from '@rad/rl-utils';
+import { EntityId, EntityManager } from 'rad-ecs';
+import { Blockage } from '../components/blockage.model';
 import { Knowledge } from '../components/knowledge.model';
+import { Lock, LockState } from '../components/lock.model';
 import { GridPos } from '../components/position.model';
 import { Sighted } from '../components/sighted.model';
-import { Physical } from '../components/physical.model';
 import { housekeepingFlow } from './housekeeping.flow';
-import { radClone } from '@rad/rl-ecs';
 
 describe('Housekeeping flow', () => {
   let em: EntityManager;
@@ -38,19 +39,50 @@ describe('Housekeeping flow', () => {
       new Knowledge({ current, history: new ValueMap() })
     );
     const flow = housekeepingFlow(em);
-    flow.housekeepStart$.next();
-    flow.housekeepStart$.complete();
+    flow.start$.next();
     const history = em.getComponent(viewerId, Knowledge).history;
     expect(copy).toEqual(history);
   });
 
   it('should update a sighted entities knowledge', () => {
     const flow = housekeepingFlow(em);
-    flow.housekeepStart$.next();
-    flow.housekeepStart$.complete();
+    flow.start$.next();
     const knowledge = em.getComponent(viewerId, Knowledge);
     console.log(knowledge.current);
     expect(knowledge.current.count()).toEqual(10);
+  });
+
+  it('should update the state of a blockage', () => {
+    const blockage = em.create(
+      new Lock({
+        lockId: 'A',
+        state: LockState.LOCKED,
+        stateImages: {
+          [LockState.LOCKED]: 'Door0-4.png',
+          [LockState.UNLOCKED]: 'Door0-5.png'
+        }
+      }),
+      new Blockage({
+        active: false,
+        triggers: [
+          {
+            componentName: Lock.name,
+            property: 'state',
+            value: LockState.LOCKED,
+            activeState: true
+          },
+          {
+            componentName: Lock.name,
+            property: 'state',
+            value: LockState.UNLOCKED,
+            activeState: false
+          }
+        ]
+      })
+    ).id;
+    const flow = housekeepingFlow(em);
+    flow.start$.next();
+    expect(em.getComponent(blockage, Blockage).active).toEqual(true);
   });
 
   it('should behave well if completed without receiving a value', () => {});

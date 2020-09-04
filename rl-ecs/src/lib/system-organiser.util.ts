@@ -1,7 +1,7 @@
 import { EntityId, EntityManager } from 'rad-ecs';
 import { merge, Observable, of, Subject } from 'rxjs';
 import { filter, map, mergeMap, tap } from 'rxjs/operators';
-import { aiTurnFlow } from './ai-agents.system';
+// import { aiTurnFlow } from './ai-agents.system';
 import { AreaResolver } from './utils/area-resolver.util';
 import { AttackingAgent } from './components/attacking-agent.model';
 import { Climbable } from './components/climbable.model';

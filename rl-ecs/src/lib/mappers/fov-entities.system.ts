@@ -1,40 +1,12 @@
+import { Id } from '@rad/rl-applib';
 import { Entity, EntityId, EntityManager } from 'rad-ecs';
 import * as ROT from 'rot-js';
-import { Observable, of, Subject } from 'rxjs';
-import { filter, map, mergeMap } from 'rxjs/operators';
+import { Blockage } from '../components/blockage.model';
 import { Physical, Size } from '../components/physical.model';
 import { GridPos } from '../components/position.model';
-import { Sighted, SightedData } from '../components/sighted.model';
+import { SightedData } from '../components/sighted.model';
 import { OperationStepMulti } from '../operation-step.model';
-import { hasProtagId } from '../systems.utils';
-import { ProtagonistEntity } from '../systems.types';
 import { radClone } from '../systems.utils';
-import { Blockage } from '../components/blockage.model';
-import { Id } from '@rad/rl-applib';
-
-// export interface HookFovEntitiesArgs {
-//   protagId: EntityId;
-// }
-
-// export function hookFOVEntities<T extends HookFovEntitiesArgs>(
-//   source: Observable<T>,
-//   dest: Subject<FOVEntitiesOut & T>,
-//   em: EntityManager
-// ) {
-//   source
-//     .pipe(
-//       filter(hasProtagId),
-//       filter(msg => em.hasComponent(msg.protagId, Sighted)),
-//       filter(msg => em.hasComponent(msg.protagId, GridPos)),
-//       map(msg => ({
-//         ...radClone(msg),
-//         sighted: radClone(em.getComponent(msg.protagId, Sighted)!),
-//         viewerPos: radClone(em.getComponent(msg.protagId, GridPos)!)
-//       })),
-//       mergeMap(msg => of(...fovEntities(msg, em)))
-//     )
-//     .subscribe(dest);
-// }
 
 type Args = { sightedId: EntityId; sighted: SightedData; viewerPos: GridPos };
 export type FOVEntitiesArgs = Args;

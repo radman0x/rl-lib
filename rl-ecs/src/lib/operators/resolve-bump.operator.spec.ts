@@ -64,7 +64,8 @@ describe('', () => {
       damageTargetId: null,
       strikeSuccess: null,
       woundSuccess: null,
-      spatial: { newPos: targetPos, movingId }
+      newPosition: targetPos,
+      movingId
     });
   });
 
@@ -88,7 +89,7 @@ describe('', () => {
       damageTargetId: null,
       strikeSuccess: true,
       woundSuccess: false,
-      spatial: null
+      newPosition: null
     });
   });
 
@@ -115,7 +116,7 @@ describe('', () => {
       damageTargetId: combatTargetId,
       strikeSuccess: true,
       woundSuccess: true,
-      spatial: null
+      newPosition: null
     });
   });
 });

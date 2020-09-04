@@ -1,76 +1,26 @@
-import { EntityManager, EntityId } from 'rad-ecs';
-import { merge, of, Subject } from 'rxjs';
-import {
-  map,
-  mergeMap,
-  reduce,
-  tap,
-  take,
-  concatMap,
-  toArray
-} from 'rxjs/operators';
+import { EntityManager } from 'rad-ecs';
+import { of, Subject } from 'rxjs';
+import { map, mergeMap, take } from 'rxjs/operators';
+import { addSeenToKnowledge } from '../actioners/add-seen-to-knowledge.actioner';
 import { deprecateKnowledge } from '../actioners/deprecate-knowledge.actioner';
+import { updateBlockageState } from '../actioners/update-blockage.state.actioner';
+import { Blockage } from '../components/blockage.model';
 import { Knowledge } from '../components/knowledge.model';
 import { GridPos } from '../components/position.model';
 import { Sighted } from '../components/sighted.model';
 import { entitiesWithComponents } from '../mappers/entities-with-component.system';
-import {
-  fovEntities,
-  FOVEntitiesOut,
-  FOVEntitiesArgs
-} from '../mappers/fov-entities.system';
-import { ProtagonistEntity } from '../systems.types';
-import { addProperty, radClone } from '../systems.utils';
-import { Id, selSuggest, selAddToArray } from '@rad/rl-applib';
-import { ValueMap } from '@rad/rl-utils';
-
-import * as _ from 'lodash';
-import {
-  SeenBreakdown,
-  addSeenToKnowledge
-} from '../actioners/add-seen-to-knowledge.actioner';
+import { fovEntities } from '../mappers/fov-entities.system';
 import { aggregateViewed } from '../operators/aggregate-viewed.operator';
-import { Blockage } from '../components/blockage.model';
-import { updateBlockageState } from '../actioners/update-blockage.state.actioner';
+import { addProperty, radClone } from '../systems.utils';
 
 export function housekeepingFlow(em: EntityManager) {
   const flowPoints = {
-    housekeepStart$: new Subject(),
-    updateKnowledge$: new Subject<ProtagonistEntity>(),
-    updateSighted$: new Subject<ProtagonistEntity>(),
-    entityInVision$: new Subject<ProtagonistEntity & FOVEntitiesOut>(),
-    seenEntities$: new Subject<(ProtagonistEntity & FOVEntitiesOut)[]>(),
-    blockageEntity$: new Subject<ProtagonistEntity>(),
-    updateDistanceMap$: new Subject<ProtagonistEntity>()
+    start$: new Subject()
   };
 
-  flowPoints.housekeepStart$.subscribe(() => console.log(`Housekeeping!`));
+  flowPoints.start$.subscribe(() => console.log(`Housekeeping!`));
 
-  // hookEntitiesWithComponents(
-  //   flowPoints.housekeepStart$,
-  //   flowPoints.blockageEntity$,
-  //   em,
-  //   Blockage
-  // );
-  // flowPoints.blockageEntity$.subscribe(msg => {
-  //   const b = em.getComponent(msg.protagId, Blockage);
-  //   if (b) {
-  //     for (const trigger of b.triggers) {
-  //       const x = em.getComponentByName(msg.protagId, trigger.componentName);
-  //       if (x && x[trigger.property] === trigger.value) {
-  //         console.log(
-  //           `BLOCKING: trigger hit!, setting active to: ${trigger.active}`
-  //         );
-  //         em.setComponent(
-  //           msg.protagId,
-  //           new Blockage({ ...b, active: trigger.active })
-  //         );
-  //       }
-  //     }
-  //   }
-  // });
-
-  flowPoints.housekeepStart$
+  flowPoints.start$
     .pipe(
       take(1),
       map(() => addProperty({}, 'componentTypes', [Blockage])),
@@ -78,7 +28,7 @@ export function housekeepingFlow(em: EntityManager) {
     )
     .subscribe(msg => updateBlockageState(msg, em));
 
-  flowPoints.housekeepStart$
+  flowPoints.start$
     .pipe(
       take(1),
       map(() => addProperty({}, 'componentTypes', [Knowledge])),
@@ -86,7 +36,7 @@ export function housekeepingFlow(em: EntityManager) {
     )
     .subscribe(msg => deprecateKnowledge(msg, em));
 
-  flowPoints.housekeepStart$
+  flowPoints.start$
     .pipe(
       take(1),
       map(() => addProperty({}, 'componentTypes', [Sighted, GridPos])),
@@ -202,14 +152,5 @@ export function housekeepingFlow(em: EntityManager) {
   //     console.log(`Distance mapping processed`);
   //   });
 
-  const housekeepingFlowFinished$ = new Subject();
-  const allFlowPoints = flowPoints;
-  merge(...Object.values(allFlowPoints)).subscribe({
-    complete: () => {
-      housekeepingFlowFinished$.next();
-      housekeepingFlowFinished$.complete();
-    }
-  });
-
-  return { ...flowPoints, housekeepingFlowFinished$ };
+  return flowPoints;
 }

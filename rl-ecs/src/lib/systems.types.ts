@@ -160,3 +160,9 @@ export interface SpatialChange {
 export interface TransitionToArea {
   areaTransition: AreaTransitionData | null;
 }
+
+export interface ActiveAgent {
+  agentId: EntityId | null;
+}
+
+export type MoveOrder = MovingEntity & NewPosition;

@@ -27,6 +27,7 @@ import { Fixed } from './components/fixed.model';
 import { Description } from './components/description.model';
 import { EntityManager } from 'rad-ecs';
 import { EgressDirection, Egress } from './areas/area-spec.model';
+import { Mobile } from './components/mobile.model';
 
 export function allComponentIndex(): {
   [name: string]: new (...args: any[]) => any;
@@ -59,7 +60,8 @@ export function allComponentIndex(): {
     EndState: EndState,
     [Usable.name]: Usable,
     Fixed: Fixed,
-    Description: Description
+    Description: Description,
+    Mobile: Mobile
   };
 }
 
