@@ -1,4 +1,4 @@
-import { d10 } from '@rad/rl-utils';
+import { d10, isValidId } from '@rad/rl-utils';
 import { EntityManager, EntityId } from 'rad-ecs';
 import { Martial } from '../components/martial.model';
 import { OperationStep } from '../operation-step.model';
@@ -18,8 +18,7 @@ function resolveWoundStep<T extends Args>(
   em: EntityManager,
   rand: Chance.Chance
 ): Id<T & Out> {
-  msg;
-  if (msg.combatTargetId === null || msg.aggressorId === null) {
+  if (!isValidId(msg.combatTargetId) || !isValidId(msg.aggressorId)) {
     return { ...radClone(msg), woundSuccess: null };
   }
   const protagMartial = em.getComponent(msg.aggressorId, Martial);

@@ -1,35 +1,49 @@
+import { Id } from '@rad/rl-applib';
 import { EntityManager } from 'rad-ecs';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 import {
   resolveMeleeAttackDamage,
-  ResolveMeleeAttackDamageArgs
+  ResolveMeleeAttackDamageOut
 } from '../mappers/resolve-melee-attack-damage.system';
-import { resolveMove, ResolveMoveArgs } from '../mappers/resolve-move.system';
+import {
+  resolveMove,
+  ResolveMoveArgs,
+  ResolveMoveOut
+} from '../mappers/resolve-move.system';
 import {
   resolveStrike,
-  ResolveStrikeArgs
+  ResolveStrikeArgs,
+  ResolveStrikeOut
 } from '../mappers/resolve-strike.system';
 import {
   resolveWound,
-  ResolveWoundArgs
+  ResolveWoundArgs,
+  ResolveWoundOut
 } from '../mappers/resolve-wound.system';
+import { OperationStep } from '../operation-step.model';
 
-export function resolveBump(em: EntityManager, rand: Chance.Chance) {
-  return <T>(
-    input: Observable<
-      T &
-        ResolveStrikeArgs &
-        ResolveWoundArgs &
-        ResolveMeleeAttackDamageArgs &
-        ResolveMoveArgs
-    >
-  ) => {
-    return input.pipe(
-      map(msg => resolveStrike(msg, em, rand)),
-      map(msg => resolveWound(msg, em, rand)),
-      map(msg => resolveMeleeAttackDamage(msg, em)),
-      map(msg => resolveMove(msg))
-    );
-  };
+type Args = ResolveStrikeArgs & ResolveWoundArgs & ResolveMoveArgs;
+export type ResolveBumpArgs = Args;
+
+type Out = ResolveStrikeOut &
+  ResolveWoundOut &
+  ResolveMeleeAttackDamageOut &
+  ResolveMoveOut;
+export type ResolveBumpOut = Out;
+
+function resolveBumpStep<T extends Args>(
+  msg: T,
+  em: EntityManager,
+  rand: Chance.Chance
+): Id<T & Out> {
+  return resolveMove(
+    resolveMeleeAttackDamage(
+      resolveWound(resolveStrike(msg, em, rand), em, rand),
+      em
+    )
+  );
 }
+
+type StepFunc = OperationStep<Args, Out>;
+const typeCheck: StepFunc = resolveBumpStep;
+
+export const resolveBump = typeCheck as typeof resolveBumpStep;

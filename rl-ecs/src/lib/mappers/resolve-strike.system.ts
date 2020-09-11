@@ -6,8 +6,9 @@ import { Martial } from '../components/martial.model';
 
 import * as Chance from 'chance';
 import { Id } from '@rad/rl-applib';
+import { isValidId } from '@rad/rl-utils';
 
-type Args = { aggressorId: EntityId | null } & Partial<CombatTargetEntity>;
+type Args = { aggressorId: EntityId | null } & CombatTargetEntity;
 export type ResolveStrikeArgs = Args;
 
 type Out = StrikeResult;
@@ -18,8 +19,7 @@ function resolveStrikeStep<T extends Args>(
   em: EntityManager,
   rand: Chance.Chance
 ): Id<T & Out> {
-  console.log(`STRIKE`);
-  if (msg.combatTargetId === null || msg.aggressorId === null) {
+  if (!isValidId(msg.combatTargetId) || !isValidId(msg.aggressorId)) {
     return { ...radClone(msg), strikeSuccess: null };
   }
   const targetMartial = em.getComponent(msg.combatTargetId, Martial);

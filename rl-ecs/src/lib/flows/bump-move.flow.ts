@@ -18,12 +18,15 @@ import {
   MovingEntity,
   NewPosition,
   ProtagonistEntity,
-  TargetPos
+  TargetPos,
+  AttackOrder,
+  MoveOrder,
+  WorldStateChangeReport
 } from '../systems.types';
 import { radClone } from '../systems.utils';
 import { CompassDirection } from '@rad/rl-utils';
 import { positionNextToEntity } from '../mappers/position-next-to-entity.system';
-import { assessBumpMove } from '../operators/bump-move.operator';
+import { assessBumpMove } from '../operators/assess-bump-move.operator';
 
 interface Blocked {
   isBlocked: boolean;
@@ -33,8 +36,8 @@ export function attemptMoveFlow(em: EntityManager, rand: Chance.Chance) {
   const out = {
     start$: new Subject<MovingEntity & { direction: CompassDirection }>(),
     finish$: new Subject<BumpMoveAssessment>(),
-    moved$: new Subject<BumpMoveAssessment>(),
-    attacked$: new Subject<BumpMoveAssessment>(),
+    moved$: new Subject<MoveOrder & WorldStateChangeReport>(),
+    attacked$: new Subject<AttackOrder & WorldStateChangeReport>(),
     noActionTaken$: new Subject()
   };
 
@@ -52,18 +55,14 @@ export function attemptMoveFlow(em: EntityManager, rand: Chance.Chance) {
           em
         )
       ),
-      assessBumpMove(em, rand)
+      map(msg => assessBumpMove(msg, em, rand))
     )
     .subscribe(assessed$);
 
   assessed$
     .pipe(
       filter(msg => !!msg.attack),
-      map(msg => ({
-        ...radClone(msg),
-        damageTargetId: msg.attack.combatTargetId,
-        damage: msg.attack.damage
-      })),
+      map(msg => ({ ...msg.attack })),
       map(msg => integrity(msg, em))
     )
     .subscribe(out.attacked$);
@@ -72,16 +71,8 @@ export function attemptMoveFlow(em: EntityManager, rand: Chance.Chance) {
 
   assessed$
     .pipe(
-      map(msg => {
-        console.log(`${JSON.stringify(msg)}`);
-        return msg;
-      }),
       filter(msg => !!(!msg.attack && msg.move)),
-      map(msg => ({
-        ...radClone(msg),
-        movingId: msg.move.movingId,
-        newPosition: msg.move.newPosition
-      })),
+      map(msg => ({ ...msg.move })),
       map(msg => spatial(msg, em))
     )
     .subscribe(out.moved$);

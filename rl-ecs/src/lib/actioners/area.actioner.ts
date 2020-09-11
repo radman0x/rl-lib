@@ -10,7 +10,7 @@ import {
 import { radClone } from '../systems.utils';
 import { TransitionAreaOut } from '../mappers/transition-area.system';
 import { GridPos } from '../components/position.model';
-import { AreaIngress } from '../components/area-ingress';
+import { AreaIngress } from '../components/area-ingress.model';
 import { Id } from '@rad/rl-applib';
 import { isValidId } from '@rad/rl-utils';
 

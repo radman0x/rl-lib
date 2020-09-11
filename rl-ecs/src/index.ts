@@ -13,6 +13,7 @@ export * from './lib/components/wounds.model';
 export * from './lib/components/attacks.model';
 export * from './lib/components/distance-map.model';
 export * from './lib/components/area-transition.model';
+export * from './lib/components/alignment.model';
 
 export * from './lib/ecs.types';
 export * from './lib/system-organiser.util';
@@ -23,6 +24,8 @@ export * from './lib/ecs.helpers';
 export * from './lib/movement.system';
 export * from './lib/effects.system';
 export * from './lib/combat.system';
+
+export * from './lib/actioners/update-distance-map.actioner';
 
 export * from './lib/flows/all-agent-update.flow';
 export * from './lib/flows/housekeeping.flow';

@@ -196,11 +196,13 @@ export function withinRange(range: number, target: Coord, start: Coord) {
     Math.abs(target.z - start.z) <= range
   );
 }
+
 export interface Vec3 {
   x: number;
   y: number;
   z: number;
 }
+
 export function equalsVec3(lhs: Vec3, rhs: Vec3) {
   return lhs.x === rhs.x && lhs.y === rhs.y && lhs.z === rhs.z;
 }

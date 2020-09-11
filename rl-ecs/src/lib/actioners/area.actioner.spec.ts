@@ -2,7 +2,7 @@ import { EntityManager, EntityId } from 'rad-ecs';
 import { AreaResolver } from '../utils/area-resolver.util';
 import { GridPos, GridPosData } from '../components/position.model';
 import { area } from './area.actioner';
-import { AreaIngress } from '../components/area-ingress';
+import { AreaIngress } from '../components/area-ingress.model';
 
 describe('Area change actioner', () => {
   let em: EntityManager;

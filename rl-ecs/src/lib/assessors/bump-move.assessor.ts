@@ -7,19 +7,13 @@ import { DamageData } from '../components/damage.model';
 import { positionNextToEntity } from '../mappers/position-next-to-entity.system';
 import { gatherBumpInfo } from '../operators/gather-bump-info.operator';
 import { resolveBump } from '../operators/resolve-bump.operator';
-import { MoveOrder, MovingEntity } from '../systems.types';
+import { MoveOrder, MovingEntity, AttackOrder } from '../systems.types';
 import { radClone } from '../systems.utils';
-import { assessBumpMove } from '../operators/bump-move.operator';
+import { assessBumpMove } from '../operators/assess-bump-move.operator';
 
 export interface BumpMoveAssessment {
   move: MoveOrder | null;
-  attack: {
-    combatTargetId: EntityId;
-    aggressorId: EntityId;
-    strikeSuccess: boolean;
-    woundSuccess: boolean;
-    damage: DamageData | null;
-  } | null;
+  attack: AttackOrder | null;
 }
 
 export function bumpMoveAssessor(em: EntityManager, rand: Chance.Chance) {
@@ -41,7 +35,7 @@ export function bumpMoveAssessor(em: EntityManager, rand: Chance.Chance) {
           em
         )
       ),
-      assessBumpMove(em, rand)
+      map(msg => assessBumpMove(msg, em, rand))
     )
     .subscribe(out.finish$);
 

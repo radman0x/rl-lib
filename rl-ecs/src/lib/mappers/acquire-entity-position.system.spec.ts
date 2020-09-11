@@ -15,9 +15,9 @@ describe('Acquire entity position', () => {
     expect(acquireEntityPosition(msg, em).targetPos).toEqual(targetsPos);
   });
 
-  it('should throw an error if the entity is NOT at a position', () => {
+  it('should provide null if the provided entity is not at a position', () => {
     const targetId = em.create().id;
     let msg = { protagId: targetId };
-    expect(() => acquireEntityPosition(msg, em).targetPos).toThrow();
+    expect(acquireEntityPosition(msg, em).targetPos).toEqual(null);
   });
 });

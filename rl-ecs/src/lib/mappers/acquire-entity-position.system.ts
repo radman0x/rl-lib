@@ -10,7 +10,7 @@ interface Args {
 export type AcquireEntityPositionArgs = Args;
 
 interface Out {
-  targetPos: GridPosData;
+  targetPos: GridPosData | null;
 }
 export type AcquireEntityPositionOut = Out;
 
@@ -18,12 +18,12 @@ function acquireEntityPositionStep<T extends Args>(
   msg: T,
   em: EntityManager
 ): T & Out {
+  let targetPos: GridPosData | null = null;
   const p = em.getComponent(msg.protagId, GridPos);
-  if (!p) {
-    throw Error(`Protagonist entity isn't at a position!`);
-  } else {
-    return { ...radClone(msg), targetPos: { ...p } };
+  if (p) {
+    targetPos = { ...p };
   }
+  return { ...radClone(msg), targetPos };
 }
 
 type StepFunc = OperationStep<Args, Out>;

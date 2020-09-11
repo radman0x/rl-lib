@@ -20,7 +20,6 @@ function acquireCombatTargetAtPositionStep<T extends Args>(
   em: EntityManager,
   predicate?: (e: Entity) => boolean
 ): Id<T & Out> {
-  console.log(`Acquire combat target`);
   const acquired = entitiesAtPosition(
     msg,
     em,
@@ -29,7 +28,6 @@ function acquireCombatTargetAtPositionStep<T extends Args>(
       candidate.has(Martial) &&
       (!predicate || (predicate && predicate(candidate)))
   );
-  console.log(`aoeuaoeu`);
   if (acquired.length !== 0) {
     console.log(`COMBAT: target acquired: ${acquired[0].targetId}`);
     return { ...radClone(msg), combatTargetId: acquired[0].targetId };

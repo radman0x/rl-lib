@@ -7,7 +7,8 @@ import {
   MovingEntity,
   NewPosition,
   Teleported,
-  WorldStateChangeDescription
+  WorldStateChangeDescription,
+  WorldStateChangeReport
 } from '../systems.types';
 import { radClone } from '../systems.utils';
 import { isValidId } from '@rad/rl-utils';
@@ -18,9 +19,7 @@ type Args = Partial<MovingEntity> &
   Partial<EffectTarget>;
 export type SpatialArgs = Args;
 
-type Out = {
-  worldStateChanged: boolean;
-} & WorldStateChangeDescription;
+type Out = WorldStateChangeReport;
 export type SpatialOut = Out;
 
 function spatialStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {

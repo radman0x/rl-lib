@@ -82,6 +82,9 @@ export interface ActiveEffectDescription {
   activeEffectDescription: string | null;
 }
 
+export type WorldStateChangeReport = WorldStateChangeDescription &
+  WorldStateChanged;
+
 export interface WorldStateChangeDescription {
   worldStateChangeDescription: string | null;
 }
@@ -165,4 +168,29 @@ export interface ActiveAgent {
   agentId: EntityId | null;
 }
 
+export interface LocusEntity {
+  locusId: EntityId | null;
+}
+
+export interface DistanceMaps {
+  distanceMaps: EntityId[] | null;
+}
+
+export interface OrderScore {
+  score: number | null;
+}
+
+export interface AggressorEntity {
+  aggressorId: EntityId | null;
+}
+
 export type MoveOrder = MovingEntity & NewPosition;
+
+export interface AttackOrder {
+  combatTargetId: EntityId;
+  aggressorId: EntityId;
+  strikeSuccess: boolean;
+  woundSuccess: boolean;
+  damage: DamageData | null;
+  damageTargetId: EntityId | null;
+}
