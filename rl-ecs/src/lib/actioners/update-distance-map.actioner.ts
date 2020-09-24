@@ -44,7 +44,8 @@ export function neighbours(
 export function dijkstra(locus: GridPosData, walkable: Walkable) {
   const distances: ValueMap<GridPos, number> = new ValueMap();
   const openSet: PriorityQueue<NodeEntry> = new PriorityQueue(
-    (lhs, rhs) => lhs.distance < rhs.distance
+    (lhs, rhs) => lhs.distance < rhs.distance,
+    e => new GridPos(e.pos).hash()
   );
   const closedSet: ClosedSet = new ValueMap();
   openSet.push({ pos: locus, distance: 0 });
@@ -57,7 +58,17 @@ export function dijkstra(locus: GridPosData, walkable: Walkable) {
     if (assign) {
       distances.set(currGridPos, curr.distance);
     }
-    neighbours(curr, closedSet, walkable).forEach(value => openSet.push(value));
+    neighbours(curr, closedSet, walkable).forEach(value => {
+      const id = new GridPos(value.pos).hash();
+      if (openSet.has(id)) {
+        const incumbent = openSet.get(id);
+        if (value.distance < incumbent.distance) {
+          openSet.update(id, { ...incumbent, distance: value.distance });
+        }
+      } else {
+        openSet.push(value);
+      }
+    });
   }
   return distances;
 }

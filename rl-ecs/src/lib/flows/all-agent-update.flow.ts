@@ -1,37 +1,26 @@
-import { EntityManager, EntityId } from 'rad-ecs';
-import { of, Subject, Observable, BehaviorSubject, merge } from 'rxjs';
-import { map, mergeMap, reduce, take, filter } from 'rxjs/operators';
+import { EntityId, EntityManager } from 'rad-ecs';
+import { BehaviorSubject, merge, Observable, of, Subject } from 'rxjs';
+import { map, mergeMap, reduce, take } from 'rxjs/operators';
 import { spatial } from '../actioners/spatial.actioner';
 import { Description } from '../components/description.model';
 import { MovingAgent } from '../components/moving-agent.model';
-import { entitiesWithComponents } from '../mappers/entities-with-component.system';
-import { knownDistanceMaps } from '../mappers/known-distance-maps.system';
-import { positionsAroundEntity } from '../mappers/positions-around-entity.system';
-import { scoreApproach } from '../mappers/score-approach.system';
-import { scoreAttack } from '../mappers/score-attack.system';
-import { assessBumpMove } from '../operators/assess-bump-move.operator';
-import { DistanceMaps } from '../systems.types';
-import { addProperty, radClone } from '../systems.utils';
-import { integrity, IntegrityArgs } from '../mappers/integrity.system';
-import { positionBlocked } from '../mappers/position-blocked.system';
+import { GridPosData } from '../components/position.model';
+import { acquireCombatTargetAtPosition } from '../mappers/acquire-combat-target-at-position.system';
 import { canOccupyPosition } from '../mappers/can-occupy-position.system';
 import { canStandAtPosition } from '../mappers/can-stand-at-position.system';
-import { resolveMove } from '../mappers/resolve-move.system';
-import { Id } from '@rad/rl-applib';
-import { GridPosData } from '../components/position.model';
-import { DamageData } from '../components/damage.model';
-import { acquireCombatTargetAtPosition } from '../mappers/acquire-combat-target-at-position.system';
-import { resolveStrike } from '../mappers/resolve-strike.system';
+import { entitiesWithComponents } from '../mappers/entities-with-component.system';
+import { integrity, IntegrityArgs } from '../mappers/integrity.system';
+import { knownDistanceMaps } from '../mappers/known-distance-maps.system';
+import { positionBlocked } from '../mappers/position-blocked.system';
+import { positionsAroundEntity } from '../mappers/positions-around-entity.system';
 import { resolveMeleeAttackDamage } from '../mappers/resolve-melee-attack-damage.system';
+import { resolveMove } from '../mappers/resolve-move.system';
+import { resolveStrike } from '../mappers/resolve-strike.system';
 import { resolveWound } from '../mappers/resolve-wound.system';
-
-function nullify<T>(input: T): { [K in keyof T]: T[K] } {
-  const out = {};
-  for (const key of Object.keys(input)) {
-    out[key] = null;
-  }
-  return out as { [K in keyof T]: null };
-}
+import { scoreApproach } from '../mappers/score-approach.system';
+import { scoreAttack } from '../mappers/score-attack.system';
+import { AttackOrder } from '../systems.types';
+import { addProperty, radClone } from '../systems.utils';
 
 function combatString(msg: AttackOrder, em: EntityManager): string | null {
   if (msg && msg.combatTargetId) {
@@ -58,15 +47,6 @@ interface MoveOrder {
   distanceMaps: EntityId[];
 }
 
-export interface AttackOrder {
-  combatTargetId: EntityId;
-  aggressorId: EntityId;
-  strikeSuccess: boolean;
-  woundSuccess: boolean;
-  damage: DamageData | null;
-  damageTargetId: EntityId | null;
-}
-
 export interface Order {
   score: number | null;
   orderDescription: string;
@@ -78,7 +58,7 @@ interface Args {
   agentId: EntityId;
 }
 type Out = Order;
-function produceOrderCandidates<T extends Args>(
+function produceCandidateOrders<T extends Args>(
   msg: T,
   em: EntityManager,
   rand: Chance.Chance
@@ -145,7 +125,7 @@ function produceOrderCandidates<T extends Args>(
 
 export function allAgentUpdateFlow(em: EntityManager, rand: Chance.Chance) {
   const out = {
-    start$: new Subject<void>(),
+    start$: new Subject(),
     finish$: new Subject<Order[]>()
   };
 
@@ -155,7 +135,7 @@ export function allAgentUpdateFlow(em: EntityManager, rand: Chance.Chance) {
       map(() => addProperty({}, 'componentTypes', [MovingAgent])),
       mergeMap(msg => of(...entitiesWithComponents(msg, em, 'agentId'))),
       mergeMap(msg =>
-        produceOrderCandidates(msg, em, rand).pipe(
+        produceCandidateOrders(msg, em, rand).pipe(
           map(msg => {
             console.log(`${JSON.stringify(msg, null, 2)}`);
             return msg;
