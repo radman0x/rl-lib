@@ -62,6 +62,7 @@ export function dijkstra(locus: GridPosData, walkable: Walkable) {
       const id = new GridPos(value.pos).hash();
       if (openSet.has(id)) {
         const incumbent = openSet.get(id);
+
         if (value.distance < incumbent.distance) {
           openSet.update(id, { ...incumbent, distance: value.distance });
         }

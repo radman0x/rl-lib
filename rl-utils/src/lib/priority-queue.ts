@@ -3,7 +3,6 @@ type IdExtractor<T> = (e: T) => string;
 type SwapEvent = (a: number, b: number) => void;
 
 function swap<T>(arr: T[], a: number, b: number, swapEvent: SwapEvent = null) {
-  console.log(`{${a}, ${b}}`);
   if (swapEvent) {
     swapEvent(a, b);
   }
@@ -83,7 +82,6 @@ export class PriorityQueue<T> {
     this.swapEvent = (a: number, b: number) => {
       const aId = this.extractor(this.queue[a]);
       const bId = this.extractor(this.queue[b]);
-      console.log(`aId: ${aId} -> ${b}, bId ${bId} -> ${a}`);
       this.idMap[aId] = b;
       this.idMap[bId] = a;
     };
@@ -94,7 +92,7 @@ export class PriorityQueue<T> {
   }
 
   pop(): T {
-    swap(this.queue, 1, this.queue.length - 1);
+    swap(this.queue, 1, this.queue.length - 1, this.swapEvent);
     const result = this.queue.pop();
     delete this.idMap[this.extractor(result)];
     heapDown(this.queue, 1, this.comparator, this.swapEvent);

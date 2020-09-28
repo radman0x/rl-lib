@@ -3,11 +3,13 @@ import { EntityId, EntityManager } from 'rad-ecs';
 import { updateDistanceMap } from '../actioners/update-distance-map.actioner';
 import { Alignment, AlignmentType } from '../components/alignment.model';
 import { Martial } from '../components/martial.model';
+import { Mobile } from '../components/mobile.model';
 import { MovingAgent } from '../components/moving-agent.model';
 import { Physical, Size } from '../components/physical.model';
 import { GridPos } from '../components/position.model';
 import { Sighted } from '../components/sighted.model';
-import { allAgentUpdateFlow, Order } from './all-agent-update.flow';
+import { Order } from '../systems.types';
+import { allAgentUpdateFlow } from './all-agent-update.flow';
 
 describe('All agent update', () => {
   let em: EntityManager;
@@ -54,6 +56,7 @@ describe('All agent update', () => {
       new GridPos({ x: 1, y: 1, z: 1 }),
       new Sighted({ range: 5 }),
       new MovingAgent({}),
+      new Mobile({ range: 1 }),
       new Alignment({ type: AlignmentType.EVIL })
     ).id;
     locusId = em.create(
@@ -97,6 +100,7 @@ describe('All agent update', () => {
     const agent2Id = em.create(
       new GridPos({ x: 2, y: 1, z: 1 }),
       new MovingAgent({}),
+      new Mobile({ range: 1 }),
       new Alignment({ type: AlignmentType.EVIL }),
       new Sighted({ range: 5 })
     ).id;

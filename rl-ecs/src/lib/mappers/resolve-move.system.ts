@@ -4,6 +4,7 @@ import {
   CanOccupy,
   CanStand,
   IsBlocked,
+  MoveDetails,
   MoveOrder,
   MovingEntity,
   TargetPos
@@ -14,7 +15,7 @@ import { isValidId } from '@rad/rl-utils';
 type Args = MovingEntity & CanStand & CanOccupy & TargetPos & IsBlocked;
 export type ResolveMoveArgs = Args;
 
-type Out = MoveOrder;
+type Out = MoveDetails;
 export type ResolveMoveOut = Out;
 
 function resolveMoveStep<T extends Args>(msg: T): Id<T & Out> {

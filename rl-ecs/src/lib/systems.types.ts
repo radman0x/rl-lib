@@ -184,7 +184,7 @@ export interface AggressorEntity {
   aggressorId: EntityId | null;
 }
 
-export type MoveOrder = MovingEntity & NewPosition;
+export type MoveDetails = NewPosition & MovingEntity;
 
 export interface AttackOrder {
   combatTargetId: EntityId;
@@ -193,4 +193,17 @@ export interface AttackOrder {
   woundSuccess: boolean;
   damage: DamageData | null;
   damageTargetId: EntityId | null;
+}
+
+export interface MoveOrder {
+  newPosition: GridPosData;
+  movingId: EntityId;
+  distanceMaps: EntityId[];
+}
+
+export interface Order {
+  score: number | null;
+  orderDescription: string;
+  move: MoveOrder | null;
+  attack: AttackOrder | null;
 }
