@@ -12,6 +12,8 @@ import { resolveWound } from '../mappers/resolve-wound.system';
 import { Order, AttackOrder } from '../systems.types';
 import { addProperty } from '../systems.utils';
 
+import * as Chance from 'chance';
+
 interface Args {
   agentId: EntityId;
 }
@@ -44,13 +46,13 @@ export function produceAttackOrders(
 
   return out.pipe(
     take(1),
-    filter(msg => msg.agentId && em.hasComponent(msg.agentId, Martial)),
-    map(msg => addProperty(msg, 'aggressorId', msg.agentId)),
-    mergeMap(msg => {
+    filter((msg) => msg.agentId && em.hasComponent(msg.agentId, Martial)),
+    map((msg) => addProperty(msg, 'aggressorId', msg.agentId)),
+    mergeMap((msg) => {
       return of(...positionsAroundEntity(msg, em));
     }),
-    map(msg =>
-      acquireCombatTargetAtPosition(msg, em, target => {
+    map((msg) =>
+      acquireCombatTargetAtPosition(msg, em, (target) => {
         if (em.hasComponent(msg.agentId, Alignment) && target.has(Alignment)) {
           if (
             em.getComponent(msg.agentId, Alignment).type !==
@@ -62,10 +64,10 @@ export function produceAttackOrders(
         return false;
       })
     ),
-    map(msg => resolveStrike(msg, em, rand)),
-    map(msg => resolveWound(msg, em, rand)),
-    map(msg => resolveMeleeAttackDamage(msg, em)),
-    map(msg => {
+    map((msg) => resolveStrike(msg, em, rand)),
+    map((msg) => resolveWound(msg, em, rand)),
+    map((msg) => resolveMeleeAttackDamage(msg, em)),
+    map((msg) => {
       let attack: AttackOrder = null;
       if (msg.combatTargetId) {
         attack = {
@@ -74,14 +76,14 @@ export function produceAttackOrders(
           damage: msg.damage,
           damageTargetId: msg.damageTargetId,
           strikeSuccess: msg.strikeSuccess,
-          woundSuccess: msg.woundSuccess
+          woundSuccess: msg.woundSuccess,
         };
       }
       const result: Order = {
         move: null,
         attack,
         score: null,
-        orderDescription: combatString(attack, em)
+        orderDescription: combatString(attack, em),
       };
       return result;
     })

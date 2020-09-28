@@ -2,24 +2,26 @@ import { Id } from '@rad/rl-applib';
 import { EntityManager } from 'rad-ecs';
 import {
   resolveMeleeAttackDamage,
-  ResolveMeleeAttackDamageOut
+  ResolveMeleeAttackDamageOut,
 } from '../mappers/resolve-melee-attack-damage.system';
 import {
   resolveMove,
   ResolveMoveArgs,
-  ResolveMoveOut
+  ResolveMoveOut,
 } from '../mappers/resolve-move.system';
 import {
   resolveStrike,
   ResolveStrikeArgs,
-  ResolveStrikeOut
+  ResolveStrikeOut,
 } from '../mappers/resolve-strike.system';
 import {
   resolveWound,
   ResolveWoundArgs,
-  ResolveWoundOut
+  ResolveWoundOut,
 } from '../mappers/resolve-wound.system';
 import { OperationStep } from '../operation-step.model';
+
+import * as Chance from 'chance';
 
 type Args = ResolveStrikeArgs & ResolveWoundArgs & ResolveMoveArgs;
 export type ResolveBumpArgs = Args;

@@ -5,14 +5,15 @@ import { Id } from '@rad/rl-applib';
 import {
   GatherBumpInfoArgs,
   GatherBumpInfoOut,
-  gatherBumpInfo
+  gatherBumpInfo,
 } from './gather-bump-info.operator';
 import {
   ResolveBumpArgs,
   ResolveBumpOut,
-  resolveBump
+  resolveBump,
 } from './resolve-bump.operator';
 import * as _ from 'lodash';
+import * as Chance from 'chance';
 import { MovingEntity, MoveOrder, AttackOrder } from '../systems.types';
 
 type Args = GatherBumpInfoArgs & MovingEntity;
@@ -44,7 +45,7 @@ function assessBumpMoveStep<T extends Args>(
       'strikeSuccess',
       'woundSuccess',
       'damage',
-      'damageTargetId'
+      'damageTargetId',
     ]);
   }
 
