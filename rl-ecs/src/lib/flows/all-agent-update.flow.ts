@@ -13,6 +13,7 @@ import { produceAttackOrders } from '../operators/produce-attack-orders.operator
 import { produceMoveOrders } from '../operators/produce-move-orders.operator';
 import { Order } from '../systems.types';
 import { addProperty, radClone } from '../systems.utils';
+import * as Chance from 'chance';
 
 interface Args {
   agentId: EntityId;
@@ -29,19 +30,19 @@ function produceCandidateOrders<T extends Args>(
 export function allAgentUpdateFlow(em: EntityManager, rand: Chance.Chance) {
   const out = {
     start$: new Subject(),
-    finish$: new Subject<Order[]>()
+    finish$: new Subject<Order[]>(),
   };
 
   out.start$
     .pipe(
       take(1),
       map(() => addProperty({}, 'componentTypes', [MovingAgent])),
-      mergeMap(msg => of(...entitiesWithComponents(msg, em, 'agentId'))),
-      filter(msg => em.exists(msg.agentId)), // in case agent got reaped due to other agent actions
-      mergeMap(msg =>
+      mergeMap((msg) => of(...entitiesWithComponents(msg, em, 'agentId'))),
+      filter((msg) => em.exists(msg.agentId)), // in case agent got reaped due to other agent actions
+      mergeMap((msg) =>
         produceCandidateOrders(msg, em, rand).pipe(
-          map(msg => scoreApproach(msg, em)),
-          map(msg => scoreAttack(msg, em)),
+          map((msg) => scoreApproach(msg, em)),
+          map((msg) => scoreAttack(msg, em)),
           reduce(
             (acc, curr) => {
               return (!acc || curr.score > acc.score
@@ -50,14 +51,14 @@ export function allAgentUpdateFlow(em: EntityManager, rand: Chance.Chance) {
             },
             { score: null, move: null, attack: null, orderDescription: null }
           ),
-          map(msg => {
+          map((msg) => {
             let spatial: { newPosition: GridPosData; movingId: EntityId } = {
               newPosition: null,
-              movingId: null
+              movingId: null,
             };
             let integrity: IntegrityArgs = {
               damage: null,
-              damageTargetId: null
+              damageTargetId: null,
             };
             if (msg.attack && msg.score !== null) {
               integrity = msg.attack;
@@ -67,20 +68,17 @@ export function allAgentUpdateFlow(em: EntityManager, rand: Chance.Chance) {
             }
             return { ...radClone(msg), ...spatial, ...integrity };
           }),
-          map(msg => spatial(msg, em)),
-          map(msg => integrity(msg, em)),
-          map(msg => grimReaper(msg, em))
+          map((msg) => spatial(msg, em)),
+          map((msg) => integrity(msg, em)),
+          map((msg) => grimReaper(msg, em))
         )
       ),
-      reduce(
-        (acc, curr) => {
-          if (curr.score !== null) {
-            acc.push(curr);
-          }
-          return acc;
-        },
-        [] as Order[]
-      )
+      reduce((acc, curr) => {
+        if (curr.score !== null) {
+          acc.push(curr);
+        }
+        return acc;
+      }, [] as Order[])
     )
     .subscribe(out.finish$);
 
