@@ -1,7 +1,7 @@
 import { OperationStep } from '../operation-step.model';
 import { EntityManager } from 'rad-ecs';
-import { radClone } from '../systems.utils';
-import { TargetPos } from '../systems.types';
+import { radClone, addProperty } from '../systems.utils';
+import { TargetPos, IsBlocked } from '../systems.types';
 import { Blockage } from '../components/blockage.model';
 import { GridPos } from '../components/position.model';
 
@@ -11,9 +11,7 @@ import { Id } from '@rad/rl-applib';
 type Args = TargetPos;
 export type PositionBlockedArgs = Args;
 
-interface Out {
-  isBlocked: boolean;
-}
+type Out = IsBlocked;
 export type PositionBlockedOut = Out;
 
 function positionBlockedStep<T extends Args>(
@@ -32,7 +30,7 @@ function positionBlockedStep<T extends Args>(
   );
 
   console.log(`BLOCKAGE: ${msg.targetPos} ${isBlocked ? 'BLOCKED!' : 'clear'}`);
-  return { ...radClone(msg), isBlocked };
+  return addProperty(msg, 'isBlocked', isBlocked);
 }
 
 type StepFunc = OperationStep<Args, Out>;

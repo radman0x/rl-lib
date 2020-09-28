@@ -17,10 +17,6 @@ describe('Can occupy position', () => {
     em.create(new GridPos(noPhysicalPos));
   });
 
-  it(`should raise an error when targetPos isn't set`, () => {
-    expect(() => canOccupyPosition({} as any, em)).toThrow();
-  });
-
   it('should report not occupable when a FILL size element exists at the target position', () => {
     const result = canOccupyPosition({ targetPos: new GridPos(fillPos) }, em);
     expect(result.canOccupy).toEqual(false);

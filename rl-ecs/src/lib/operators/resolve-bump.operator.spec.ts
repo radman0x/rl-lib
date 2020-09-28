@@ -20,20 +20,10 @@ describe('', () => {
   let aggressorId: EntityId;
   let movingId: EntityId;
   let combatTargetId: EntityId;
-  let start$: Subject<
-    CombatTargetEntity &
-      MovingEntity &
-      TargetPos &
-      CanStandAtOut &
-      CanOccupyPositionOut & { aggressorId: EntityId | null }
-  >;
-  let error: boolean | string;
   beforeEach(() => {
     em = new EntityManager();
     em.indexBy(GridPos);
     targetPos = { x: 0, y: 1, z: 0 };
-    start$ = new Subject();
-    error = false;
     movingId = em.create(
       new Martial({ strength: 1, toughness: 1, weaponSkill: 1 }),
       new Attacks({ damage: 1 })
@@ -45,68 +35,69 @@ describe('', () => {
   });
 
   it('should produce correct data when a move can be completed', () => {
-    let out: any;
     let rand = new Chance();
-    start$
-      .pipe(resolveBump(em, rand))
-      .subscribe({ next: msg => (out = msg), error: err => (error = err) });
-    start$.next({
-      movingId,
-      aggressorId: null,
-      combatTargetId: null,
-      canStand: true,
-      canOccupy: true,
-      targetPos
-    });
-    expect(error).toEqual(false);
+    const out = resolveBump(
+      {
+        movingId,
+        aggressorId: null,
+        combatTargetId: null,
+        isBlocked: null,
+        canStand: true,
+        canOccupy: true,
+        targetPos
+      },
+      em,
+      rand
+    );
     expect(out).toMatchObject({
       damage: null,
       damageTargetId: null,
       strikeSuccess: null,
       woundSuccess: null,
-      spatial: { newPos: targetPos, movingId }
+      newPosition: targetPos,
+      movingId
     });
   });
 
   it('should produce correct data when combat results in a hit only', () => {
-    let out: any;
     let rand = new Chance(3);
-    start$
-      .pipe(resolveBump(em, rand))
-      .subscribe({ next: msg => (out = msg), error: err => (error = err) });
-    start$.next({
-      movingId,
-      aggressorId,
-      combatTargetId,
-      canStand: null,
-      canOccupy: null,
-      targetPos: null
-    });
-    expect(error).toEqual(false);
+    const out = resolveBump(
+      {
+        movingId,
+        aggressorId,
+        combatTargetId,
+        isBlocked: null,
+        canStand: null,
+        canOccupy: null,
+        targetPos: null
+      },
+      em,
+      rand
+    );
     expect(out).toMatchObject({
       damage: null,
       damageTargetId: null,
       strikeSuccess: true,
       woundSuccess: false,
-      spatial: null
+      newPosition: null
     });
   });
 
   it('should produce correct data when combat results in a hit and a wound', () => {
-    let out: any;
     let rand = new Chance(4);
-    start$
-      .pipe(resolveBump(em, rand))
-      .subscribe({ next: msg => (out = msg), error: err => (error = err) });
-    start$.next({
-      movingId,
-      aggressorId,
-      combatTargetId,
-      canStand: null,
-      canOccupy: null,
-      targetPos: null
-    });
-    expect(error).toEqual(false);
+    const out = resolveBump(
+      {
+        movingId,
+        aggressorId,
+        combatTargetId,
+        isBlocked: null,
+        canStand: null,
+        canOccupy: null,
+        targetPos: null
+      },
+      em,
+      rand
+    );
     expect(out).toMatchObject({
       damage: {
         amount: 1,
@@ -115,7 +106,7 @@ describe('', () => {
       damageTargetId: combatTargetId,
       strikeSuccess: true,
       woundSuccess: true,
-      spatial: null
+      newPosition: null
     });
   });
 });

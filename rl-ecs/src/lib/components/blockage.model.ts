@@ -2,9 +2,9 @@ import { Component } from 'rad-ecs';
 
 export interface Trigger {
   componentName: string;
-  property: string;
-  value: any;
-  active: boolean;
+  property?: string;
+  value?: any;
+  activeState: boolean;
 }
 export type Triggers = Trigger[];
 

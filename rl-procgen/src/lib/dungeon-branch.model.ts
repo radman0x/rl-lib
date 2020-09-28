@@ -9,9 +9,9 @@ import {
   Size
 } from '@rad/rl-ecs';
 import { popRandomElement } from '@rad/rl-utils';
-import { AreaResolver } from 'libs/rl-ecs/src/lib/area-resolver.model';
+import { AreaResolver } from 'libs/rl-ecs/src/lib/utils/area-resolver.util';
 import { staircasePrefab } from 'libs/rl-ecs/src/lib/component-utils.model';
-import { AreaIngress } from 'libs/rl-ecs/src/lib/components/area-ingress';
+import { AreaIngress } from 'libs/rl-ecs/src/lib/components/area-ingress.model';
 import { Component, EntityManager } from 'rad-ecs';
 import * as ROT from 'rot-js';
 

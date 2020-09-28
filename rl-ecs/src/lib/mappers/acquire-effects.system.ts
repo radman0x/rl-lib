@@ -2,15 +2,14 @@ import { EntityId, EntityManager } from 'rad-ecs';
 import { Effects, EffectsData } from '../components/effects.model';
 import { OperationStepMulti } from '../operation-step.model';
 import { radClone } from '../systems.utils';
+import { ActiveEffect } from '../systems.types';
 
 interface Args {
   targetId: EntityId;
 }
 export type AcquireEffectsArgs = Args;
 
-interface Out {
-  effectId: EntityId;
-}
+type Out = ActiveEffect;
 export type AcquireEffectsOut = Out;
 
 function acquireEffectsStep<T extends Args>(

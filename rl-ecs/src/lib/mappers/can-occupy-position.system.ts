@@ -5,6 +5,7 @@ import { GridPos } from '../components/position.model';
 import { OperationStep } from '../operation-step.model';
 import { TargetPos } from '../systems.types';
 import { Id } from '@rad/rl-applib';
+import { radClone } from '../systems.utils';
 
 type Args = TargetPos;
 export type CanOccupyPositionArgs = Args;
@@ -19,12 +20,12 @@ function canOccupyPositionStep<T extends Args>(
   em: EntityManager
 ): Id<T & Out> {
   if (!msg.targetPos) {
-    throw Error(`No target pos present so cannot determine occupyability!`);
+    return { ...radClone(msg), canOccupy: null };
   }
   let canOccupy = true;
   em.each(
     (e, y, p) => {
-      if (deepEqual(p, msg.targetPos) && y.size === Size.FILL) {
+      if (deepEqual(p, msg.targetPos) && y.size >= Size.MEDIUM) {
         canOccupy = false;
       }
     },
@@ -35,7 +36,7 @@ function canOccupyPositionStep<T extends Args>(
   console.log(
     `OCCUPY: ${msg.targetPos} ${canOccupy ? 'can' : 'CANNOT'} be occupied`
   );
-  return { ...msg, canOccupy };
+  return { ...radClone(msg), canOccupy };
 }
 
 type StepFunc = OperationStep<Args, Out>;

@@ -20,13 +20,15 @@ import { Targeted } from './components/targeted.model';
 import { Teleport } from './components/teleport.model';
 import { ToggleLock } from './components/toggle-lock.model';
 import { Damage } from './components/damage.model';
-import { AreaIngress, AreaIngressData } from './components/area-ingress';
+import { AreaIngress, AreaIngressData } from './components/area-ingress.model';
 import { EndState } from './components/end-state.model';
 import { Usable } from './components/usable.model';
 import { Fixed } from './components/fixed.model';
 import { Description } from './components/description.model';
 import { EntityManager } from 'rad-ecs';
 import { EgressDirection, Egress } from './areas/area-spec.model';
+import { Mobile } from './components/mobile.model';
+import { Alignment } from './components/alignment.model';
 
 export function allComponentIndex(): {
   [name: string]: new (...args: any[]) => any;
@@ -59,7 +61,9 @@ export function allComponentIndex(): {
     EndState: EndState,
     [Usable.name]: Usable,
     Fixed: Fixed,
-    Description: Description
+    Description: Description,
+    Mobile: Mobile,
+    Alignment: Alignment
   };
 }
 
@@ -82,7 +86,7 @@ export function staircasePrefab(
       zOrder: 0
     }),
     new AreaIngress(areaIngress),
-    new Physical({ size: Size.MEDIUM }),
+    new Physical({ size: Size.SMALL }),
     new Description({
       short: `a staircase ${stairTypeName(egress.egressDirection)}`
     }),

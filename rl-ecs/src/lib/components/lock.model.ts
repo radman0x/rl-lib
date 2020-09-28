@@ -25,7 +25,7 @@ export interface LockData {
 }
 export class Lock extends Component {
   public readonly state: LockState;
-  public readonly lockId: string;
+  public readonly lockId: string | null;
   public readonly stateImages: StateImages;
   constructor(data: LockData) {
     super();

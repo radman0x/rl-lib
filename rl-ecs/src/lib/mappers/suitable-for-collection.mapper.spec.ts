@@ -3,6 +3,7 @@ import { Physical, Size } from '../components/physical.model';
 import { GridPos } from '../components/position.model';
 import { suitableForCollection } from './suitable-for-collection.mapper';
 import { Fixed } from '../components/fixed.model';
+
 describe('Suitable for collection', () => {
   let em: EntityManager;
 

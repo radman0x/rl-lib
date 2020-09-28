@@ -4,7 +4,7 @@ import { addVec3, CompassDirection } from '@rad/rl-utils';
 import { Physical, Size } from '../components/physical.model';
 import { attemptMoveFlow } from './bump-move.flow';
 import { Martial } from '../components/martial.model';
-import { AreaResolver } from '../area-resolver.model';
+import { AreaResolver } from '../utils/area-resolver.util';
 
 import * as Chance from 'chance';
 import { Attacks } from '../components/attacks.model';
@@ -138,16 +138,19 @@ describe('Bump move flow', () => {
     let noAction: boolean;
     let finished: boolean;
     let subMoveFlow: any;
+    let error: boolean | string;
     beforeEach(() => {
       moved = false;
       attacked = false;
       noAction = false;
       finished = false;
+      error = false;
       subMoveFlow = moveFlow => {
         moveFlow.moved$.subscribe(() => (moved = true));
         moveFlow.attacked$.subscribe(() => (attacked = true));
         moveFlow.noActionTaken$.subscribe(() => (noAction = true));
         moveFlow.finish$.subscribe(() => (finished = true));
+        moveFlow.finish$.subscribe({ error: msg => (error = msg) });
       };
     });
     it('should update the em state when damage successfully inflicted', () => {
@@ -156,12 +159,13 @@ describe('Bump move flow', () => {
       let hit: boolean;
       let wound: boolean;
       let damageInflicted: number;
-      moveFlow.finish$.subscribe(msg => {
-        hit = msg.attack.strikeSuccess;
-        wound = msg.attack.woundSuccess;
-        damageInflicted = msg.attack.damage.amount;
+      moveFlow.attacked$.subscribe(msg => {
+        hit = msg.strikeSuccess;
+        wound = msg.woundSuccess;
+        damageInflicted = msg.damage.amount;
       });
       moveFlow.start$.next({ direction: CompassDirection.E, movingId });
+      expect(error).toBe(false);
       startEmData.entities[combatTargetId]['Wounds'] = { current: 9, max: 10 };
       expect(hit).toEqual(true);
       expect(wound).toEqual(true);
@@ -173,10 +177,11 @@ describe('Bump move flow', () => {
       moveFlow = attemptMoveFlow(em, new Chance(1));
       subMoveFlow(moveFlow);
       let hit: boolean;
-      moveFlow.finish$.subscribe(msg => {
-        hit = msg.attack.strikeSuccess;
+      moveFlow.attacked$.subscribe(msg => {
+        hit = msg.strikeSuccess;
       });
       moveFlow.start$.next({ direction: CompassDirection.E, movingId });
+      expect(error).toBe(false);
       expect(hit).toEqual(false);
       expect(em.export()).toEqual(startEmData);
     });
@@ -185,6 +190,7 @@ describe('Bump move flow', () => {
       moveFlow = attemptMoveFlow(em, new Chance(2));
       subMoveFlow(moveFlow);
       moveFlow.start$.next({ direction: CompassDirection.E, movingId });
+      expect(error).toBe(false);
       expect(moved).toEqual(false);
       expect(attacked).toEqual(true);
       expect(noAction).toEqual(false);

@@ -4,6 +4,7 @@ import { LockState } from './components/lock.model';
 import { GridPosData } from './components/position.model';
 import { EntityId } from './ecs.types';
 import { Entity } from 'rad-ecs';
+import { AreaTransitionData } from './components/area-transition.model';
 
 export enum DamageType {
   FIRE,
@@ -38,6 +39,10 @@ export interface CanStand {
 
 export interface CanOccupy {
   canOccupy: boolean;
+}
+
+export interface IsBlocked {
+  isBlocked: boolean;
 }
 
 export interface EffectFromItem {
@@ -77,8 +82,15 @@ export interface ActiveEffectDescription {
   activeEffectDescription: string | null;
 }
 
+export type WorldStateChangeReport = WorldStateChangeDescription &
+  WorldStateChanged;
+
 export interface WorldStateChangeDescription {
   worldStateChangeDescription: string | null;
+}
+
+export interface WorldStateChanged {
+  worldStateChanged: boolean;
 }
 
 export interface Teleported {
@@ -146,4 +158,52 @@ export interface SpatialOrder {
 }
 export interface SpatialChange {
   spatial: SpatialOrder | null;
+}
+
+export interface TransitionToArea {
+  areaTransition: AreaTransitionData | null;
+}
+
+export interface ActiveAgent {
+  agentId: EntityId | null;
+}
+
+export interface LocusEntity {
+  locusId: EntityId | null;
+}
+
+export interface DistanceMaps {
+  distanceMaps: EntityId[] | null;
+}
+
+export interface OrderScore {
+  score: number | null;
+}
+
+export interface AggressorEntity {
+  aggressorId: EntityId | null;
+}
+
+export type MoveDetails = NewPosition & MovingEntity;
+
+export interface AttackOrder {
+  combatTargetId: EntityId;
+  aggressorId: EntityId;
+  strikeSuccess: boolean;
+  woundSuccess: boolean;
+  damage: DamageData | null;
+  damageTargetId: EntityId | null;
+}
+
+export interface MoveOrder {
+  newPosition: GridPosData;
+  movingId: EntityId;
+  distanceMaps: EntityId[];
+}
+
+export interface Order {
+  score: number | null;
+  orderDescription: string;
+  move: MoveOrder | null;
+  attack: AttackOrder | null;
 }

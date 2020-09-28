@@ -6,17 +6,13 @@ import { gatherBumpInfo } from './gather-bump-info.operator';
 import { Martial } from '../components/martial.model';
 describe('Gather bump info', () => {
   let em: EntityManager;
-  let startPos: GridPosData;
   let targetPos: GridPosData;
   let otherPos: GridPosData;
-  let start$: Subject<any>;
   beforeEach(() => {
     em = new EntityManager();
     em.indexBy(GridPos);
-    startPos = { x: 0, y: 0, z: 0 };
     targetPos = { x: 0, y: 1, z: 0 };
     otherPos = { x: 7, y: 7, z: 7 };
-    start$ = new Subject();
     em.create(
       new GridPos({ ...targetPos, z: targetPos.z - 1 }),
       new Physical({ size: Size.FILL })
@@ -24,9 +20,7 @@ describe('Gather bump info', () => {
   });
 
   it('should produce correct data when there are no entities at the target', () => {
-    let out: any;
-    start$.pipe(gatherBumpInfo(em)).subscribe(msg => (out = msg));
-    start$.next({ targetPos: otherPos });
+    const out = gatherBumpInfo({ targetPos: otherPos }, em);
     expect(out).toMatchObject({
       targetPos: otherPos,
       canOccupy: true,
@@ -35,9 +29,7 @@ describe('Gather bump info', () => {
     });
   });
   it('should produce correct data when the target can be stood on', () => {
-    let out: any;
-    start$.pipe(gatherBumpInfo(em)).subscribe(msg => (out = msg));
-    start$.next({ targetPos });
+    const out = gatherBumpInfo({ targetPos }, em);
     expect(out).toMatchObject({
       targetPos,
       canOccupy: true,
@@ -47,9 +39,7 @@ describe('Gather bump info', () => {
   });
   it('should produce correct data when the target can be stood on but cannot be occupied', () => {
     em.create(new GridPos(targetPos), new Physical({ size: Size.FILL }));
-    let out: any;
-    start$.pipe(gatherBumpInfo(em)).subscribe(msg => (out = msg));
-    start$.next({ targetPos });
+    const out = gatherBumpInfo({ targetPos }, em);
     expect(out).toMatchObject({
       targetPos,
       canOccupy: false,
@@ -63,9 +53,7 @@ describe('Gather bump info', () => {
       new GridPos(targetPos)
     ).id;
     em.create(new GridPos(targetPos), new Physical({ size: Size.FILL }));
-    let out: any;
-    start$.pipe(gatherBumpInfo(em)).subscribe(msg => (out = msg));
-    start$.next({ targetPos });
+    const out = gatherBumpInfo({ targetPos }, em);
     expect(out).toMatchObject({
       targetPos,
       canOccupy: false,

@@ -1,3 +1,5 @@
+import { EntityId } from 'rad-ecs';
+
 export interface Coord {
   x: number;
   y: number;
@@ -194,11 +196,13 @@ export function withinRange(range: number, target: Coord, start: Coord) {
     Math.abs(target.z - start.z) <= range
   );
 }
+
 export interface Vec3 {
   x: number;
   y: number;
   z: number;
 }
+
 export function equalsVec3(lhs: Vec3, rhs: Vec3) {
   return lhs.x === rhs.x && lhs.y === rhs.y && lhs.z === rhs.z;
 }
@@ -208,4 +212,8 @@ export function addVec3(lhs: Vec3, rhs: Vec3) {
     y: lhs.y + rhs.y,
     z: lhs.z + rhs.z
   };
+}
+
+export function isValidId(id: EntityId | null | undefined) {
+  return id !== null && id !== undefined;
 }

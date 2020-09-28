@@ -67,7 +67,7 @@ describe('Bump move asssssor', () => {
 
   it('should produce correct data when no entities exist at the target', () => {
     bmAssessor.start$.next({ movingId, direction: CompassDirection.S });
-    expect(out).toEqual({
+    expect(out).toMatchObject({
       move: null,
       attack: null
     });
@@ -78,7 +78,7 @@ describe('Bump move asssssor', () => {
     expect(out).toMatchObject({
       move: {
         movingId,
-        newPos: { x: 0, y: 1, z: 1 }
+        newPosition: { x: 0, y: 1, z: 1 }
       },
       attack: null
     });
@@ -88,7 +88,7 @@ describe('Bump move asssssor', () => {
     bmAssessor = newFlow(em, new Chance(5));
     bmAssessor.start$.next({ movingId, direction: CompassDirection.E });
     expect(error).toEqual(false);
-    expect(out).toEqual({
+    expect(out).toMatchObject({
       move: null,
       attack: {
         aggressorId: movingId,
