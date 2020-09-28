@@ -79,7 +79,8 @@ describe('All agent update', () => {
   it('should get an order summary for an attack for one agent', () => {
     const combatTargetId = em.create(
       new GridPos({ x: 1, y: 2, z: 1 }),
-      new Martial({ weaponSkill: 3, toughness: 3, strength: 3 })
+      new Martial({ weaponSkill: 3, toughness: 3, strength: 3 }),
+      new Alignment({ type: AlignmentType.GOOD })
     ).id;
     em.setComponent(
       agentId,

@@ -1,10 +1,11 @@
 import { EntityId, EntityManager } from 'rad-ecs';
 import { merge, Observable, of, Subject } from 'rxjs';
-import { map, mergeMap, reduce, take } from 'rxjs/operators';
+import { filter, map, mergeMap, reduce, take } from 'rxjs/operators';
 import { spatial } from '../actioners/spatial.actioner';
 import { MovingAgent } from '../components/moving-agent.model';
 import { GridPosData } from '../components/position.model';
 import { entitiesWithComponents } from '../mappers/entities-with-component.system';
+import { grimReaper } from '../mappers/grim-reaper.system';
 import { integrity, IntegrityArgs } from '../mappers/integrity.system';
 import { scoreApproach } from '../mappers/score-approach.system';
 import { scoreAttack } from '../mappers/score-attack.system';
@@ -36,6 +37,7 @@ export function allAgentUpdateFlow(em: EntityManager, rand: Chance.Chance) {
       take(1),
       map(() => addProperty({}, 'componentTypes', [MovingAgent])),
       mergeMap(msg => of(...entitiesWithComponents(msg, em, 'agentId'))),
+      filter(msg => em.exists(msg.agentId)), // in case agent got reaped due to other agent actions
       mergeMap(msg =>
         produceCandidateOrders(msg, em, rand).pipe(
           map(msg => scoreApproach(msg, em)),
@@ -66,7 +68,8 @@ export function allAgentUpdateFlow(em: EntityManager, rand: Chance.Chance) {
             return { ...radClone(msg), ...spatial, ...integrity };
           }),
           map(msg => spatial(msg, em)),
-          map(msg => integrity(msg, em))
+          map(msg => integrity(msg, em)),
+          map(msg => grimReaper(msg, em))
         )
       ),
       reduce(

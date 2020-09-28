@@ -1,6 +1,7 @@
 import { EntityId, EntityManager } from 'rad-ecs';
 import { Observable, BehaviorSubject, of } from 'rxjs';
 import { take, filter, map, mergeMap } from 'rxjs/operators';
+import { Alignment } from '../components/alignment.model';
 import { Description } from '../components/description.model';
 import { Martial } from '../components/martial.model';
 import { acquireCombatTargetAtPosition } from '../mappers/acquire-combat-target-at-position.system';
@@ -48,7 +49,19 @@ export function produceAttackOrders(
     mergeMap(msg => {
       return of(...positionsAroundEntity(msg, em));
     }),
-    map(msg => acquireCombatTargetAtPosition(msg, em)),
+    map(msg =>
+      acquireCombatTargetAtPosition(msg, em, target => {
+        if (em.hasComponent(msg.agentId, Alignment) && target.has(Alignment)) {
+          if (
+            em.getComponent(msg.agentId, Alignment).type !==
+            target.component(Alignment).type
+          ) {
+            return true;
+          }
+        }
+        return false;
+      })
+    ),
     map(msg => resolveStrike(msg, em, rand)),
     map(msg => resolveWound(msg, em, rand)),
     map(msg => resolveMeleeAttackDamage(msg, em)),
