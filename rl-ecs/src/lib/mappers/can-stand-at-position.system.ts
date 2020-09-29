@@ -23,18 +23,13 @@ function canStandAtPositionStep<T extends CanStandAtArgs>(
     return addProperty(msg, 'canStand', null);
   }
   let canStand = false;
-  em.each(
-    (e, y, p) => {
-      if (
-        deepEqual(p, { ...msg.targetPos, z: msg.targetPos.z - 1 }) &&
-        y.size === Size.FILL
-      ) {
-        canStand = true;
-      }
-    },
-    Physical,
-    GridPos
-  );
+  em.matchingIndex(
+    new GridPos({ ...msg.targetPos, z: msg.targetPos.z - 1 })
+  ).forEach((entity) => {
+    if (entity.has(Physical) && entity.component(Physical).size === Size.FILL) {
+      canStand = true;
+    }
+  });
 
   console.log(
     `STAND: Pos ${msg.targetPos.toString()} ${
