@@ -4,7 +4,7 @@ import {
   Input,
   OnInit,
   Output,
-  ViewChild
+  ViewChild,
 } from '@angular/core';
 import { PointXY, Renderer } from '@rad/rad-pixi';
 import * as deepEqual from 'fast-deep-equal';
@@ -25,7 +25,7 @@ export interface RendererSettings {
 @Component({
   selector: 'rad-grid-renderer',
   templateUrl: './grid-renderer.component.html',
-  styleUrls: ['./grid-renderer.component.css']
+  styleUrls: ['./grid-renderer.component.css'],
 })
 export class GridRendererComponent implements OnInit {
   @ViewChild('render', { static: false }) renderElem: ElementRef;
@@ -65,7 +65,7 @@ export class GridRendererComponent implements OnInit {
   ngAfterViewInit(): void {
     Renderer.create(this.spriteSheet, {
       backgroundColor: Number(this.backgroundColor),
-      resizeTo: this.renderElem.nativeElement
+      resizeTo: this.renderElem.nativeElement,
     }).subscribe((r: Renderer) => {
       r.resize();
       (this.renderElem.nativeElement as HTMLElement).appendChild(r.view);
@@ -74,8 +74,8 @@ export class GridRendererComponent implements OnInit {
 
       r.mouseOver$
         .pipe(
-          map(pos => this.convertToGridPos(pos)),
-          filter(pos => pos !== null),
+          map((pos) => this.convertToGridPos(pos)),
+          filter((pos) => pos !== null),
           distinctUntilChanged((lhs, rhs) => {
             if (!lhs || !rhs) {
               return false;
@@ -88,8 +88,8 @@ export class GridRendererComponent implements OnInit {
 
       r.mousePress$
         .pipe(
-          map(pos => this.convertToGridPos(pos)),
-          filter(pos => pos !== null)
+          map((pos) => this.convertToGridPos(pos)),
+          filter((pos) => pos !== null)
         )
         .subscribe(this.mousePressGridPos$);
 
@@ -200,7 +200,7 @@ export class GridRendererComponent implements OnInit {
     for (const { k: seenPos, v: ids } of zSortedHistoricalKnowledgePositions) {
       const sortedIds = [...ids]
         .filter(
-          id =>
+          (id) =>
             this.em.exists(id) &&
             this.em.getComponent(id, Renderable) !== undefined
         )

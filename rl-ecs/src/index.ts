@@ -14,6 +14,11 @@ export * from './lib/components/attacks.model';
 export * from './lib/components/distance-map.model';
 export * from './lib/components/area-transition.model';
 export * from './lib/components/alignment.model';
+export * from './lib/components/description.model';
+export * from './lib/components/sighted.model';
+
+export * from './lib/mappers/grim-reaper.system';
+export * from './lib/mappers/mark-for-death.system';
 
 export * from './lib/ecs.types';
 export * from './lib/systems.utils';

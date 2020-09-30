@@ -1,17 +1,10 @@
 import { Id } from '@rad/rl-applib';
-import { EntityManager, EntityId } from 'rad-ecs';
-import { OperationStep } from '../operation-step.model';
-import {
-  ActiveAgent,
-  DistanceMaps,
-  MoveOrder,
-  OrderScore
-} from '../systems.types';
-import { radClone } from '../systems.utils';
+import { EntityId, EntityManager } from 'rad-ecs';
 import { Alignment } from '../components/alignment.model';
-import { isValidId } from '@rad/rl-utils';
 import { DistanceMap } from '../components/distance-map.model';
 import { GridPos, GridPosData } from '../components/position.model';
+import { OperationStep } from '../operation-step.model';
+import { radClone } from '../systems.utils';
 
 interface Args {
   score: number | null;

@@ -1,11 +1,11 @@
-import { Component, OnInit, Input } from '@angular/core';
-import { EntityManager, EntityId } from 'rad-ecs';
-import { Martial, Attacks, Wounds, Inventory } from '@rad/rl-ecs';
+import { Component, Input, OnInit } from '@angular/core';
+import { Attacks, Martial, Wounds } from '@rad/rl-ecs';
+import { EntityId, EntityManager } from 'rad-ecs';
 
 @Component({
   selector: 'rad-stats-display',
   templateUrl: './stats-display.component.html',
-  styleUrls: ['./stats-display.component.css']
+  styleUrls: ['./stats-display.component.css'],
 })
 export class StatsDisplayComponent implements OnInit {
   @Input() em: EntityManager;
@@ -18,7 +18,7 @@ export class StatsDisplayComponent implements OnInit {
     { desc: 'DAMAGE', value: '-' },
     { desc: 'ARMOR', value: '-' },
     { desc: 'WARD', value: '-' },
-    { desc: 'WOUNDS', value: '-' }
+    { desc: 'WOUNDS', value: '-' },
   ];
 
   private WS_INDEX = 0;
@@ -33,7 +33,7 @@ export class StatsDisplayComponent implements OnInit {
 
   ngOnInit() {
     if (!this.em) {
-      throw Error(`EntityManager provide to stats display was empty!!`);
+      throw Error(`EntityManager provided to stats display was empty!!`);
     }
     if (!this.em.exists(this.statsEntityId)) {
       throw Error(
@@ -75,7 +75,7 @@ export class StatsDisplayComponent implements OnInit {
   private observeMartialComponent() {
     this.em
       .observeEntityComponent$(this.statsEntityId, Martial)
-      .subscribe(change => {
+      .subscribe((change) => {
         if (change.c) {
           this.setMartial(change.c);
         } else {
@@ -93,7 +93,7 @@ export class StatsDisplayComponent implements OnInit {
   private observeWoundsComponent() {
     this.em
       .observeEntityComponent$(this.statsEntityId, Wounds)
-      .subscribe(change => {
+      .subscribe((change) => {
         if (change.c) {
           this.setWounds(change.c);
         } else {
@@ -109,7 +109,7 @@ export class StatsDisplayComponent implements OnInit {
   private observeAttacksComponent() {
     this.em
       .observeEntityComponent$(this.statsEntityId, Attacks)
-      .subscribe(change => {
+      .subscribe((change) => {
         if (change.c) {
           this.setAttacks(change.c);
         } else {

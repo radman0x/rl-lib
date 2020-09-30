@@ -10,7 +10,7 @@ export enum DamageType {
   FIRE,
   SLEEP,
   COLD,
-  PHYSICAL
+  PHYSICAL,
 }
 
 export interface ProtagonistEntity {
@@ -142,7 +142,7 @@ export type CombatResult = ProtagonistEntity &
   Damaged;
 
 export interface ReapedEntity {
-  reapedEntity: Entity;
+  reapedId: EntityId | null;
 }
 
 export interface DistanceTo {
@@ -193,6 +193,7 @@ export interface AttackOrder {
   woundSuccess: boolean;
   damage: DamageData | null;
   damageTargetId: EntityId | null;
+  reapedId: EntityId | null;
 }
 
 export interface MoveOrder {

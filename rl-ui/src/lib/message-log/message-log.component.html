@@ -1,0 +1,12 @@
+<p-panel [showHeader]="false">
+  <div class="pl-2 bg-dark text-light w-100" style="display: inline-block;">
+    <ng-container *ngFor="let message of messageBuffer; let i = index">
+      <p *ngIf="message; else newline" [ngStyle]="logMessageStyle(i)">
+        {{ message }}
+      </p>
+      <ng-template #newline>
+        <p [ngStyle]="logMessageStyle(i)">&nbsp;</p>
+      </ng-template>
+    </ng-container>
+  </div>
+</p-panel>

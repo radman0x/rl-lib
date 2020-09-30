@@ -14,6 +14,7 @@ import { produceMoveOrders } from '../operators/produce-move-orders.operator';
 import { Order } from '../systems.types';
 import { addProperty, radClone } from '../systems.utils';
 import * as Chance from 'chance';
+import { markForDeath } from '../mappers/mark-for-death.system';
 
 interface Args {
   agentId: EntityId;
@@ -45,12 +46,19 @@ export function allAgentUpdateFlow(em: EntityManager, rand: Chance.Chance) {
           map((msg) => scoreAttack(msg, em)),
           reduce(
             (acc, curr) => {
+              if (curr.score === null) {
+                return acc;
+              }
               return (!acc || curr.score > acc.score
                 ? curr
                 : acc) as typeof curr;
             },
             { score: null, move: null, attack: null, orderDescription: null }
           ),
+          map((msg) => {
+            console.log(`${JSON.stringify(msg, null, 2)}`);
+            return msg;
+          }),
           map((msg) => {
             let spatial: { newPosition: GridPosData; movingId: EntityId } = {
               newPosition: null,
@@ -70,6 +78,7 @@ export function allAgentUpdateFlow(em: EntityManager, rand: Chance.Chance) {
           }),
           map((msg) => spatial(msg, em)),
           map((msg) => integrity(msg, em)),
+          map((msg) => markForDeath(msg, em)),
           map((msg) => grimReaper(msg, em))
         )
       ),

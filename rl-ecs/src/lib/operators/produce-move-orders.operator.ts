@@ -23,32 +23,32 @@ export function produceMoveOrders(
   return out
     .pipe(
       take(1),
-      filter(msg => msg.agentId && em.hasComponent(msg.agentId, Mobile)),
-      map(msg => knownDistanceMaps(msg, em)),
-      mergeMap(msg => {
+      filter((msg) => msg.agentId && em.hasComponent(msg.agentId, Mobile)),
+      map((msg) => knownDistanceMaps(msg, em)),
+      mergeMap((msg) => {
         return of(...positionsAroundEntity(msg, em));
       }),
-      map(msg => addProperty(msg, 'movingId', msg.agentId)),
-      map(msg => positionBlocked(msg, em)),
-      map(msg => canOccupyPosition(msg, em)),
-      map(msg => canStandAtPosition(msg, em))
+      map((msg) => addProperty(msg, 'movingId', msg.agentId)),
+      map((msg) => positionBlocked(msg, em)),
+      map((msg) => canOccupyPosition(msg, em)),
+      map((msg) => canStandAtPosition(msg, em))
     )
     .pipe(
-      map(msg => resolveMove(msg)),
-      map(msg => {
+      map((msg) => resolveMove(msg)),
+      map((msg) => {
         let move: MoveOrder = null;
         if (msg.newPosition) {
           move = {
             newPosition: msg.newPosition,
             movingId: msg.movingId,
-            distanceMaps: msg.distanceMaps
+            distanceMaps: msg.distanceMaps,
           };
         }
         const result: Order = {
           move,
           attack: null,
           score: null,
-          orderDescription: ''
+          orderDescription: '',
         };
         return result;
       })

@@ -30,7 +30,7 @@ function scoreAttackStep<T extends Args>(
 ): Id<T & Out> {
   let score = msg.score;
   if (msg.attack && msg.attack.combatTargetId) {
-    score = 1000;
+    score = 10000;
   }
 
   return { ...radClone(msg), score };
