@@ -1,10 +1,9 @@
 import { CompassDirection } from '@rad/rl-utils';
+import { AreaTransitionData } from './components/area-transition.model';
 import { DamageData } from './components/damage.model';
-import { LockState } from './components/lock.model';
+import { EndType } from './components/end-state.model';
 import { GridPosData } from './components/position.model';
 import { EntityId } from './ecs.types';
-import { Entity } from 'rad-ecs';
-import { AreaTransitionData } from './components/area-transition.model';
 
 export enum DamageType {
   FIRE,
@@ -207,4 +206,17 @@ export interface Order {
   orderDescription: string;
   move: MoveOrder | null;
   attack: AttackOrder | null;
+}
+
+export interface SpatialReport {
+  spatialReport: { spatialId: EntityId; newPos: GridPosData } | null;
+}
+
+export interface GameEnded {
+  endType: EndType | null;
+}
+
+export interface EntityRemoval {
+  removeId: EntityId | null;
+  doRemove: boolean | null;
 }

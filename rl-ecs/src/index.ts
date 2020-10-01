@@ -6,6 +6,7 @@ export * from './lib/components/renderable.model';
 export * from './lib/components/effects.model';
 export * from './lib/components/climbable.model';
 export * from './lib/components/mobile.model';
+export * from './lib/components/none-present.model';
 export * from './lib/components/teleport.model';
 export * from './lib/components/inventory.model';
 export * from './lib/components/martial.model';
@@ -16,6 +17,7 @@ export * from './lib/components/area-transition.model';
 export * from './lib/components/alignment.model';
 export * from './lib/components/description.model';
 export * from './lib/components/sighted.model';
+export * from './lib/components/end-state.model';
 
 export * from './lib/mappers/grim-reaper.system';
 export * from './lib/mappers/mark-for-death.system';

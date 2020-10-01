@@ -1,11 +1,9 @@
-import { EntityManager, EntityId } from 'rad-ecs';
-import { EndType, EndState } from '../components/end-state.model';
+import { GameEnded } from '@rad/rl-ecs';
+import { EntityManager } from 'rad-ecs';
+import { EndType } from '../components/end-state.model';
 import { OperationStep } from '../operation-step.model';
-import { radClone } from '../systems.utils';
 
-interface Args {
-  effectId: EntityId;
-}
+type Args = Partial<GameEnded>;
 export type EndStateArgs = Args;
 
 interface Out {}
@@ -16,12 +14,10 @@ function endStateStep<T extends Args>(
   em: EntityManager,
   ender: (et: EndType) => void
 ): T & Out {
-  const endEffect = em.getComponent(msg.effectId, EndState);
-  if (endEffect) {
-    console.log(`ENDING!`);
-    ender(endEffect.endType);
+  if (msg.endType !== null && msg.endType !== undefined) {
+    ender(msg.endType);
   }
-  return { ...radClone(msg) };
+  return msg;
 }
 
 type StepFunc = OperationStep<Args, Out>;

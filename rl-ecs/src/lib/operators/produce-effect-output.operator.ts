@@ -1,22 +1,44 @@
 import { EntityManager } from 'rad-ecs';
-import { merge, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { BehaviorSubject, merge } from 'rxjs';
+import { map, take } from 'rxjs/operators';
+import { endGame } from '../mappers/end-game.system';
+import { flagRemoveEntity } from '../mappers/flag-remove-entity.mapper';
 import { teleport } from '../mappers/teleport.system';
 import { toggleLock } from '../mappers/toggle-lock.system';
-import { ActiveEffect } from '../systems.types';
 import { transitionArea } from '../mappers/transition-area.system';
+import { ActiveEffect, EffectTarget } from '../systems.types';
 
 /** Operator that parses an effect and has the appropriate data appear in the output.
  *
  * Produces N messages, one for each possible effect that could be present. This allows each effect to be processed
  * in its own event flow.
  */
-export function produceEffectOutput(em: EntityManager) {
-  return <T>(input: Observable<T & ActiveEffect>) => {
-    return merge(
-      input.pipe(map(msg => teleport(msg, em))),
-      input.pipe(map(msg => toggleLock(msg, em))),
-      input.pipe(map(msg => transitionArea(msg, em)))
-    );
-  };
+export function produceEffectOutput<T extends ActiveEffect & EffectTarget>(
+  msg: T,
+  em: EntityManager
+) {
+  const start$ = new BehaviorSubject(msg);
+  const test = merge(
+    start$.pipe(
+      take(1),
+      map((msg) => teleport(msg, em))
+    ),
+    start$.pipe(
+      take(1),
+      map((msg) => toggleLock(msg, em))
+    ),
+    start$.pipe(
+      take(1),
+      map((msg) => transitionArea(msg, em))
+    ),
+    start$.pipe(
+      take(1),
+      map((msg) => endGame(msg, em))
+    ),
+    start$.pipe(
+      take(1),
+      map((msg) => flagRemoveEntity(msg, em))
+    )
+  );
+  return test;
 }

@@ -1,14 +1,14 @@
 import * as _ from 'lodash';
 import { EntityManager } from 'rad-ecs';
-import { Subject } from 'rxjs';
-import { filter, reduce, take, map } from 'rxjs/operators';
+import { BehaviorSubject, Subject } from 'rxjs';
+import { filter, mergeMap, reduce, take } from 'rxjs/operators';
 import { effectPipeline } from '../operators/effect-pipeline.operator';
 import {
   ActiveEffect,
   ActiveEffectDescription,
   EffectTarget,
   WorldStateChanged,
-  WorldStateChangeDescription
+  WorldStateChangeDescription,
 } from '../systems.types';
 import { AreaResolver } from '../utils/area-resolver.util';
 
@@ -17,52 +17,43 @@ export type Descriptions = WorldStateChangeDescription &
 
 export function effectOnEntityFlow(
   em: EntityManager,
-  areaResolver: AreaResolver
+  areaResolver: AreaResolver,
+  msg: ActiveEffect & EffectTarget,
+  ender: (EndType) => void
 ) {
   const out = {
-    start$: new Subject<ActiveEffect & EffectTarget>(),
     finish$: new Subject(),
-    stateChangeSummary$: new Subject<Descriptions[]>()
+    stateChangeSummary$: new Subject<Descriptions[]>(),
   };
 
   const internal = {
+    start$: new BehaviorSubject<ActiveEffect & EffectTarget>(msg),
     processed$: new Subject<
       WorldStateChanged & ActiveEffectDescription & WorldStateChangeDescription
-    >()
+    >(),
   };
 
-  out.start$
+  internal.start$
     .pipe(
-      map(msg => {
-        console.log(JSON.stringify(msg));
-        return msg;
-      }),
       take(1),
-      effectPipeline(em, areaResolver)
+      mergeMap((msg) => effectPipeline(msg, em, areaResolver, ender))
     )
     .subscribe(internal.processed$);
 
   internal.processed$
     .pipe(
-      map(msg => {
-        console.log(`collecting: ${JSON.stringify(msg)}`);
-        return msg;
-      }),
-      filter(msg => msg.worldStateChanged === true),
-      reduce(
-        (acc, curr) => {
-          acc = acc || [];
-          acc.push(
-            _.pick(curr, [
-              'activeEffectDescription',
-              'worldStateChangeDescription'
-            ])
-          );
-          return acc;
-        },
-        null as Descriptions[] | null
-      ),
-      filter(summary => summary !== null)
+      filter((msg) => msg.worldStateChanged === true),
+      reduce((acc, curr) => {
+        acc = acc || [];
+        acc.push(
+          _.pick(curr, [
+            'activeEffectDescription',
+            'worldStateChangeDescription',
+          ])
+        );
+        return acc;
+      }, null as Descriptions[] | null),
+      filter((summary) => summary !== null)
     )
     .subscribe(out.stateChangeSummary$);
 

@@ -1,15 +1,15 @@
+import { Id } from '@rad/rl-applib';
+import { isValidId } from '@rad/rl-utils';
 import { EntityManager } from 'rad-ecs';
+import { Description } from '../components/description.model';
 import { Teleport } from '../components/teleport.model';
 import { OperationStep } from '../operation-step.model';
 import {
   ActiveEffect,
+  ActiveEffectDescription,
   Teleported,
-  ActiveEffectDescription
 } from '../systems.types';
-import { radClone, addProperty } from '../systems.utils';
-import { Id } from '@rad/rl-applib';
-import { Description } from '../components/description.model';
-import { isValidId } from '@rad/rl-utils';
+import { radClone } from '../systems.utils';
 
 type Args = ActiveEffect;
 export type TeleportArgs = Args;
@@ -29,7 +29,7 @@ function teleportStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
         ...radClone(msg),
         bronson: 'somehting',
         teleport: { targetLocation: t.target },
-        activeEffectDescription
+        activeEffectDescription,
       };
     }
   }

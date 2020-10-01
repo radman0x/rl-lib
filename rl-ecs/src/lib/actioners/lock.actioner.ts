@@ -4,7 +4,7 @@ import {
   TargetEntity,
   LockChange,
   EffectTarget,
-  WorldStateChangeDescription
+  WorldStateChangeDescription,
 } from '../systems.types';
 import { Lock, oppositeLockState, LockState } from '../components/lock.model';
 import { Renderable } from '../components/renderable.model';
@@ -24,7 +24,6 @@ export type LockOut = Out;
 
 function lockStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
   if (msg.lockChange && isValidId(msg.effectTargetId)) {
-    console.log(JSON.stringify(msg, null, 2));
     const targetLock = em.getComponent(msg.effectTargetId, Lock);
     if (targetLock) {
       const newState = oppositeLockState(targetLock.state);
@@ -55,14 +54,14 @@ function lockStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
       return {
         ...radClone(msg),
         worldStateChangeDescription,
-        worldStateChanged: true
+        worldStateChanged: true,
       };
     }
   }
   return {
     ...radClone(msg),
     worldStateChanged: msg['worldStateChanged'] || false,
-    worldStateChangeDescription: msg['worldStateChangeDescription'] || null
+    worldStateChangeDescription: msg['worldStateChangeDescription'] || null,
   };
 }
 

@@ -1,20 +1,20 @@
+import * as Chance from 'chance';
 import { EntityId, EntityManager } from 'rad-ecs';
 import { merge, Observable, of, Subject } from 'rxjs';
-import { filter, map, mergeMap, reduce, take } from 'rxjs/operators';
+import { filter, map, mergeMap, reduce, take, tap } from 'rxjs/operators';
 import { spatial } from '../actioners/spatial.actioner';
 import { MovingAgent } from '../components/moving-agent.model';
 import { GridPosData } from '../components/position.model';
 import { entitiesWithComponents } from '../mappers/entities-with-component.system';
 import { grimReaper } from '../mappers/grim-reaper.system';
 import { integrity, IntegrityArgs } from '../mappers/integrity.system';
+import { markForDeath } from '../mappers/mark-for-death.system';
 import { scoreApproach } from '../mappers/score-approach.system';
 import { scoreAttack } from '../mappers/score-attack.system';
 import { produceAttackOrders } from '../operators/produce-attack-orders.operator';
 import { produceMoveOrders } from '../operators/produce-move-orders.operator';
 import { Order } from '../systems.types';
 import { addProperty, radClone } from '../systems.utils';
-import * as Chance from 'chance';
-import { markForDeath } from '../mappers/mark-for-death.system';
 
 interface Args {
   agentId: EntityId;
@@ -28,7 +28,11 @@ function produceCandidateOrders<T extends Args>(
   return merge(produceMoveOrders(msg, em), produceAttackOrders(msg, em, rand));
 }
 
-export function allAgentUpdateFlow(em: EntityManager, rand: Chance.Chance) {
+export function allAgentUpdateFlow(
+  em: EntityManager,
+  rand: Chance.Chance,
+  messageLog: (string) => void = null
+) {
   const out = {
     start$: new Subject(),
     finish$: new Subject<Order[]>(),
@@ -87,7 +91,14 @@ export function allAgentUpdateFlow(em: EntityManager, rand: Chance.Chance) {
           acc.push(curr);
         }
         return acc;
-      }, [] as Order[])
+      }, [] as Order[]),
+      tap((orders) => {
+        if (messageLog) {
+          for (const order of orders) {
+            order.orderDescription !== '' && messageLog(order.orderDescription);
+          }
+        }
+      })
     )
     .subscribe(out.finish$);
 

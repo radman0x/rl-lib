@@ -14,8 +14,8 @@ export interface SeenBreakdown {
 }
 
 export function addSeenToKnowledge(
-  em: EntityManager,
-  breakdown: Id<SeenBreakdown> | null
+  breakdown: Id<SeenBreakdown> | null,
+  em: EntityManager
 ) {
   if (breakdown !== null) {
     for (const [stringId, posEntry] of Object.entries(breakdown)) {
@@ -29,7 +29,7 @@ export function addSeenToKnowledge(
         sightedId,
         new Knowledge({
           current: newSeen,
-          history: knowledge.history
+          history: knowledge.history,
         })
       );
     }

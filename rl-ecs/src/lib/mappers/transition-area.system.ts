@@ -1,17 +1,13 @@
 import { EntityManager } from 'rad-ecs';
-import {
-  AreaTransition,
-  AreaTransitionData
-} from '../components/area-transition.model';
+import { AreaTransition } from '../components/area-transition.model';
+import { Description } from '../components/description.model';
 import { OperationStep } from '../operation-step.model';
 import {
   ActiveEffect,
-  TargetEntity,
   ActiveEffectDescription,
-  TransitionToArea
+  TransitionToArea,
 } from '../systems.types';
 import { radClone } from '../systems.utils';
-import { Description } from '../components/description.model';
 
 type Args = ActiveEffect;
 export type TransitionAreaArgs = Args;
@@ -32,7 +28,7 @@ function transitionAreaStep<T extends Args>(
     return {
       ...radClone(msg),
       areaTransition: { ...radClone(areaTransition) },
-      activeEffectDescription
+      activeEffectDescription,
     };
   } else {
     return { ...radClone(msg), activeEffectDescription: null };
