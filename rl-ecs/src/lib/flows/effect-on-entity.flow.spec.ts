@@ -17,15 +17,15 @@ describe('Effect on Entity', () => {
     error: boolean | string;
   };
   const newFlow = (em: EntityManager) => {
-    const flow = effectOnEntityFlow(em, areaResolver);
+    const flow = effectOnEntityFlow(em, areaResolver, () => null);
     flow.finish$.subscribe({
-      next: msg => {
+      next: (msg) => {
         results.outcome = msg;
         results.finished = true;
       },
-      error: err => (results.error = err)
+      error: (err) => (results.error = err),
     });
-    flow.stateChangeSummary$.subscribe(msg => (results.descriptions = msg));
+    flow.stateChangeSummary$.subscribe((msg) => (results.descriptions = msg));
     return flow;
   };
   let effectTargetId: EntityId;
@@ -38,7 +38,7 @@ describe('Effect on Entity', () => {
       outcome: null,
       finished: false,
       descriptions: null,
-      error: false
+      error: false,
     };
     process = newFlow(em);
     effectTargetId = em.create().id;
@@ -60,8 +60,8 @@ describe('Effect on Entity', () => {
         state: LockState.LOCKED,
         stateImages: {
           [LockState.LOCKED]: 'Door0-4.png',
-          [LockState.UNLOCKED]: 'Door0-5.png'
-        }
+          [LockState.UNLOCKED]: 'Door0-5.png',
+        },
       }),
       new Renderable({ image: '', zOrder: 1 })
     ).id;
@@ -71,7 +71,7 @@ describe('Effect on Entity', () => {
     expect(results.error).toBe(false);
     expect(results.descriptions.length).toEqual(1);
     expect(em.getComponent(effectTargetId, Lock)).toMatchObject({
-      state: LockState.UNLOCKED
+      state: LockState.UNLOCKED,
     });
     expect(em.getComponent(effectTargetId, Renderable).image).toEqual(
       'Door0-5.png'

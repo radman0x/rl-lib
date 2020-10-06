@@ -8,13 +8,15 @@ import {
   NodeEntry,
   ClosedSet,
   neighbours,
-  updateDistanceMap
+  updateDistanceMap,
 } from './update-distance-map.actioner';
 import { DistanceMap } from '@rad/rl-ecs';
+import { SpatialReport } from '../systems.types';
 
 describe('Generate distance map', () => {
   let em: EntityManager;
-  let locusId: EntityId;
+  let spatialId: EntityId;
+  let spatialReport: SpatialReport;
   beforeEach(() => {
     em = new EntityManager();
     em.indexBy(GridPos);
@@ -26,21 +28,28 @@ describe('Generate distance map', () => {
         );
       }
     }
-    locusId = em.create(new GridPos({ x: 1, y: 1, z: 0 })).id;
+    spatialId = em.create(
+      new GridPos({ x: 1, y: 1, z: 0 }),
+      new DistanceMap({ map: new ValueMap() })
+    ).id;
+    spatialReport = { spatialReport: { spatialId, newPos: null } };
   });
 
   it('should return correct data when only the locus exists', () => {
     em = new EntityManager();
     em.indexBy(GridPos);
-    locusId = em.create(new GridPos({ x: 1, y: 1, z: 1 })).id;
-    updateDistanceMap({ locusId }, em);
+    spatialId = em.create(
+      new GridPos({ x: 1, y: 1, z: 1 }),
+      new DistanceMap({ map: new ValueMap() })
+    ).id;
+    updateDistanceMap({ spatialReport: { spatialId, newPos: null } }, em);
 
-    expect(em.getComponent(locusId, DistanceMap).map.count()).toEqual(1);
+    expect(em.getComponent(spatialId, DistanceMap).map.count()).toEqual(1);
   });
 
   it('should return a correct map for a 9 square grid with locus at the center ', () => {
-    updateDistanceMap({ locusId }, em);
-    const map = em.getComponent(locusId, DistanceMap).map;
+    updateDistanceMap(spatialReport, em);
+    const map = em.getComponent(spatialId, DistanceMap).map;
     expect(map.count()).toEqual(9);
     for (let x = 0; x < 3; ++x) {
       for (let y = 0; y < 3; ++y) {
@@ -66,8 +75,8 @@ describe('Generate distance map', () => {
         }
       }
     }
-    updateDistanceMap({ locusId }, em);
-    expect(em.getComponent(locusId, DistanceMap).map.count()).toEqual(4);
+    updateDistanceMap(spatialReport, em);
+    expect(em.getComponent(spatialId, DistanceMap).map.count()).toEqual(4);
   });
 
   it('should return a correct map for a 9 square grid when the side positions are blocked', () => {
@@ -83,8 +92,8 @@ describe('Generate distance map', () => {
         }
       }
     }
-    updateDistanceMap({ locusId }, em);
-    expect(em.getComponent(locusId, DistanceMap).map.count()).toEqual(4);
+    updateDistanceMap(spatialReport, em);
+    expect(em.getComponent(spatialId, DistanceMap).map.count()).toEqual(4);
   });
 
   describe('Utils', () => {
@@ -171,9 +180,9 @@ describe('Generate distance map', () => {
 
         curr = { pos: { x: 0, y: 0, z: 0 }, distance: 0 };
         expect(
-          neighbours(curr, closedSet, walkable).map(value => ({
+          neighbours(curr, closedSet, walkable).map((value) => ({
             x: value.pos.x,
-            y: value.pos.y
+            y: value.pos.y,
           }))
         ).toContainEqual({ x: 1, y: 1 });
       });

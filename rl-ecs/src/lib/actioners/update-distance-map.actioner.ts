@@ -66,7 +66,10 @@ export function dijkstra(locus: GridPosData, walkable: Walkable) {
 }
 
 export function updateDistanceMap(msg: Args | null, em: EntityManager) {
-  if (msg.spatialReport === null) {
+  if (
+    msg.spatialReport === null ||
+    !em.hasComponent(msg.spatialReport.spatialId, DistanceMap)
+  ) {
     return;
   }
   const locus = em.getComponent(msg.spatialReport.spatialId, GridPos);

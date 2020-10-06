@@ -85,10 +85,6 @@ export function attemptMoveFlow(
       map((msg) => ({ ...msg.attack })),
       map((msg) => integrity(msg, em)),
       map((msg) => markForDeath(msg, em)),
-      map((msg) => {
-        console.log(`${JSON.stringify(msg, null, 2)}`);
-        return msg;
-      }),
       tap((msg) => messageLog && messageLog(playerAttackString(em, msg))),
       map((msg) => grimReaper(msg, em))
     )
