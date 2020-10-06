@@ -31,14 +31,14 @@ describe('Priority queue', () => {
 
   it('should get the top value', () => {
     const pq = new PriorityQueue(compare, extract, input);
-    expect(pq.top()).toEqual({ score: 50 });
+    expect(pq.top()).toMatchObject({ score: 50 });
   });
 
   it('should pop the top value', () => {
     const pq = new PriorityQueue(compare, extract, input);
-    expect(pq.pop()).toEqual({ score: 50 });
+    expect(pq.pop()).toMatchObject({ score: 50 });
     expect(pq.length()).toEqual(3);
-    expect(pq.top()).toEqual({ score: 3 });
+    expect(pq.top()).toMatchObject({ score: 3 });
   });
 
   it('should pop the top value twice', () => {
@@ -91,7 +91,7 @@ describe('Priority queue', () => {
     for (let i = 0; i < data.length; ++i) {
       expect(pq.get(i.toString())).toEqual({
         id: i.toString(),
-        score: data[i]
+        score: data[i],
       });
     }
 
@@ -128,7 +128,7 @@ describe('Priority queue', () => {
     for (let i = 0; i < data.length; ++i) {
       expect(pq.get(i.toString())).toEqual({
         id: i.toString(),
-        score: data[i]
+        score: data[i],
       });
     }
   });

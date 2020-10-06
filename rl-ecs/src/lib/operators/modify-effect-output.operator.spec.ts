@@ -16,21 +16,20 @@ describe('Modify effect output', () => {
   beforeEach(() => {
     em = new EntityManager();
     em.indexBy(GridPos);
-    start$ = new Subject();
     error = false;
     out = null;
-    start$.pipe(modifyEffectOutput(em)).subscribe({
-      next: msg => (out = msg),
-      error: err => (error = err)
-    });
   });
   it('should remove a teleport effect action if magic resistance is present', () => {
     const pos = { x: 1, y: 1, z: 1 };
     const teleport: Teleported = {
-      teleport: { targetLocation: pos }
+      teleport: { targetLocation: pos },
     };
     effectTargetId = em.create(new MagicResistance({})).id;
-    start$.next(_.merge({ effectTargetId }, teleport));
+    const flow = modifyEffectOutput(_.merge({ effectTargetId }, teleport), em);
+    flow.subscribe({
+      next: (msg) => (out = msg),
+      error: (err) => (error = err),
+    });
     expect(error).toEqual(false);
     expect(out).toEqual({ effectTargetId, teleport: null });
   });

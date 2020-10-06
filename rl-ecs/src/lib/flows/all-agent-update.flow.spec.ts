@@ -1,14 +1,16 @@
+import { ValueMap } from '@rad/rl-utils';
 import * as Chance from 'chance';
 import { EntityId, EntityManager } from 'rad-ecs';
 import { updateDistanceMap } from '../actioners/update-distance-map.actioner';
 import { Alignment, AlignmentType } from '../components/alignment.model';
+import { DistanceMap } from '../components/distance-map.model';
 import { Martial } from '../components/martial.model';
 import { Mobile } from '../components/mobile.model';
 import { MovingAgent } from '../components/moving-agent.model';
 import { Physical, Size } from '../components/physical.model';
 import { GridPos } from '../components/position.model';
 import { Sighted } from '../components/sighted.model';
-import { Order } from '../systems.types';
+import { Order, SpatialReport } from '../systems.types';
 import { allAgentUpdateFlow } from './all-agent-update.flow';
 
 describe('All agent update', () => {
@@ -22,17 +24,18 @@ describe('All agent update', () => {
   const newFlow = (em: EntityManager) => {
     const flow = allAgentUpdateFlow(em, new Chance());
     flow.finish$.subscribe({
-      next: msg => {
+      next: (msg) => {
         results.outcome = msg;
         results.finished = true;
       },
-      error: err => (results.error = err)
+      error: (err) => (results.error = err),
     });
-    flow.finish$.subscribe(msg => (results.completedActions = msg));
+    flow.finish$.subscribe((msg) => (results.completedActions = msg));
     return flow;
   };
   let agentId: EntityId;
-  let locusId: EntityId;
+  let spatialId: EntityId;
+  let spatialReport: SpatialReport;
   let process: ReturnType<typeof newFlow>;
   beforeEach(() => {
     em = new EntityManager();
@@ -41,7 +44,7 @@ describe('All agent update', () => {
       outcome: null,
       finished: false,
       completedActions: null,
-      error: false
+      error: false,
     };
     process = newFlow(em);
     for (let x = 1; x < 2; ++x) {
@@ -59,11 +62,13 @@ describe('All agent update', () => {
       new Mobile({ range: 1 }),
       new Alignment({ type: AlignmentType.EVIL })
     ).id;
-    locusId = em.create(
+    spatialId = em.create(
       new GridPos({ x: 1, y: 5, z: 1 }),
+      new DistanceMap({ map: new ValueMap() }),
       new Alignment({ type: AlignmentType.GOOD })
     ).id;
-    updateDistanceMap({ locusId }, em);
+    spatialReport = { spatialReport: { spatialId, newPos: null } };
+    updateDistanceMap(spatialReport, em);
   });
 
   it('should get an order summary for a move for one agent', () => {
@@ -71,7 +76,7 @@ describe('All agent update', () => {
     expect(results.error).toBe(false);
     expect(results.completedActions[0]).toMatchObject({
       movingId: agentId,
-      newPosition: { x: 1, y: 2, z: 1 }
+      newPosition: { x: 1, y: 2, z: 1 },
     });
     expect(em.getComponent(agentId, GridPos)).toEqual({ x: 1, y: 2, z: 1 });
   });
@@ -89,7 +94,7 @@ describe('All agent update', () => {
     process.start$.next();
     expect(results.error).toBe(false);
     expect(results.completedActions[0]).toMatchObject({
-      combatTargetId
+      combatTargetId,
     });
   });
 
@@ -109,11 +114,11 @@ describe('All agent update', () => {
     expect(results.error).toBe(false);
     expect(results.completedActions[0]).toMatchObject({
       movingId: agentId,
-      newPosition: { x: 1, y: 2, z: 1 }
+      newPosition: { x: 1, y: 2, z: 1 },
     });
     expect(results.completedActions[1]).toMatchObject({
       movingId: agent2Id,
-      newPosition: { x: 1, y: 2, z: 1 }
+      newPosition: { x: 1, y: 2, z: 1 },
     });
   });
 
@@ -134,7 +139,7 @@ describe('All agent update', () => {
     expect(results.completedActions.length).toEqual(1);
     expect(results.completedActions[0]).toMatchObject({
       movingId: agentId,
-      newPosition: { x: 1, y: 2, z: 1 }
+      newPosition: { x: 1, y: 2, z: 1 },
     });
   });
 

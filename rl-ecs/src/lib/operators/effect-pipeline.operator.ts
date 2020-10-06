@@ -1,6 +1,6 @@
 import { EntityManager } from 'rad-ecs';
 import { BehaviorSubject } from 'rxjs';
-import { mergeMap } from 'rxjs/operators';
+import { mergeMap, take } from 'rxjs/operators';
 import { ActiveEffect, EffectTarget } from '../systems.types';
 import { AreaResolver } from '../utils/area-resolver.util';
 import { actionEffectOutput } from './action-effect-output.operator';
@@ -14,6 +14,7 @@ export function effectPipeline<T extends ActiveEffect & EffectTarget>(
   ender: (EndType) => void
 ) {
   return new BehaviorSubject(msg).pipe(
+    take(1),
     mergeMap((msg) => produceEffectOutput(msg, em)),
     mergeMap((msg) => modifyEffectOutput(msg, em)),
     mergeMap((msg) => actionEffectOutput(msg, em, areaResolver, ender))

@@ -1,5 +1,8 @@
 import { EntityManager, EntityId } from 'rad-ecs';
-import { Descriptions, effectOnEntityFlow } from './effect-on-entity.flow';
+import {
+  Descriptions,
+  effectOnEntityFlowInstant,
+} from './effect-on-entity.flow';
 import { GridPosData, GridPos } from '../components/position.model';
 import { effectAtPositionFlow, Summaries } from './effect-at-position.flow';
 import { ToggleLock } from '../components/toggle-lock.model';
@@ -15,8 +18,8 @@ function standardLock(em: EntityManager, pos: GridPosData) {
       state: LockState.LOCKED,
       stateImages: {
         [LockState.LOCKED]: 'Door0-4.png',
-        [LockState.UNLOCKED]: 'Door0-5.png'
-      }
+        [LockState.UNLOCKED]: 'Door0-5.png',
+      },
     }),
     new Renderable({ image: '', zOrder: 1 }),
     new GridPos(pos)
@@ -33,15 +36,15 @@ describe('Effect at position flow', () => {
     error: boolean | string;
   };
   const newFlow = (em: EntityManager) => {
-    const flow = effectAtPositionFlow(em, areaResolver);
+    const flow = effectAtPositionFlow(em, areaResolver, () => null);
     flow.finish$.subscribe({
-      next: msg => {
+      next: (msg) => {
         results.outcome = msg;
         results.finished = true;
       },
-      error: err => (results.error = err)
+      error: (err) => (results.error = err),
     });
-    flow.stateChangeSummaries$.subscribe(msg => (results.summaries = msg));
+    flow.stateChangeSummaries$.subscribe((msg) => (results.summaries = msg));
     return flow;
   };
   let effectTargetId: EntityId;
@@ -55,7 +58,7 @@ describe('Effect at position flow', () => {
       outcome: null,
       finished: false,
       summaries: null,
-      error: false
+      error: false,
     };
     process = newFlow(em);
     effectTargetId = em.create().id;
@@ -81,7 +84,7 @@ describe('Effect at position flow', () => {
     process.start$.next({ effectId, targetPos });
     expect(results.error).toBe(false);
     expect(results.summaries).toMatchObject({
-      [effectTargetId]: [{}, {}]
+      [effectTargetId]: [{}, {}],
     });
   });
   it('should update the state of a locked entity when a toggle lock effect is applied at its position', () => {
@@ -91,10 +94,10 @@ describe('Effect at position flow', () => {
 
     expect(results.error).toBe(false);
     expect(results.summaries).toMatchObject({
-      [effectTargetId]: [{}]
+      [effectTargetId]: [{}],
     });
     expect(em.getComponent(effectTargetId, Lock)).toMatchObject({
-      state: LockState.UNLOCKED
+      state: LockState.UNLOCKED,
     });
     expect(em.getComponent(effectTargetId, Renderable).image).toEqual(
       'Door0-5.png'

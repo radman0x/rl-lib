@@ -16,21 +16,24 @@ describe('Add Seen to knowledge', () => {
 
   it('should update the knowledge for the simplest case', () => {
     const thePos = { x: 1, y: 1, z: 1 };
-    addSeenToKnowledge(em, {
-      [id]: {
-        xxx: {
-          // key is irrelevant here, but normally would be set properly
-          pos: new GridPos(thePos),
-          entityIds: [1, 2, 3]
-        }
-      }
-    });
+    addSeenToKnowledge(
+      {
+        [id]: {
+          xxx: {
+            // key is irrelevant here, but normally would be set properly
+            pos: new GridPos(thePos),
+            entityIds: [1, 2, 3],
+          },
+        },
+      },
+      em
+    );
     const current = em.getComponent(id, Knowledge).current;
     expect(current.get(new GridPos(thePos))).toEqual([1, 2, 3]);
   });
 
   it('should do nothing if the input data is null', () => {
-    addSeenToKnowledge(em, null);
+    addSeenToKnowledge(null, em);
     const current = em.getComponent(id, Knowledge).current;
     expect(current).toEqual(new ValueMap());
   });
