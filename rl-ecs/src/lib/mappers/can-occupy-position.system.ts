@@ -23,15 +23,11 @@ function canOccupyPositionStep<T extends Args>(
     return { ...radClone(msg), canOccupy: null };
   }
   let canOccupy = true;
-  em.each(
-    (e, y, p) => {
-      if (deepEqual(p, msg.targetPos) && y.size >= Size.MEDIUM) {
-        canOccupy = false;
-      }
-    },
-    Physical,
-    GridPos
-  );
+  em.matchingIndex(new GridPos(msg.targetPos)).forEach((entity) => {
+    if (entity.has(Physical) && entity.component(Physical).size === Size.FILL) {
+      canOccupy = false;
+    }
+  });
 
   console.log(
     `OCCUPY: ${msg.targetPos} ${canOccupy ? 'can' : 'CANNOT'} be occupied`

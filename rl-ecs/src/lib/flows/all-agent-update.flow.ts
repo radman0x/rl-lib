@@ -3,6 +3,7 @@ import { EntityId, EntityManager } from 'rad-ecs';
 import { merge, Observable, of, Subject } from 'rxjs';
 import { filter, map, mergeMap, reduce, take, tap } from 'rxjs/operators';
 import { spatial } from '../actioners/spatial.actioner';
+import { EndType } from '../components/end-state.model';
 import { MovingAgent } from '../components/moving-agent.model';
 import { GridPosData } from '../components/position.model';
 import { entitiesWithComponents } from '../mappers/entities-with-component.system';
@@ -15,6 +16,8 @@ import { produceAttackOrders } from '../operators/produce-attack-orders.operator
 import { produceMoveOrders } from '../operators/produce-move-orders.operator';
 import { Order } from '../systems.types';
 import { addProperty, radClone } from '../systems.utils';
+import { AreaResolver } from '../utils/area-resolver.util';
+import { housekeepingFlowInstant } from './housekeeping.flow';
 
 interface Args {
   agentId: EntityId;
@@ -30,8 +33,10 @@ function produceCandidateOrders<T extends Args>(
 
 export function allAgentUpdateFlow(
   em: EntityManager,
+  areaResolver: AreaResolver,
   rand: Chance.Chance,
-  messageLog: (string) => void = null
+  messageLog: (string) => void = null,
+  ender: (endType: EndType) => void = null
 ) {
   const out = {
     start$: new Subject(),
@@ -60,10 +65,7 @@ export function allAgentUpdateFlow(
             { score: null, move: null, attack: null, orderDescription: null }
           ),
           map((msg) => {
-            console.log(`${JSON.stringify(msg, null, 2)}`);
-            return msg;
-          }),
-          map((msg) => {
+            console.log(`{{{{ ${JSON.stringify(msg, null, 2)}`);
             let spatial: { newPosition: GridPosData; movingId: EntityId } = {
               newPosition: null,
               movingId: null,
@@ -83,9 +85,18 @@ export function allAgentUpdateFlow(
           map((msg) => spatial(msg, em)),
           map((msg) => integrity(msg, em)),
           map((msg) => markForDeath(msg, em)),
-          map((msg) => grimReaper(msg, em))
+          map((msg) => grimReaper(msg, em)),
+          mergeMap((msg) =>
+            housekeepingFlowInstant(em, areaResolver, ender).pipe(
+              map(() => msg)
+            )
+          )
         )
       ),
+      map((msg) => {
+        console.log(`########- ${JSON.stringify(msg, null, 2)}`);
+        return msg;
+      }),
       reduce((acc, curr) => {
         if (curr.score !== null) {
           acc.push(curr);

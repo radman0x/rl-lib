@@ -1,10 +1,9 @@
-import { EntityManager, EntityId } from 'rad-ecs';
+import { EntityId, EntityManager } from 'rad-ecs';
 import { Subject } from 'rxjs';
-import { GridPos, GridPosData } from '../components/position.model';
-import { Teleported, LockChange } from '../systems.types';
-import { actionEffectOutput } from './action-effect-output.operator';
 import { Lock, LockState } from '../components/lock.model';
+import { GridPos, GridPosData } from '../components/position.model';
 import { AreaResolver } from '../utils/area-resolver.util';
+import { actionEffectOutput } from './action-effect-output.operator';
 
 describe('Action effect output', () => {
   let em: EntityManager;
@@ -14,17 +13,21 @@ describe('Action effect output', () => {
   let out: any;
   let pos: GridPosData;
   let effectTargetId: EntityId;
+  let newFlow = (any) => null;
   beforeEach(() => {
     em = new EntityManager();
     em.indexBy(GridPos);
     areaResolver = new AreaResolver();
-    start$ = new Subject();
-    error = false;
-    out = null;
-    start$.pipe(actionEffectOutput(em, areaResolver)).subscribe({
-      next: msg => (out = msg),
-      error: err => (error = err)
-    });
+
+    newFlow = (msg) => {
+      let error = false;
+      let out = null;
+      actionEffectOutput(msg, em, areaResolver, () => null).subscribe({
+        next: (msg) => (out = msg),
+        error: (err) => (error = err),
+      });
+      return { error, out };
+    };
     pos = { x: 7, y: 7, z: 1 };
     effectTargetId = em.create(
       new Lock({
@@ -32,8 +35,8 @@ describe('Action effect output', () => {
         state: LockState.LOCKED,
         stateImages: {
           [LockState.LOCKED]: 'Door0-4.png',
-          [LockState.UNLOCKED]: 'Door0-5.png'
-        }
+          [LockState.UNLOCKED]: 'Door0-5.png',
+        },
       }),
       new GridPos({ x: 1, y: 1, z: 1 })
     ).id;
@@ -42,9 +45,9 @@ describe('Action effect output', () => {
   it('should action a teleport', () => {
     const teleport = {
       teleport: { targetLocation: pos },
-      effectTargetId
+      effectTargetId,
     };
-    start$.next(teleport);
+    const { error, out } = newFlow(teleport);
     expect(error).toEqual(false);
     expect(out).toMatchObject({ worldStateChanged: true });
     expect(em.getComponent(effectTargetId, GridPos)).toEqual(pos);
@@ -53,9 +56,9 @@ describe('Action effect output', () => {
   it('should action a lock state change', () => {
     const lockChange = {
       lockChange: {},
-      effectTargetId
+      effectTargetId,
     };
-    start$.next(lockChange);
+    const { error, out } = newFlow(lockChange);
     expect(error).toEqual(false);
     expect(out).toMatchObject({ worldStateChanged: true });
   });

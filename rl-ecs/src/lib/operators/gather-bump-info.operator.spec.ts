@@ -25,7 +25,7 @@ describe('Gather bump info', () => {
       targetPos: otherPos,
       canOccupy: true,
       canStand: false,
-      combatTargetId: null
+      combatTargetId: null,
     });
   });
   it('should produce correct data when the target can be stood on', () => {
@@ -34,7 +34,7 @@ describe('Gather bump info', () => {
       targetPos,
       canOccupy: true,
       canStand: true,
-      combatTargetId: null
+      combatTargetId: null,
     });
   });
   it('should produce correct data when the target can be stood on but cannot be occupied', () => {
@@ -44,7 +44,7 @@ describe('Gather bump info', () => {
       targetPos,
       canOccupy: false,
       canStand: true,
-      combatTargetId: null
+      combatTargetId: null,
     });
   });
   it('should produce correct data when the target can be stood on and there is a combat target', () => {
@@ -58,7 +58,7 @@ describe('Gather bump info', () => {
       targetPos,
       canOccupy: false,
       canStand: true,
-      combatTargetId
+      combatTargetId,
     });
   });
 });

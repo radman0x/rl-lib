@@ -12,6 +12,7 @@ describe('Can occupy position', () => {
 
   beforeEach(() => {
     em = new EntityManager();
+    em.indexBy(GridPos);
     em.create(new Physical({ size: Size.FILL }), new GridPos(fillPos));
     em.create(new Physical({ size: Size.SMALL }), new GridPos(smallPos));
     em.create(new GridPos(noPhysicalPos));

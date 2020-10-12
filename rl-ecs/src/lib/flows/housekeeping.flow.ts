@@ -1,6 +1,7 @@
+import { isValidId } from '@rad/rl-utils';
 import { EntityManager } from 'rad-ecs';
-import { BehaviorSubject, merge, of, Subject } from 'rxjs';
-import { filter, map, mergeMap, take, tap } from 'rxjs/operators';
+import { BehaviorSubject, merge, of, ReplaySubject, Subject } from 'rxjs';
+import { filter, map, mergeMap, reduce, take, tap } from 'rxjs/operators';
 import { updateBlockageState } from '../actioners/update-blockage.state.actioner';
 import { Blockage } from '../components/blockage.model';
 import { EndType } from '../components/end-state.model';
@@ -15,9 +16,15 @@ export function housekeepingFlow(
   areaResolver: AreaResolver,
   ender: (endType: EndType) => void
 ) {
-  const start$ = new Subject<null>();
+  const start$ = new ReplaySubject<null>(1);
 
-  start$.pipe(tap(() => console.log(`Housekeeping!`)));
+  start$
+    .pipe(
+      tap(() => {
+        console.log(`Housekeeping!`);
+      })
+    )
+    .subscribe();
 
   const updateBlockages = start$.pipe(
     take(1),
@@ -30,6 +37,7 @@ export function housekeepingFlow(
     take(1),
     map(() => ({ componentTypes: [NonePresent] })),
     mergeMap((msg) => of(...entitiesWithComponents(msg, em, 'conditionId'))),
+    filter((msg) => isValidId(msg.conditionId)),
     filter((msg) => {
       let nonePresent = true;
       for (const id of em.getComponent(msg.conditionId, NonePresent).entities) {
@@ -52,11 +60,15 @@ export function housekeepingFlow(
     )
   );
 
-  const finish$ = new Subject();
-  merge(updateBlockages, nonePresentCondition).subscribe(finish$);
+  const finish$ = merge(updateBlockages, nonePresentCondition).pipe(
+    reduce((acc, curr) => null, null)
+  );
+
   return {
     start$,
     finish$,
+    updateBlockages,
+    nonePresentCondition,
   };
 }
 export function housekeepingFlowInstant(
@@ -66,5 +78,5 @@ export function housekeepingFlowInstant(
 ) {
   const flow = housekeepingFlow(em, areaResolver, ender);
   new BehaviorSubject(null).pipe(take(1)).subscribe(flow.start$);
-  return { finish$: flow.finish$ };
+  return flow.finish$;
 }

@@ -11,10 +11,12 @@ import { Physical, Size } from '../components/physical.model';
 import { GridPos } from '../components/position.model';
 import { Sighted } from '../components/sighted.model';
 import { Order, SpatialReport } from '../systems.types';
+import { AreaResolver } from '../utils/area-resolver.util';
 import { allAgentUpdateFlow } from './all-agent-update.flow';
 
 describe('All agent update', () => {
   let em: EntityManager;
+  let areaResolver = new AreaResolver();
   let results: {
     outcome: any;
     finished: boolean;
@@ -22,7 +24,7 @@ describe('All agent update', () => {
     error: boolean | string;
   };
   const newFlow = (em: EntityManager) => {
-    const flow = allAgentUpdateFlow(em, new Chance());
+    const flow = allAgentUpdateFlow(em, areaResolver, new Chance());
     flow.finish$.subscribe({
       next: (msg) => {
         results.outcome = msg;
