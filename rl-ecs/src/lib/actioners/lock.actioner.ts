@@ -5,6 +5,7 @@ import {
   LockChange,
   EffectTarget,
   WorldStateChangeDescription,
+  WorldStateChangeReport,
 } from '../systems.types';
 import { Lock, oppositeLockState, LockState } from '../components/lock.model';
 import { Renderable } from '../components/renderable.model';
@@ -13,16 +14,19 @@ import { Description } from '../components/description.model';
 import { isValidId } from '@rad/rl-utils';
 import { Id } from '@rad/rl-applib';
 
-type Args = Partial<EffectTarget> & Partial<LockChange>;
+type Args = Partial<EffectTarget> &
+  Partial<LockChange> &
+  Partial<WorldStateChangeReport>;
 export type LockArgs = Args;
 
-type Out = {
-  worldStateChanged: boolean;
-} & WorldStateChangeDescription;
-
+type Out = WorldStateChangeReport;
 export type LockOut = Out;
 
 function lockStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
+  let worldStateChanged: boolean = msg.worldStateChanged || false;
+  let worldStateChangeDescription: string =
+    msg.worldStateChangeDescription || null;
+
   if (msg.lockChange && isValidId(msg.effectTargetId)) {
     const targetLock = em.getComponent(msg.effectTargetId, Lock);
     if (targetLock) {
@@ -48,20 +52,17 @@ function lockStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
       const targetDescription = em.hasComponent(msg.effectTargetId, Description)
         ? em.getComponent(msg.effectTargetId, Description).short
         : 'Target';
-      const worldStateChangeDescription = `${targetDescription} ${lockStateDesc(
+      worldStateChangeDescription = `${targetDescription} ${lockStateDesc(
         newState
       )}`;
-      return {
-        ...radClone(msg),
-        worldStateChangeDescription,
-        worldStateChanged: true,
-      };
+      worldStateChanged = true;
     }
   }
+
   return {
     ...radClone(msg),
-    worldStateChanged: msg['worldStateChanged'] || false,
-    worldStateChangeDescription: msg['worldStateChangeDescription'] || null,
+    worldStateChangeDescription,
+    worldStateChanged,
   };
 }
 

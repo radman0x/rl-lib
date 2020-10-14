@@ -7,6 +7,7 @@ import {
   removeEntity,
   RemoveEntityArgs,
 } from '../actioners/remove-entity.actioner';
+import { sensate } from '../actioners/sensate.actioner';
 import { spatial, SpatialArgs } from '../actioners/spatial.actioner';
 import { endState, EndStateArgs } from '../mappers/end-state.system';
 import { EffectTarget } from '../systems.types';
@@ -32,6 +33,7 @@ export function actionEffectOutput<T extends Args>(
     map((msg) => spatial(msg, em)),
     map((msg) => lock(msg, em)),
     map((msg) => area(msg, em, areaResolver)),
+    map((msg) => sensate(msg, em)),
     map((msg) => endState(msg, em, ender)),
     map((msg) => removeEntity(msg, em))
   );

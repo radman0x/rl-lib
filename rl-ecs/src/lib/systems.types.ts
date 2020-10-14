@@ -220,3 +220,7 @@ export interface EntityRemoval {
   removeId: EntityId | null;
   doRemove: boolean | null;
 }
+
+export interface Stun {
+  stun: { strength: number } | null;
+}

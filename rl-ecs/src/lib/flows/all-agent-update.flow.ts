@@ -4,6 +4,7 @@ import { merge, Observable, of, Subject } from 'rxjs';
 import { filter, map, mergeMap, reduce, take, tap } from 'rxjs/operators';
 import { spatial } from '../actioners/spatial.actioner';
 import { EndType } from '../components/end-state.model';
+import { Mental, MentalState } from '../components/mental.model';
 import { MovingAgent } from '../components/moving-agent.model';
 import { GridPosData } from '../components/position.model';
 import { entitiesWithComponents } from '../mappers/entities-with-component.system';
@@ -49,6 +50,13 @@ export function allAgentUpdateFlow(
       map(() => addProperty({}, 'componentTypes', [MovingAgent])),
       mergeMap((msg) => of(...entitiesWithComponents(msg, em, 'agentId'))),
       filter((msg) => em.exists(msg.agentId)), // in case agent got reaped due to other agent actions
+      filter(
+        (msg) =>
+          !(
+            em.hasComponent(msg.agentId, Mental) &&
+            em.getComponent(msg.agentId, Mental).state === MentalState.STUNNED
+          )
+      ),
       mergeMap((msg) =>
         produceCandidateOrders(msg, em, rand).pipe(
           map((msg) => scoreApproach(msg, em)),
@@ -65,7 +73,6 @@ export function allAgentUpdateFlow(
             { score: null, move: null, attack: null, orderDescription: null }
           ),
           map((msg) => {
-            console.log(`{{{{ ${JSON.stringify(msg, null, 2)}`);
             let spatial: { newPosition: GridPosData; movingId: EntityId } = {
               newPosition: null,
               movingId: null,
@@ -93,10 +100,6 @@ export function allAgentUpdateFlow(
           )
         )
       ),
-      map((msg) => {
-        console.log(`########- ${JSON.stringify(msg, null, 2)}`);
-        return msg;
-      }),
       reduce((acc, curr) => {
         if (curr.score !== null) {
           acc.push(curr);

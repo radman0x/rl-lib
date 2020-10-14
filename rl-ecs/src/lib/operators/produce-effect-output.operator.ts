@@ -3,6 +3,7 @@ import { BehaviorSubject, merge } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 import { endGame } from '../mappers/end-game.system';
 import { flagRemoveEntity } from '../mappers/flag-remove-entity.mapper';
+import { stun } from '../mappers/stun.system';
 import { teleport } from '../mappers/teleport.system';
 import { toggleLock } from '../mappers/toggle-lock.system';
 import { transitionArea } from '../mappers/transition-area.system';
@@ -30,6 +31,10 @@ export function produceEffectOutput<T extends ActiveEffect & EffectTarget>(
     start$.pipe(
       take(1),
       map((msg) => transitionArea(msg, em))
+    ),
+    start$.pipe(
+      take(1),
+      map((msg) => stun(msg, em))
     ),
     start$.pipe(
       take(1),

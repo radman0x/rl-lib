@@ -1,87 +1,41 @@
-import { EntityId, EntityManager } from 'rad-ecs';
-import { Observable, of, Subject } from 'rxjs';
-import { filter, map, mergeMap } from 'rxjs/operators';
-import {
-  OperationStepMulti,
-  OperationStepMultiNoEm
-} from '../operation-step.model';
-import {
-  AreaOfEffect,
-  AreaOfEffectData
-} from '../components/area-of-effect.model';
-import { GridPos, GridPosData } from '../components/position.model';
-import {
-  hasSelectedPos,
-  positionsWithinRadius,
-  radClone
-} from '../systems.utils';
-import { equalsVec3 } from '@rad/rl-utils';
 import { Id } from '@rad/rl-applib';
+import { isValidId } from '@rad/rl-utils';
+import { EntityManager } from 'rad-ecs';
+import { AreaOfEffect } from '../components/area-of-effect.model';
+import { GridPos, GridPosData } from '../components/position.model';
+import { OperationStep } from '../operation-step.model';
+import { ActiveEffect } from '../systems.types';
+import { positionsWithinRadius, radClone } from '../systems.utils';
 
-export interface HookAoeTargetArgs {
-  selectedPos?: GridPosData;
-  effectId: EntityId;
-}
-
-export function hookAoeTarget<T extends HookAoeTargetArgs>(
-  source: Observable<T>,
-  dest: Subject<AcquireAoeTargetsOut & T>,
-  em: EntityManager,
-  ignorePositions?: GridPosData[]
-) {
-  source
-    .pipe(
-      filter(hasSelectedPos),
-      filter(msg => em.hasComponent(msg.effectId, AreaOfEffect)),
-      map(msg => ({
-        ...radClone(msg),
-        areaOfEffect: radClone(em.getComponent(msg.effectId, AreaOfEffect)!)
-      })),
-      mergeMap(msg => of(...acquireAoePositions(msg, ignorePositions)))
-    )
-    .subscribe(dest);
-}
-
-interface Args {
+type Args = {
   selectedPos: GridPosData;
-  areaOfEffect: AreaOfEffectData;
-}
+  acquiredPositions?: GridPosData[] | null;
+} & ActiveEffect;
+
 export type AcquireAOETargetsArgs = Args;
 
 interface Out {
-  targetPos: GridPosData;
+  acquiredPositions: GridPosData[] | null;
 }
 export type AcquireAoeTargetsOut = Out;
 
 function acquireAoePositionsStep<T extends Args>(
   msg: T,
-  ignorePositions?: GridPosData[]
-): Id<T & Out>[] {
-  if (!msg.areaOfEffect) {
-    throw Error(`AOE params not provided!`);
-  }
-  const targetPositions = positionsWithinRadius(
-    new GridPos(msg.selectedPos),
-    msg.areaOfEffect.radius
-  );
-  if (targetPositions.length === 0) {
-    console.log(
-      `AOE: No target positions found for radius: ${msg.areaOfEffect.radius} and target: ${msg.selectedPos}`
+  em: EntityManager
+): Id<T & Out> {
+  let acquiredPositions: GridPosData[] = msg.acquiredPositions || null;
+  if (isValidId(msg.effectId) && em.hasComponent(msg.effectId, AreaOfEffect)) {
+    const aoe = em.getComponent(msg.effectId, AreaOfEffect);
+    acquiredPositions = positionsWithinRadius(
+      new GridPos(msg.selectedPos),
+      aoe.radius
     );
-  } else {
-    // console.log(`AOE: Target positions found: ${targetPositions.length}}`);
   }
-  return targetPositions
-    .filter(
-      p => !(ignorePositions && ignorePositions.find(ip => equalsVec3(ip, p)))
-    )
-    .map(p => ({
-      ...radClone(msg),
-      targetPos: p
-    }));
+
+  return { ...radClone(msg), acquiredPositions };
 }
 
-type StepFunc = OperationStepMultiNoEm<Args, Out>;
+type StepFunc = OperationStep<Args, Out>;
 const typeCheck: StepFunc = acquireAoePositionsStep;
 
 export const acquireAoePositions = typeCheck as typeof acquireAoePositionsStep;

@@ -27,7 +27,6 @@ function teleportStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
         : 'Some effect';
       return {
         ...radClone(msg),
-        bronson: 'somehting',
         teleport: { targetLocation: t.target },
         activeEffectDescription,
       };

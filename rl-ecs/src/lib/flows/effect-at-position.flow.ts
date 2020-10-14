@@ -1,7 +1,8 @@
 import { selAddToArray } from '@rad/rl-applib';
+import { isValidId } from '@rad/rl-utils';
 import * as _ from 'lodash';
 import { EntityManager } from 'rad-ecs';
-import { of, Subject } from 'rxjs';
+import { BehaviorSubject, of, ReplaySubject, Subject } from 'rxjs';
 import { map, mergeMap, reduce, share, take } from 'rxjs/operators';
 import { EndType } from '../components/end-state.model';
 import { entitiesAtPosition } from '../mappers/entities-at-position.system';
@@ -23,16 +24,13 @@ export function effectAtPositionFlow(
   areaResolver: AreaResolver,
   ender: (type: EndType) => void
 ) {
-  const out = {
-    start$: new Subject<ActiveEffect & TargetPos>(),
-    finish$: new Subject(),
-    stateChangeSummaries$: new Subject<Summaries>(),
-  };
-
-  const processed = out.start$.pipe(
+  const start$ = new ReplaySubject<ActiveEffect & TargetPos>();
+  const processed = start$.pipe(
     take(1),
     map((msg) => entitiesAtPosition(msg, em, 'effectTargetId')),
-    mergeMap((msg) => of(...msg)),
+    mergeMap((msg) =>
+      of(...msg.filter((elem) => isValidId(elem.effectTargetId)))
+    ),
     share(),
     mergeMap((msg) => effectPipeline(msg, em, areaResolver, ender)),
     reduce((acc, msg) => {
@@ -50,8 +48,22 @@ export function effectAtPositionFlow(
     }, {} as Summaries),
     share()
   );
-  processed.subscribe(out.stateChangeSummaries$);
-  processed.subscribe(out.finish$);
 
-  return out;
+  return {
+    start$,
+    stateChangeSummaries$: processed,
+    finish$: processed,
+  };
+}
+
+export function effectAtPositionInstant(
+  msg: ActiveEffect & TargetPos,
+  em: EntityManager,
+  areaResolver: AreaResolver,
+  ender: (type: EndType) => void
+) {
+  const flow = effectAtPositionFlow(em, areaResolver, ender);
+  const out = new BehaviorSubject(msg);
+  out.pipe(take(1)).subscribe(flow.start$);
+  return flow;
 }

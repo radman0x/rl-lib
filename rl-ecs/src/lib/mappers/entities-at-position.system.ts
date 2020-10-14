@@ -1,9 +1,9 @@
 import { Id } from '@rad/rl-applib';
 import { Entity, EntityManager } from 'rad-ecs';
-import { GridPos, GridPosData } from '../components/position.model';
+import { GridPos } from '../components/position.model';
 import { EntityId } from '../ecs.types';
-import { addProperty, PropObject } from '../systems.utils';
 import { TargetPos } from '../systems.types';
+import { addProperty, PropObject } from '../systems.utils';
 
 type Args = TargetPos;
 export type EntitiesAtPositionArgs = Args;
@@ -28,5 +28,5 @@ export function entitiesAtPosition<T extends Args, K extends string>(
     return [addProperty(msg, outKey, null)];
   }
 
-  return targetIds.map(id => addProperty(msg, outKey, id));
+  return targetIds.map((id) => addProperty(msg, outKey, id));
 }

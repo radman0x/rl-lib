@@ -5,7 +5,8 @@ import {
   TargetEntity,
   EffectTarget,
   WorldStateChangeDescription,
-  WorldStateChanged
+  WorldStateChanged,
+  WorldStateChangeReport,
 } from '../systems.types';
 import { radClone } from '../systems.utils';
 import { TransitionAreaOut } from '../mappers/transition-area.system';
@@ -14,10 +15,12 @@ import { AreaIngress } from '../components/area-ingress.model';
 import { Id } from '@rad/rl-applib';
 import { isValidId } from '@rad/rl-utils';
 
-type Args = Partial<TransitionAreaOut> & Partial<EffectTarget>;
+type Args = Partial<TransitionAreaOut> &
+  Partial<EffectTarget> &
+  Partial<WorldStateChangeReport>;
 export type AreaArgs = Args;
 
-type Out = WorldStateChangeDescription & WorldStateChanged;
+type Out = WorldStateChangeReport;
 export type AreaOut = Out;
 
 function areaStep<T extends Args>(
@@ -25,6 +28,9 @@ function areaStep<T extends Args>(
   em: EntityManager,
   areaResolver: AreaResolver
 ): Id<T & Out> {
+  let worldStateChanged: boolean = msg.worldStateChanged || false;
+  let worldStateChangeDescription: string =
+    msg.worldStateChangeDescription || null;
   if (msg.areaTransition && isValidId(msg.effectTargetId)) {
     const targetEntity = em.get(msg.effectTargetId);
     areaResolver.load(msg.areaTransition.areaId, em);
@@ -44,17 +50,13 @@ function areaStep<T extends Args>(
         `Ingress label: ${msg.areaTransition.ingressLabel} not found in new level!!`
       );
     }
-
-    return {
-      ...radClone(msg),
-      worldStateChangeDescription: `enter ${msg.areaTransition.areaId}`,
-      worldStateChanged: true
-    };
+    worldStateChangeDescription = `enter ${msg.areaTransition.areaId}`;
+    worldStateChanged = true;
   }
   return {
     ...radClone(msg),
-    worldStateChanged: msg['worldStateChanged'] || false,
-    worldStateChangeDescription: msg['worldStateChangeDescription'] || null
+    worldStateChanged,
+    worldStateChangeDescription,
   };
 }
 

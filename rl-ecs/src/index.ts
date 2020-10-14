@@ -18,9 +18,14 @@ export * from './lib/components/alignment.model';
 export * from './lib/components/description.model';
 export * from './lib/components/sighted.model';
 export * from './lib/components/end-state.model';
+export * from './lib/components/bang.model';
+export * from './lib/components/area-of-effect.model';
+export * from './lib/components/targeted.model';
+export * from './lib/components/mental.model';
 
 export * from './lib/mappers/grim-reaper.system';
 export * from './lib/mappers/mark-for-death.system';
+export * from './lib/mappers/acquire-aoe-targets.system';
 
 export * from './lib/ecs.types';
 export * from './lib/systems.utils';

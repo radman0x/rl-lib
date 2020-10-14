@@ -1,6 +1,6 @@
 import { EntityManager } from 'rad-ecs';
 import { BehaviorSubject } from 'rxjs';
-import { mergeMap, take } from 'rxjs/operators';
+import { map, mergeMap, take } from 'rxjs/operators';
 import { ActiveEffect, EffectTarget } from '../systems.types';
 import { AreaResolver } from '../utils/area-resolver.util';
 import { actionEffectOutput } from './action-effect-output.operator';
