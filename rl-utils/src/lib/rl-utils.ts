@@ -120,7 +120,7 @@ export enum CompassDirection {
   S = 'South',
   SW = 'South-West',
   W = 'West',
-  NW = 'North-West'
+  NW = 'North-West',
 }
 
 export const compassDirectionToUnitVector: Map<
@@ -134,7 +134,7 @@ export const compassDirectionToUnitVector: Map<
   [CompassDirection.S, { x: 0, y: -1, z: 0 }],
   [CompassDirection.SW, { x: -1, y: -1, z: 0 }],
   [CompassDirection.W, { x: -1, y: 0, z: 0 }],
-  [CompassDirection.NW, { x: -1, y: 1, z: 0 }]
+  [CompassDirection.NW, { x: -1, y: 1, z: 0 }],
 ]);
 
 export const DIR_FROM_KEY = new Map<string, CompassDirection>([
@@ -156,7 +156,7 @@ export const DIR_FROM_KEY = new Map<string, CompassDirection>([
   ['ArrowUp', CompassDirection.N],
   ['8', CompassDirection.N],
 
-  ['9', CompassDirection.NE]
+  ['9', CompassDirection.NE],
 ]);
 
 export const DIR_FROM_KEY_VI = new Map<string, CompassDirection>([
@@ -186,7 +186,7 @@ export const DIR_FROM_KEY_VI = new Map<string, CompassDirection>([
   ['k', CompassDirection.N],
 
   ['9', CompassDirection.NE],
-  ['u', CompassDirection.NE]
+  ['u', CompassDirection.NE],
 ]);
 
 export function withinRange(range: number, target: Coord, start: Coord) {
@@ -210,7 +210,7 @@ export function addVec3(lhs: Vec3, rhs: Vec3) {
   return {
     x: lhs.x + rhs.x,
     y: lhs.y + rhs.y,
-    z: lhs.z + rhs.z
+    z: lhs.z + rhs.z,
   };
 }
 

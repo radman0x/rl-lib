@@ -18,6 +18,7 @@ import { produceMoveOrders } from '../operators/produce-move-orders.operator';
 import { Order } from '../systems.types';
 import { addProperty, radClone } from '../systems.utils';
 import { AreaResolver } from '../utils/area-resolver.util';
+import { getModifiedComponent } from '../utils/rad-ecs.utils';
 import { housekeepingFlowInstant } from './housekeeping.flow';
 
 interface Args {
@@ -50,13 +51,12 @@ export function allAgentUpdateFlow(
       map(() => addProperty({}, 'componentTypes', [MovingAgent])),
       mergeMap((msg) => of(...entitiesWithComponents(msg, em, 'agentId'))),
       filter((msg) => em.exists(msg.agentId)), // in case agent got reaped due to other agent actions
-      filter(
-        (msg) =>
-          !(
-            em.hasComponent(msg.agentId, Mental) &&
-            em.getComponent(msg.agentId, Mental).state === MentalState.STUNNED
-          )
-      ),
+      filter((msg) => {
+        const modifiedMental = getModifiedComponent(em, msg.agentId, Mental);
+        return !(
+          modifiedMental && modifiedMental.state === MentalState.STUNNED
+        );
+      }),
       mergeMap((msg) =>
         produceCandidateOrders(msg, em, rand).pipe(
           map((msg) => scoreApproach(msg, em)),

@@ -1,6 +1,6 @@
 import { Component } from 'rad-ecs';
 export enum MentalState {
-  NORMAL,
+  NORMAL = 1,
   STUNNED,
 }
 export interface MentalData {

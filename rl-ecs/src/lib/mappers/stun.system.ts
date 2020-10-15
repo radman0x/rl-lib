@@ -5,6 +5,7 @@ import { Id } from '@rad/rl-applib';
 import { ActiveEffect, ActiveEffectDescription, Stun } from '../systems.types';
 import { isValidId } from '@rad/rl-utils';
 import { Bang } from '../components/bang.model';
+import { Description } from '../components/description.model';
 
 type Args = ActiveEffect;
 export type StunArgs = Args;
@@ -19,8 +20,14 @@ function stunStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
     activeEffectDescription: null,
   };
   if (isValidId(msg.effectId) && em.hasComponent(msg.effectId, Bang)) {
-    stun = { stun: { strength: em.getComponent(msg.effectId, Bang).strength } };
-    activeEffectDescription = { activeEffectDescription: 'aoeu' };
+    const bang = em.getComponent(msg.effectId, Bang);
+    stun = { stun: { strength: bang.strength, duration: bang.duration } };
+    activeEffectDescription.activeEffectDescription = em.hasComponent(
+      msg.effectId,
+      Description
+    )
+      ? em.getComponent(msg.effectId, Description).short
+      : 'Some effect';
   }
   return { ...radClone(msg), ...stun, ...activeEffectDescription };
 }

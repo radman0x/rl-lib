@@ -29,9 +29,9 @@ function canOccupyPositionStep<T extends Args>(
     }
   });
 
-  console.log(
-    `OCCUPY: ${msg.targetPos} ${canOccupy ? 'can' : 'CANNOT'} be occupied`
-  );
+  // console.log(
+  //   `OCCUPY: ${msg.targetPos} ${canOccupy ? 'can' : 'CANNOT'} be occupied`
+  // );
   return { ...radClone(msg), canOccupy };
 }
 

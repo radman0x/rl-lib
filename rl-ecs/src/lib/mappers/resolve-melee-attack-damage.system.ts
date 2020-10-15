@@ -8,7 +8,7 @@ import {
   DamageTargetEntity,
   DamageType,
   StrikeResult,
-  WoundResult
+  WoundResult,
 } from '../systems.types';
 import { radClone } from '../systems.utils';
 
@@ -25,7 +25,7 @@ function resolveMeleeAttackDamageStep<T extends Args>(
   em: EntityManager
 ): Id<T & Out> {
   if (!msg.woundSuccess || !msg.strikeSuccess) {
-    console.log(`COMBAT: Wound not occurring`);
+    // console.log(`COMBAT: Wound not occurring`);
     return { ...radClone(msg), damage: null, damageTargetId: null };
   }
 
@@ -33,9 +33,9 @@ function resolveMeleeAttackDamageStep<T extends Args>(
   let damage = { type: DamageType.PHYSICAL, amount: 0 };
   if (attacks) {
     damage.amount = attacks.damage;
-    console.log(`COMBAT: Inflicting: ${damage.amount} wounds`);
+    // console.log(`COMBAT: Inflicting: ${damage.amount} wounds`);
   } else {
-    console.log(`COMBAT: Inflicting no wounds, there were no attacks`);
+    // console.log(`COMBAT: Inflicting no wounds, there were no attacks`);
   }
   return { ...radClone(msg), damage, damageTargetId: msg.combatTargetId };
 }

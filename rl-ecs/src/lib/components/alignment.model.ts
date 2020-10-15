@@ -13,4 +13,5 @@ export class Alignment extends Component implements AlignmentData {
     super();
     Object.assign(this, data);
   }
+
 }

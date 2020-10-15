@@ -4,7 +4,7 @@ import { OperationStep } from '../operation-step.model';
 import {
   Damaged,
   DamageTargetEntity,
-  WorldStateChangeReport
+  WorldStateChangeReport,
 } from '../systems.types';
 import { radClone } from '../systems.utils';
 import { Id } from '@rad/rl-applib';
@@ -17,11 +17,10 @@ export type IntegrityOut = Out;
 
 function integrityStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
   if (!msg.damage) {
-    console.log(`INTEGRITY: exiting`);
     return {
       ...radClone(msg),
       worldStateChanged: msg['worldStateChanged'] || false,
-      worldStateChangeDescription: msg['worldStateChangeDescription'] || null
+      worldStateChangeDescription: msg['worldStateChangeDescription'] || null,
     };
   }
   const targetWounds = em.getComponent(msg.damageTargetId, Wounds);
@@ -35,7 +34,7 @@ function integrityStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
     return {
       ...radClone(msg),
       worldStateChanged: true,
-      worldStateChangeDescription: 'wound caused!'
+      worldStateChangeDescription: 'wound caused!',
     };
   } else {
     console.log(
@@ -45,7 +44,7 @@ function integrityStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
   return {
     ...radClone(msg),
     worldStateChanged: msg['worldStateChanged'] || false,
-    worldStateChangeDescription: msg['worldStateChangeDescription'] || null
+    worldStateChangeDescription: msg['worldStateChangeDescription'] || null,
   };
 }
 

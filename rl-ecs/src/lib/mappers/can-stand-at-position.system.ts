@@ -31,11 +31,11 @@ function canStandAtPositionStep<T extends CanStandAtArgs>(
     }
   });
 
-  console.log(
-    `STAND: Pos ${msg.targetPos.toString()} ${
-      canStand ? `can` : `CANNOT`
-    } be stood on`
-  );
+  // console.log(
+  //   `STAND: Pos ${msg.targetPos.toString()} ${
+  //     canStand ? `can` : `CANNOT`
+  //   } be stood on`
+  // );
   return { ...msg, canStand };
 }
 

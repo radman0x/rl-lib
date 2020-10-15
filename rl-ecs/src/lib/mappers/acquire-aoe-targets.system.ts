@@ -5,10 +5,10 @@ import { AreaOfEffect } from '../components/area-of-effect.model';
 import { GridPos, GridPosData } from '../components/position.model';
 import { OperationStep } from '../operation-step.model';
 import { ActiveEffect } from '../systems.types';
-import { positionsWithinRadius, radClone } from '../systems.utils';
+import { positionsWithinRadius3d, radClone } from '../systems.utils';
 
 type Args = {
-  selectedPos: GridPosData;
+  selectedPos: GridPosData | null;
   acquiredPositions?: GridPosData[] | null;
 } & ActiveEffect;
 
@@ -24,12 +24,19 @@ function acquireAoePositionsStep<T extends Args>(
   em: EntityManager
 ): Id<T & Out> {
   let acquiredPositions: GridPosData[] = msg.acquiredPositions || null;
-  if (isValidId(msg.effectId) && em.hasComponent(msg.effectId, AreaOfEffect)) {
+  if (
+    isValidId(msg.effectId) &&
+    msg.selectedPos &&
+    em.hasComponent(msg.effectId, AreaOfEffect)
+  ) {
     const aoe = em.getComponent(msg.effectId, AreaOfEffect);
-    acquiredPositions = positionsWithinRadius(
+    const positions = positionsWithinRadius3d(
       new GridPos(msg.selectedPos),
       aoe.radius
     );
+    acquiredPositions = acquiredPositions
+      ? [...acquiredPositions, ...positions]
+      : positions;
   }
 
   return { ...radClone(msg), acquiredPositions };

@@ -13,7 +13,7 @@ import {
   ReapedEntity,
   TargetPos,
   Teleported,
-  NewPosition
+  NewPosition,
 } from './systems.types';
 import { TransitionAreaOut } from './mappers/transition-area.system';
 import { Id } from '@rad/rl-applib';
@@ -74,12 +74,32 @@ export function addProperty<O extends object, K extends string, V>(
     value: radClone(value),
     enumerable: true,
     writable: true,
-    configurable: true
+    configurable: true,
   });
   return copy as O & PropObject<K, V>;
 }
 
-export function positionsWithinRadius(
+export function positionsWithinRadius2d(
+  center: GridPosData,
+  radius: number
+): GridPosData[] {
+  const out: GridPosData[] = [];
+  if (radius === 0) {
+    return out;
+  }
+  for (let x = -radius; x <= radius; ++x) {
+    for (let y = -radius; y <= radius; ++y) {
+      out.push({
+        x: center.x + x,
+        y: center.y + y,
+        z: center.z,
+      });
+    }
+  }
+  return out;
+}
+
+export function positionsWithinRadius3d(
   center: GridPosData,
   radius: number
 ): GridPosData[] {
@@ -93,7 +113,7 @@ export function positionsWithinRadius(
         out.push({
           x: center.x + x,
           y: center.y + y,
-          z: center.z + z
+          z: center.z + z,
         });
       }
     }
@@ -106,7 +126,7 @@ export function singleAnim(em: EntityManager, image: string) {
     obs: T
   ) => {
     return obs.pipe(
-      map(msg => {
+      map((msg) => {
         console.log(`ANIMATE: Creating image: ${image}`);
         const id = em.create(
           new Renderable({ image, zOrder: 99, uiElem: true }),
@@ -116,7 +136,7 @@ export function singleAnim(em: EntityManager, image: string) {
         return id;
       }),
       delay(500),
-      tap(id => em.remove(id))
+      tap((id) => em.remove(id))
     );
   };
   return animationOperator;

@@ -14,7 +14,7 @@ import * as PIXI from 'pixi.js-legacy';
 import { Entity, EntityManager, EntityId } from 'rad-ecs';
 import { ReplaySubject, Subject } from 'rxjs';
 import { distinctUntilChanged, filter, map } from 'rxjs/operators';
-import { KnowledgeMap, Knowledge } from '@rad/rl-ecs';
+import { KnowledgeMap, Knowledge, AlwaysRendered } from '@rad/rl-ecs';
 
 export interface RendererSettings {
   tileSize: number;
@@ -157,6 +157,16 @@ export class GridRendererComponent implements OnInit {
         0x999999
       );
       this.renderFromKnowledge(currentKnowledge, viewerZPos, stage, 0xffffff);
+
+      this.em.each(
+        (e, ar, r, pos) => {
+          this.renderEntity(e.id, stage, 0xffffff, pos);
+        },
+        AlwaysRendered,
+        Renderable,
+        GridPos
+      );
+
       const widthLimit =
         this.renderer.pixiApp.renderer.width / this.desiredDisplayWidthPx;
       const heightLimit =

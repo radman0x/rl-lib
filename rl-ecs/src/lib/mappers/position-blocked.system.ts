@@ -29,7 +29,7 @@ function positionBlockedStep<T extends Args>(
     GridPos
   );
 
-  console.log(`BLOCKAGE: ${msg.targetPos} ${isBlocked ? 'BLOCKED!' : 'clear'}`);
+  // console.log(`BLOCKAGE: ${msg.targetPos} ${isBlocked ? 'BLOCKED!' : 'clear'}`);
   return addProperty(msg, 'isBlocked', isBlocked);
 }
 

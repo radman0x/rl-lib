@@ -2,7 +2,7 @@ import { EntityManager, Entity } from 'rad-ecs';
 import { OperationStep } from '../operation-step.model';
 import {
   entitiesAtPosition,
-  EntitiesAtPositionArgs
+  EntitiesAtPositionArgs,
 } from './entities-at-position.system';
 import { renameKey, radClone } from '../systems.utils';
 import { CombatTargetEntity } from '../systems.types';
@@ -24,15 +24,15 @@ function acquireCombatTargetAtPositionStep<T extends Args>(
     msg,
     em,
     'targetId',
-    candidate =>
+    (candidate) =>
       candidate.has(Martial) &&
       (!predicate || (predicate && predicate(candidate)))
   );
   if (acquired.length !== 0) {
-    console.log(`COMBAT: target acquired: ${acquired[0].targetId}`);
+    // console.log(`COMBAT: target acquired: ${acquired[0].targetId}`);
     return { ...radClone(msg), combatTargetId: acquired[0].targetId };
   } else {
-    console.log(`Combat target NOT acquired`);
+    // console.log(`Combat target NOT acquired`);
     return { ...radClone(msg), combatTargetId: null };
   }
 }

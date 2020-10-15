@@ -1,6 +1,6 @@
 import { isValidId } from '@rad/rl-utils';
 import { EntityManager } from 'rad-ecs';
-import { BehaviorSubject, merge, of, ReplaySubject, Subject } from 'rxjs';
+import { BehaviorSubject, merge, of, ReplaySubject } from 'rxjs';
 import { filter, map, mergeMap, reduce, take, tap } from 'rxjs/operators';
 import { updateBlockageState } from '../actioners/update-blockage.state.actioner';
 import { Blockage } from '../components/blockage.model';

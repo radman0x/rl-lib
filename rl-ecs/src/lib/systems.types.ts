@@ -222,5 +222,5 @@ export interface EntityRemoval {
 }
 
 export interface Stun {
-  stun: { strength: number } | null;
+  stun: { strength: number; duration: number } | null;
 }
