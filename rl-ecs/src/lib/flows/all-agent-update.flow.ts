@@ -21,6 +21,8 @@ import { AreaResolver } from '../utils/area-resolver.util';
 import { getModifiedComponent } from '../utils/rad-ecs.utils';
 import { housekeepingFlowInstant } from './housekeeping.flow';
 
+import * as rxjsSpy from 'rxjs-spy';
+
 interface Args {
   agentId: EntityId;
 }
@@ -30,7 +32,10 @@ function produceCandidateOrders<T extends Args>(
   em: EntityManager,
   rand: Chance.Chance
 ): Observable<Order> {
-  return merge(produceMoveOrders(msg, em), produceAttackOrders(msg, em, rand));
+  return merge(
+    produceMoveOrders(msg, em),
+    produceAttackOrders(msg, em, rand)
+  ).pipe(rxjsSpy.operators.tag('produceCandidateOrders'));
 }
 
 export function allAgentUpdateFlow(
@@ -47,6 +52,7 @@ export function allAgentUpdateFlow(
 
   out.start$
     .pipe(
+      rxjsSpy.operators.tag('allAgentUpdate'),
       take(1),
       map(() => addProperty({}, 'componentTypes', [MovingAgent])),
       mergeMap((msg) => of(...entitiesWithComponents(msg, em, 'agentId'))),
@@ -61,6 +67,7 @@ export function allAgentUpdateFlow(
         produceCandidateOrders(msg, em, rand).pipe(
           map((msg) => scoreApproach(msg, em)),
           map((msg) => scoreAttack(msg, em)),
+          rxjsSpy.operators.tag('orderScores'),
           reduce(
             (acc, curr) => {
               if (curr.score === null) {

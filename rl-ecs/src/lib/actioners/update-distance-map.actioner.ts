@@ -29,7 +29,14 @@ export function neighbours(
 ) {
   return xyPositionsAround(curr.pos)
     .filter((pos) => !closedSet.has(new GridPos(pos)) && walkable(pos))
-    .map((pos) => ({ pos, distance: curr.distance + 1 }));
+    .map((pos) => ({
+      pos,
+      diagonal: curr.pos.x !== pos.x && curr.pos.y !== pos.y,
+    }))
+    .map((val) => ({
+      pos: val.pos,
+      distance: curr.distance + (val.diagonal ? 1.01 : 1),
+    }));
 }
 
 export function dijkstra(locus: GridPosData, walkable: Walkable) {
