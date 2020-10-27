@@ -41,12 +41,12 @@ function combatString(msg: AttackOrder, em: EntityManager): string | null {
   return null;
 }
 
-export function produceAttackOrders(
-  msg: Args,
+export function produceAttackOrders<T extends Args>(
+  msg: T,
   em: EntityManager,
   rand: Chance.Chance
 ): Observable<Order> {
-  const out: BehaviorSubject<Args> = new BehaviorSubject(msg);
+  const out: BehaviorSubject<T> = new BehaviorSubject(msg);
 
   return out
     .pipe(
@@ -92,6 +92,7 @@ export function produceAttackOrders(
           };
         }
         const result: Order = {
+          agentId: msg.agentId,
           move: null,
           attack,
           score: null,

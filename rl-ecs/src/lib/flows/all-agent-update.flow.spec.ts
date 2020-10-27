@@ -14,6 +14,9 @@ import { Order, SpatialReport } from '../systems.types';
 import { AreaResolver } from '../utils/area-resolver.util';
 import { allAgentUpdateFlow } from './all-agent-update.flow';
 
+import * as rxjsSpy from 'rxjs-spy';
+import { ApproachTarget } from '../components/approach-target.model';
+
 describe('All agent update', () => {
   let em: EntityManager;
   let areaResolver = new AreaResolver();
@@ -57,17 +60,18 @@ describe('All agent update', () => {
         );
       }
     }
+    spatialId = em.create(
+      new GridPos({ x: 1, y: 5, z: 1 }),
+      new DistanceMap({ map: new ValueMap() }),
+      new Alignment({ type: AlignmentType.GOOD })
+    ).id;
     agentId = em.create(
       new GridPos({ x: 1, y: 1, z: 1 }),
       new Sighted({ range: 5 }),
       new MovingAgent({}),
       new Mobile({ range: 1 }),
-      new Alignment({ type: AlignmentType.EVIL })
-    ).id;
-    spatialId = em.create(
-      new GridPos({ x: 1, y: 5, z: 1 }),
-      new DistanceMap({ map: new ValueMap() }),
-      new Alignment({ type: AlignmentType.GOOD })
+      new Alignment({ type: AlignmentType.EVIL }),
+      new ApproachTarget({ targetId: spatialId })
     ).id;
     spatialReport = { spatialReport: { spatialId, newPos: null } };
     updateDistanceMap(spatialReport, em);
@@ -110,7 +114,8 @@ describe('All agent update', () => {
       new MovingAgent({}),
       new Mobile({ range: 1 }),
       new Alignment({ type: AlignmentType.EVIL }),
-      new Sighted({ range: 5 })
+      new Sighted({ range: 5 }),
+      new ApproachTarget({ targetId: spatialId })
     ).id;
     process.start$.next();
     expect(results.error).toBe(false);
@@ -134,7 +139,8 @@ describe('All agent update', () => {
       new GridPos({ x: 1, y: 1, z: 1 }),
       new MovingAgent({}),
       new Alignment({ type: AlignmentType.EVIL }),
-      new Sighted({ range: 5 })
+      new Sighted({ range: 5 }),
+      new ApproachTarget({ targetId: spatialId })
     ).id;
     process.start$.next();
     expect(results.error).toBe(false);

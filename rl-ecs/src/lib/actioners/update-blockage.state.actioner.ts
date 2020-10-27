@@ -36,9 +36,6 @@ export function updateBlockageState(
       continue;
     }
 
-    console.log(
-      `BLOCKING: trigger hit!, setting active to: ${trigger.activeState}`
-    );
     em.setComponent(
       msg.blockageId,
       new Blockage({ ...b, active: trigger.activeState })

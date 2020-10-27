@@ -16,10 +16,9 @@ function acquireEffectsStep<T extends Args>(
   msg: T,
   em: EntityManager
 ): (T & Out)[] {
-  console.log(`Acquiring effects`);
   const effects = em.getComponent(msg.targetId, Effects);
   if (effects) {
-    return effects.contents.map(e => ({ ...radClone(msg), effectId: e }));
+    return effects.contents.map((e) => ({ ...radClone(msg), effectId: e }));
   } else {
     return [];
   }

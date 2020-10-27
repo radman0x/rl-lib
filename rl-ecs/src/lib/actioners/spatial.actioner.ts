@@ -30,9 +30,6 @@ function spatialStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
   let spatialReport: { spatialId: EntityId; newPos: GridPosData } = null;
 
   if (msg.newPosition && isValidId(msg.movingId)) {
-    console.log(
-      `SPATIAL: position of target: ${msg.movingId} updated to ${msg.newPosition}`
-    );
     em.setComponent(msg.movingId, new GridPos(msg.newPosition));
     return {
       ...radClone(msg),
@@ -42,11 +39,6 @@ function spatialStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
     };
   }
   if (msg.teleport && isValidId(msg.effectTargetId)) {
-    console.log(
-      `SPATIAL: teleporting target: blah, to: ${JSON.stringify(
-        msg.teleport.targetLocation
-      )}`
-    );
     em.setComponent(
       msg.effectTargetId,
       new GridPos(msg.teleport.targetLocation)

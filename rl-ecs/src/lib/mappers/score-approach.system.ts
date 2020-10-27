@@ -1,18 +1,16 @@
 import { Id } from '@rad/rl-applib';
 import { EntityId, EntityManager } from 'rad-ecs';
-import { Alignment } from '../components/alignment.model';
+import { ApproachTarget } from '../components/approach-target.model';
 import { DistanceMap } from '../components/distance-map.model';
-import { GridPos, GridPosData } from '../components/position.model';
+import { GridPos } from '../components/position.model';
 import { OperationStep } from '../operation-step.model';
+import { MoveOrder } from '../systems.types';
 import { radClone } from '../systems.utils';
 
 interface Args {
   score: number | null;
-  move: {
-    newPosition: GridPosData;
-    movingId: EntityId;
-    distanceMaps: EntityId[];
-  } | null;
+  move: MoveOrder | null;
+  agentId: EntityId | null;
 }
 export type ScoreApproachArgs = Args;
 
@@ -25,29 +23,17 @@ function scoreApproachStep<T extends Args>(
   msg: T,
   em: EntityManager
 ): Id<T & Out> {
-  let score = msg.score;
-  if (msg.move && msg.move.distanceMaps) {
-    let scoreSubtotal = 0;
-    const agentAlignment = em.getComponent(msg.move.movingId, Alignment);
-    for (const id of msg.move.distanceMaps) {
-      const [distanceMap, alignment] = em.getComponents(
-        id,
-        DistanceMap,
-        Alignment
-      );
-      const newDistance = distanceMap.map.get(
-        new GridPos(msg.move.newPosition)
-      );
+  let score = msg.score === null ? 0 : msg.score;
+  if (em.hasComponent(msg.agentId, ApproachTarget) && msg.move) {
+    const approachTargetId = em.getComponent(msg.agentId, ApproachTarget)
+      .targetId;
+    const targetDistanceMap = em.getComponent(approachTargetId, DistanceMap)
+      .map;
+    const newDistance = targetDistanceMap.get(
+      new GridPos(msg.move.newPosition)
+    );
 
-      if (
-        agentAlignment &&
-        alignment &&
-        agentAlignment.type !== alignment.type
-      ) {
-        scoreSubtotal = Math.max(scoreSubtotal, 1000 - newDistance);
-      }
-    }
-    score = scoreSubtotal;
+    score += newDistance === 0 ? 1 : 1 / newDistance;
   }
 
   return { ...radClone(msg), score };

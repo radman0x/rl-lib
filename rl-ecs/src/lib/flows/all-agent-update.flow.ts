@@ -1,6 +1,7 @@
 import * as Chance from 'chance';
 import { EntityId, EntityManager } from 'rad-ecs';
 import { merge, Observable, of, Subject } from 'rxjs';
+import * as rxjsSpy from 'rxjs-spy';
 import { filter, map, mergeMap, reduce, take, tap } from 'rxjs/operators';
 import { spatial } from '../actioners/spatial.actioner';
 import { EndType } from '../components/end-state.model';
@@ -13,6 +14,7 @@ import { integrity, IntegrityArgs } from '../mappers/integrity.system';
 import { markForDeath } from '../mappers/mark-for-death.system';
 import { scoreApproach } from '../mappers/score-approach.system';
 import { scoreAttack } from '../mappers/score-attack.system';
+import { scoreRandomMove } from '../mappers/score-random-move.system';
 import { produceAttackOrders } from '../operators/produce-attack-orders.operator';
 import { produceMoveOrders } from '../operators/produce-move-orders.operator';
 import { Order } from '../systems.types';
@@ -20,8 +22,6 @@ import { addProperty, radClone } from '../systems.utils';
 import { AreaResolver } from '../utils/area-resolver.util';
 import { getModifiedComponent } from '../utils/rad-ecs.utils';
 import { housekeepingFlowInstant } from './housekeeping.flow';
-
-import * as rxjsSpy from 'rxjs-spy';
 
 interface Args {
   agentId: EntityId;
@@ -33,8 +33,8 @@ function produceCandidateOrders<T extends Args>(
   rand: Chance.Chance
 ): Observable<Order> {
   return merge(
-    produceMoveOrders(msg, em),
-    produceAttackOrders(msg, em, rand)
+    produceMoveOrders<T>(msg, em),
+    produceAttackOrders<T>(msg, em, rand)
   ).pipe(rxjsSpy.operators.tag('produceCandidateOrders'));
 }
 
@@ -64,48 +64,59 @@ export function allAgentUpdateFlow(
         );
       }),
       mergeMap((msg) =>
-        produceCandidateOrders(msg, em, rand).pipe(
-          map((msg) => scoreApproach(msg, em)),
-          map((msg) => scoreAttack(msg, em)),
-          rxjsSpy.operators.tag('orderScores'),
-          reduce(
-            (acc, curr) => {
-              if (curr.score === null) {
-                return acc;
+        produceCandidateOrders(msg, em, rand)
+          .pipe(
+            map((msg) => scoreApproach(msg, em)),
+            map((msg) => scoreRandomMove(msg, em, rand)),
+            map((msg) => scoreAttack(msg, em)),
+            rxjsSpy.operators.tag('orderScores'),
+            reduce(
+              (acc, curr) => {
+                if (curr.score === null) {
+                  return acc;
+                }
+                return (!acc || curr.score > acc.score
+                  ? curr
+                  : acc) as typeof curr;
+              },
+              {
+                score: null,
+                move: null,
+                attack: null,
+                orderDescription: null,
+                agentId: null,
               }
-              return (!acc || curr.score > acc.score
-                ? curr
-                : acc) as typeof curr;
-            },
-            { score: null, move: null, attack: null, orderDescription: null }
-          ),
-          map((msg) => {
-            let spatial: { newPosition: GridPosData; movingId: EntityId } = {
-              newPosition: null,
-              movingId: null,
-            };
-            let integrity: IntegrityArgs = {
-              damage: null,
-              damageTargetId: null,
-            };
-            if (msg.attack && msg.score !== null) {
-              integrity = msg.attack;
-            }
-            if (msg.move && msg.score !== null) {
-              spatial = msg.move;
-            }
-            return { ...radClone(msg), ...spatial, ...integrity };
-          }),
-          map((msg) => spatial(msg, em)),
-          map((msg) => integrity(msg, em)),
-          map((msg) => markForDeath(msg, em)),
-          map((msg) => grimReaper(msg, em)),
-          mergeMap((msg) =>
-            housekeepingFlowInstant(em, areaResolver, ender).pipe(
-              map(() => msg)
+            ),
+            rxjsSpy.operators.tag('chosenOrder'),
+            map((msg) => {
+              let spatial: { newPosition: GridPosData; movingId: EntityId } = {
+                newPosition: null,
+                movingId: null,
+              };
+              let integrity: IntegrityArgs = {
+                damage: null,
+                damageTargetId: null,
+              };
+              if (msg.attack && msg.score !== null) {
+                integrity = msg.attack;
+              }
+              if (msg.move && msg.score !== null) {
+                spatial = msg.move;
+              }
+              return { ...radClone(msg), ...spatial, ...integrity };
+            })
+          )
+          .pipe(
+            map((msg) => spatial(msg, em)),
+            map((msg) => integrity(msg, em)),
+            map((msg) => markForDeath(msg, em)),
+            map((msg) => grimReaper(msg, em)),
+            mergeMap((msg) =>
+              housekeepingFlowInstant(em, areaResolver, ender).pipe(
+                map(() => msg)
+              )
             )
           )
-        )
       ),
       reduce((acc, curr) => {
         if (curr.score !== null) {
@@ -113,6 +124,7 @@ export function allAgentUpdateFlow(
         }
         return acc;
       }, [] as Order[]),
+      rxjsSpy.operators.tag('allFinalOrders'),
       tap((orders) => {
         if (messageLog) {
           for (const order of orders) {

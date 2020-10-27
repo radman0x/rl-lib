@@ -56,7 +56,7 @@ describe('Generate distance map', () => {
         if (x === 1 && y === 1) {
           expect(map.get(new GridPos({ x, y, z: 0 }))).toEqual(0);
         } else {
-          expect(map.get(new GridPos({ x, y, z: 0 }))).toEqual(1);
+          expect(map.get(new GridPos({ x, y, z: 0 }))).toBeCloseTo(1, 1);
         }
       }
     }
@@ -124,7 +124,7 @@ describe('Generate distance map', () => {
             if (x === 1 && y === 1) {
               expect(out.get(new GridPos({ x, y, z: 0 }))).toEqual(0);
             } else {
-              expect(out.get(new GridPos({ x, y, z: 0 }))).toEqual(1);
+              expect(out.get(new GridPos({ x, y, z: 0 }))).toBeCloseTo(1, 1);
             }
           }
         }
@@ -141,8 +141,9 @@ describe('Generate distance map', () => {
               console.log(
                 `x: ${x}, y: ${y}, ${out.get(new GridPos({ x, y, z: 0 }))}`
               );
-              expect(out.get(new GridPos({ x, y, z: 0 }))).toEqual(
-                Math.max(x, y)
+              expect(out.get(new GridPos({ x, y, z: 0 }))).toBeCloseTo(
+                Math.max(x, y),
+                1
               );
             }
           }

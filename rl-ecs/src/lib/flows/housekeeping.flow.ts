@@ -18,14 +18,6 @@ export function housekeepingFlow(
 ) {
   const start$ = new ReplaySubject<null>(1);
 
-  start$
-    .pipe(
-      tap(() => {
-        console.log(`Housekeeping!`);
-      })
-    )
-    .subscribe();
-
   const updateBlockages = start$.pipe(
     take(1),
     map(() => addProperty({}, 'componentTypes', [Blockage])),

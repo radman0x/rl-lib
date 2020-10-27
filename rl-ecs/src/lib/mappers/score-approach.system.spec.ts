@@ -4,6 +4,7 @@ import { DistanceMap } from '../components/distance-map.model';
 import { ValueMap } from '@rad/rl-utils';
 import { Alignment, AlignmentType } from '../components/alignment.model';
 import { scoreApproach } from './score-approach.system';
+import { ApproachTarget } from '../components/approach-target.model';
 
 describe('Score approach system', () => {
   let em: EntityManager;
@@ -23,7 +24,8 @@ describe('Score approach system', () => {
 
     movingId = em.create(
       new GridPos({ x: 1, y: 5, z: 1 }),
-      new Alignment({ type: AlignmentType.EVIL })
+      new Alignment({ type: AlignmentType.EVIL }),
+      new ApproachTarget({ targetId })
     ).id;
   });
 
@@ -33,9 +35,10 @@ describe('Score approach system', () => {
         move: {
           movingId,
           distanceMaps: [targetId],
-          newPosition: { x: 1, y: 4, z: 1 }
+          newPosition: { x: 1, y: 4, z: 1 },
         },
-        score: null
+        score: null,
+        agentId: movingId,
       },
       em
     );
@@ -44,9 +47,10 @@ describe('Score approach system', () => {
         move: {
           movingId,
           distanceMaps: [targetId],
-          newPosition: { x: 2, y: 5, z: 1 }
+          newPosition: { x: 2, y: 5, z: 1 },
         },
-        score: null
+        score: null,
+        agentId: movingId,
       },
       em
     );

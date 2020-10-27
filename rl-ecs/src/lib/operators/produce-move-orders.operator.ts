@@ -1,5 +1,5 @@
 import { EntityId, EntityManager } from 'rad-ecs';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, merge, Observable, of } from 'rxjs';
 import { filter, map, mergeMap, take } from 'rxjs/operators';
 import { Mobile } from '../components/mobile.model';
 import { canOccupyPosition } from '../mappers/can-occupy-position.system';
@@ -14,21 +14,27 @@ import { addProperty } from '../systems.utils';
 interface Args {
   agentId: EntityId;
 }
-export function produceMoveOrders(
-  msg: Args,
+export function produceMoveOrders<T extends Args>(
+  msg: T,
   em: EntityManager
 ): Observable<Order> {
-  const out: BehaviorSubject<Args> = new BehaviorSubject(msg);
+  const out: BehaviorSubject<T> = new BehaviorSubject(msg);
 
   return out
     .pipe(
       take(1),
-      filter((msg) => msg.agentId && em.hasComponent(msg.agentId, Mobile)),
-      map((msg) => knownDistanceMaps(msg, em)),
-      mergeMap((msg) => {
-        return of(...positionsAroundEntity(msg, em));
-      }),
       map((msg) => addProperty(msg, 'movingId', msg.agentId)),
+      mergeMap((msg) => {
+        return merge(
+          new BehaviorSubject(msg).pipe(
+            take(1),
+            filter(
+              (msg) => msg.agentId && em.hasComponent(msg.agentId, Mobile)
+            ),
+            mergeMap((msg) => of(...positionsAroundEntity(msg, em)))
+          )
+        );
+      }),
       map((msg) => positionBlocked(msg, em)),
       map((msg) => canOccupyPosition(msg, em)),
       map((msg) => canStandAtPosition(msg, em))
@@ -41,10 +47,10 @@ export function produceMoveOrders(
           move = {
             newPosition: msg.newPosition,
             movingId: msg.movingId,
-            distanceMaps: msg.distanceMaps,
           };
         }
         const result: Order = {
+          agentId: msg.agentId,
           move,
           attack: null,
           score: null,

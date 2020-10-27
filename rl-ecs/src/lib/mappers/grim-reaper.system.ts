@@ -14,7 +14,6 @@ function grimReaperStep<T extends Args>(
   em: EntityManager
 ): Id<T> & Out {
   if (msg.reapedId !== null || msg.reapedId !== undefined) {
-    console.log(`REAPING: ${msg.reapedId}`);
     em.remove(msg.reapedId);
   }
   return msg;

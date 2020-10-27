@@ -198,10 +198,10 @@ export interface AttackOrder {
 export interface MoveOrder {
   newPosition: GridPosData;
   movingId: EntityId;
-  distanceMaps: EntityId[];
 }
 
 export interface Order {
+  agentId: EntityId | null;
   score: number | null;
   orderDescription: string;
   move: MoveOrder | null;
