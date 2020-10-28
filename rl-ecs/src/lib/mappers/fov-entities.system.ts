@@ -51,16 +51,16 @@ function fovEntitiesStep<T extends Args>(
     }
   );
 
-  const viewedEntities = viewedPositions.map(pos => {
+  const viewedEntities = viewedPositions.map((pos) => {
     return em
       .matchingIndex(pos)
-      .map(e => ({ ...radClone(msg), viewed: { entityId: e.id, atPos: pos } }));
+      .map((e) => ({
+        ...radClone(msg),
+        viewed: { entityId: e.id, atPos: pos },
+      }));
   });
 
   const flattenedEntities = [].concat(...viewedEntities);
-  // console.log(
-  //   `Entities in view: ${flattenedEntities.map(entry => entry.viewed.entityId)}`
-  // );
   return flattenedEntities;
 }
 

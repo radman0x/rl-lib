@@ -14,7 +14,12 @@ import * as PIXI from 'pixi.js-legacy';
 import { Entity, EntityManager, EntityId } from 'rad-ecs';
 import { ReplaySubject, Subject } from 'rxjs';
 import { distinctUntilChanged, filter, map } from 'rxjs/operators';
-import { KnowledgeMap, Knowledge, AlwaysRendered } from '@rad/rl-ecs';
+import {
+  KnowledgeMap,
+  Knowledge,
+  AlwaysRendered,
+  StatusEffects,
+} from '@rad/rl-ecs';
 
 export interface RendererSettings {
   tileSize: number;
@@ -229,12 +234,14 @@ export class GridRendererComponent implements OnInit {
     tint: number,
     pos: GridPos
   ) {
-    if (
-      this.em.hasComponent(id, Renderable) &&
-      this.em.hasComponent(id, GridPos)
-    ) {
+    if (this.em.hasComponent(id, StatusEffects)) {
+      for (let statusEffectId of this.em.getComponent(id, StatusEffects).list) {
+        this.renderEntity(statusEffectId, stage, tint, pos);
+      }
+    }
+    let sprite = this.sprites.get(id);
+    if (this.em.hasComponent(id, Renderable)) {
       const r = this.em.getComponent(id, Renderable);
-      let sprite = this.sprites.get(id);
       if (!sprite) {
         sprite = this.renderer.sprite(r.image);
         this.sprites.set(id, sprite);
@@ -249,7 +256,6 @@ export class GridRendererComponent implements OnInit {
       );
       stage.addChild(sprite);
     } else {
-      let sprite = this.sprites.get(id);
       if (sprite) {
         sprite.visible = false;
       }

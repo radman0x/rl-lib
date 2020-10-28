@@ -12,6 +12,7 @@ import { Description } from '../components/description.model';
 import { Mental, MentalState } from '../components/mental.model';
 import { Modifier, AdjustType } from '../components/modifier.model';
 import { StatusEffects } from '../components/status-effects.model';
+import { Renderable } from '../components/renderable.model';
 
 type Args = Partial<Stun> & EffectTarget & Partial<WorldStateChangeReport>;
 export type SensateArgs = Args;
@@ -44,6 +45,10 @@ function sensateStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
           new CountdownTimer({
             max: msg.stun.duration,
             current: msg.stun.duration,
+          }),
+          new Renderable({
+            image: '0004_yellow_overlay_16x16.png',
+            zOrder: 10,
           }),
           new RemoveSelf({}),
           new MemberOf({
