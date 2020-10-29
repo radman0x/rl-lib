@@ -1,13 +1,12 @@
-import * as _ from 'lodash';
 import { EntityManager } from 'rad-ecs';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { filter, map, mergeMap, reduce, take } from 'rxjs/operators';
+import { mergeMap, reduce, take } from 'rxjs/operators';
 import { effectPipeline } from '../operators/effect-pipeline.operator';
 import {
   ActiveEffect,
   ActiveEffectDescription,
+  EffectReport,
   EffectTarget,
-  WorldStateChanged,
   WorldStateChangeDescription,
 } from '../systems.types';
 import { AreaResolver } from '../utils/area-resolver.util';
@@ -23,37 +22,15 @@ export function effectOnEntityFlow(
   const out = {
     start$: new Subject<ActiveEffect & EffectTarget>(),
     finish$: new Subject(),
-    stateChangeSummary$: new Subject<Descriptions[]>(),
+    stateChangeSummary$: new Subject<EffectReport>(),
   };
 
   const internal = {
-    processed$: new Subject<
-      WorldStateChanged & ActiveEffectDescription & WorldStateChangeDescription
-    >(),
+    processed$: new Subject<EffectReport>(),
   };
 
-  internal.processed$
-    .pipe(
-      filter((msg) => msg.worldStateChanged === true),
-      reduce((acc, curr) => {
-        acc = acc || [];
-        acc.push(
-          _.pick(curr, [
-            'activeEffectDescription',
-            'worldStateChangeDescription',
-          ])
-        );
-        return acc;
-      }, null as Descriptions[] | null),
-      filter((summary) => summary !== null),
-      map((msg) => {
-        console.log(`${JSON.stringify(msg, null, 2)}`);
-        return msg;
-      })
-    )
-    .subscribe(out.stateChangeSummary$);
-
-  internal.processed$.pipe(reduce((acc, curr) => curr)).subscribe(out.finish$);
+  internal.processed$.subscribe(out.stateChangeSummary$);
+  internal.processed$.subscribe(out.finish$);
 
   out.start$
     .pipe(

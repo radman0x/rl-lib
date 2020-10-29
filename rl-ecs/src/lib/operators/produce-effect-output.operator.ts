@@ -18,32 +18,13 @@ export function produceEffectOutput<T extends ActiveEffect & EffectTarget>(
   msg: T,
   em: EntityManager
 ) {
-  const start$ = new BehaviorSubject(msg);
-  const test = merge(
-    start$.pipe(
-      take(1),
-      map((msg) => teleport(msg, em))
-    ),
-    start$.pipe(
-      take(1),
-      map((msg) => toggleLock(msg, em))
-    ),
-    start$.pipe(
-      take(1),
-      map((msg) => transitionArea(msg, em))
-    ),
-    start$.pipe(
-      take(1),
-      map((msg) => stun(msg, em))
-    ),
-    start$.pipe(
-      take(1),
-      map((msg) => endGame(msg, em))
-    ),
-    start$.pipe(
-      take(1),
-      map((msg) => flagRemoveEntity(msg, em))
-    )
+  return new BehaviorSubject(msg).pipe(
+    take(1),
+    map((msg) => teleport(msg, em)),
+    map((msg) => toggleLock(msg, em)),
+    map((msg) => transitionArea(msg, em)),
+    map((msg) => stun(msg, em)),
+    map((msg) => endGame(msg, em)),
+    map((msg) => flagRemoveEntity(msg, em))
   );
-  return test;
 }

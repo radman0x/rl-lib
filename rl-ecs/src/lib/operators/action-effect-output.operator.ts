@@ -9,7 +9,7 @@ import {
 } from '../actioners/remove-entity.actioner';
 import { sensate } from '../actioners/sensate.actioner';
 import { spatial, SpatialArgs } from '../actioners/spatial.actioner';
-import { endState, EndStateArgs } from '../mappers/end-state.system';
+import { endState, EndStateArgs } from '../actioners/end-state.actioner';
 import { EffectTarget } from '../systems.types';
 import { AreaResolver } from '../utils/area-resolver.util';
 

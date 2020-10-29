@@ -18,17 +18,17 @@ describe('Area change actioner', () => {
     em.indexBy(GridPos);
     areaResolver = new AreaResolver();
     effectTargetId = em.create().id;
-    areaId = 'somehting';
+    areaId = 'something';
     ingressLabel = 'blah';
     msg = {
       effectTargetId,
-      areaTransition: { ingressLabel, areaId }
+      areaTransition: { ingressLabel, areaId },
     };
     ingressTarget = { x: 2, y: 2, z: 2 };
   });
   it('should do nothing if the area change data is not present', () => {
-    const out = area({}, em, areaResolver);
-    expect(out.worldStateChangeDescription).toBe(null);
+    const out = area({ effectReport: null }, em, areaResolver);
+    expect(out.effectReport).toBe(null);
   });
 
   it('should throw an error if the area to load cannot be found', () => {
@@ -48,7 +48,7 @@ describe('Area change actioner', () => {
       );
     });
     const out = area(msg, em, areaResolver);
-    expect(out.worldStateChangeDescription).not.toBe(null);
+    expect(out.effectReport.area.worldStateChangeDescription).toBeTruthy();
     expect(em.getComponent(effectTargetId, GridPos)).toEqual(ingressTarget);
     expect(em.matching(AreaIngress).length).toBe(1);
   });

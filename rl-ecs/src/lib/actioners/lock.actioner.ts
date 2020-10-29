@@ -1,32 +1,30 @@
-import { OperationStep } from '../operation-step.model';
+import { Id } from '@rad/rl-applib';
+import { isValidId } from '@rad/rl-utils';
+import * as _ from 'lodash';
 import { EntityManager } from 'rad-ecs';
+import { Description } from '../components/description.model';
+import { Lock, LockState, oppositeLockState } from '../components/lock.model';
+import { Renderable } from '../components/renderable.model';
+import { OperationStep } from '../operation-step.model';
 import {
-  TargetEntity,
-  LockChange,
+  EffectReport,
   EffectTarget,
-  WorldStateChangeDescription,
+  LockChange,
   WorldStateChangeReport,
 } from '../systems.types';
-import { Lock, oppositeLockState, LockState } from '../components/lock.model';
-import { Renderable } from '../components/renderable.model';
 import { radClone } from '../systems.utils';
-import { Description } from '../components/description.model';
-import { isValidId } from '@rad/rl-utils';
-import { Id } from '@rad/rl-applib';
 
-type Args = Partial<EffectTarget> &
+type Args = Partial<EffectReport> &
+  Partial<EffectTarget> &
   Partial<LockChange> &
   Partial<WorldStateChangeReport>;
 export type LockArgs = Args;
 
-type Out = WorldStateChangeReport;
+type Out = EffectReport;
 export type LockOut = Out;
 
 function lockStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
-  let worldStateChanged: boolean = msg.worldStateChanged || false;
-  let worldStateChangeDescription: string =
-    msg.worldStateChangeDescription || null;
-
+  let out = { ...radClone(msg) };
   if (msg.lockChange && isValidId(msg.effectTargetId)) {
     const targetLock = em.getComponent(msg.effectTargetId, Lock);
     if (targetLock) {
@@ -52,18 +50,15 @@ function lockStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
       const targetDescription = em.hasComponent(msg.effectTargetId, Description)
         ? em.getComponent(msg.effectTargetId, Description).short
         : 'Target';
-      worldStateChangeDescription = `${targetDescription} ${lockStateDesc(
-        newState
-      )}`;
-      worldStateChanged = true;
+      _.set(
+        out,
+        'effectReport.lock.worldStateChangeDescription',
+        `${targetDescription} ${lockStateDesc(newState)}`
+      );
     }
   }
 
-  return {
-    ...radClone(msg),
-    worldStateChangeDescription,
-    worldStateChanged,
-  };
+  return out as T & Out;
 }
 
 type StepFunc = OperationStep<Args, Out>;

@@ -234,11 +234,6 @@ export class GridRendererComponent implements OnInit {
     tint: number,
     pos: GridPos
   ) {
-    if (this.em.hasComponent(id, StatusEffects)) {
-      for (let statusEffectId of this.em.getComponent(id, StatusEffects).list) {
-        this.renderEntity(statusEffectId, stage, tint, pos);
-      }
-    }
     let sprite = this.sprites.get(id);
     if (this.em.hasComponent(id, Renderable)) {
       const r = this.em.getComponent(id, Renderable);
@@ -258,6 +253,12 @@ export class GridRendererComponent implements OnInit {
     } else {
       if (sprite) {
         sprite.visible = false;
+      }
+    }
+
+    if (this.em.hasComponent(id, StatusEffects)) {
+      for (let statusEffectId of this.em.getComponent(id, StatusEffects).list) {
+        this.renderEntity(statusEffectId, stage, tint, pos);
       }
     }
   }

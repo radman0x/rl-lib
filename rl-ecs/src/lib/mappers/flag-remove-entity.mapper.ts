@@ -5,34 +5,40 @@ import { RemoveSelf } from '../components/remove-self.model';
 import { OperationStep } from '../operation-step.model';
 import {
   ActiveEffect,
-  ActiveEffectDescription,
+  ChangeReport,
+  EffectReport,
   EntityRemoval,
+  EntityRemovalDetails,
 } from '../systems.types';
 import { radClone } from '../systems.utils';
 
-type Args = ActiveEffect;
+type Args = ActiveEffect & Partial<EffectReport>;
 export type FlagRemoveEntityArgs = Args;
 
-type Out = EntityRemoval & ActiveEffectDescription;
+type Out = EntityRemoval & EffectReport;
 export type FlagRemoveEntityOut = Out;
 
 function flagRemoveEntityStep<T extends Args>(
   msg: T,
   em: EntityManager
 ): Id<T & Out> {
+  let effectReport: ChangeReport = msg.effectReport || null;
+  let entityRemoval: EntityRemovalDetails = null;
   if (isValidId(msg.effectId) && em.hasComponent(msg.effectId, RemoveSelf)) {
-    return {
-      ...radClone(msg),
-      removeId: msg.effectId,
+    effectReport = {
+      removeSelf: {
+        activeEffectDescription: null,
+      },
+    };
+    entityRemoval = {
       doRemove: true,
-      activeEffectDescription: 'removing self',
+      removeId: msg.effectId,
     };
   }
   return {
     ...radClone(msg),
-    removeId: null,
-    doRemove: null,
-    activeEffectDescription: null,
+    entityRemoval,
+    effectReport,
   };
 }
 

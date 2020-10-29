@@ -1,38 +1,45 @@
 import { EntityManager } from 'rad-ecs';
-import { AreaTransition } from '../components/area-transition.model';
+import {
+  AreaTransition,
+  AreaTransitionData,
+} from '../components/area-transition.model';
 import { Description } from '../components/description.model';
 import { OperationStep } from '../operation-step.model';
 import {
   ActiveEffect,
-  ActiveEffectDescription,
+  ChangeReport,
+  EffectReport,
   TransitionToArea,
 } from '../systems.types';
 import { radClone } from '../systems.utils';
 
-type Args = ActiveEffect;
+type Args = ActiveEffect & Partial<EffectReport>;
 export type TransitionAreaArgs = Args;
 
-type Out = Partial<TransitionToArea> & ActiveEffectDescription;
+type Out = TransitionToArea & EffectReport;
 export type TransitionAreaOut = Out;
 
 function transitionAreaStep<T extends Args>(
   msg: T,
   em: EntityManager
 ): T & Out {
-  const areaTransition = em.getComponent(msg.effectId, AreaTransition);
-  if (areaTransition) {
-    console.log(`Adding area transition to: ${areaTransition.areaId}`);
+  let effectReport: ChangeReport = msg.effectReport || null;
+  let areaTransition: AreaTransitionData = null;
+  const areaTransitionComponent = em.getComponent(msg.effectId, AreaTransition);
+  if (areaTransitionComponent) {
+    console.log(`Adding area transition to: ${areaTransitionComponent.areaId}`);
     const activeEffectDescription = em.hasComponent(msg.effectId, Description)
       ? em.getComponent(msg.effectId, Description).short
       : 'undescribed effect';
-    return {
-      ...radClone(msg),
-      areaTransition: { ...radClone(areaTransition) },
-      activeEffectDescription,
+    areaTransition = { ...radClone(areaTransitionComponent) };
+    effectReport = {
+      area: {
+        activeEffectDescription,
+      },
     };
-  } else {
-    return { ...radClone(msg), activeEffectDescription: null };
   }
+
+  return { ...radClone(msg), areaTransition, effectReport };
 }
 
 type StepFunc = OperationStep<Args, Out>;

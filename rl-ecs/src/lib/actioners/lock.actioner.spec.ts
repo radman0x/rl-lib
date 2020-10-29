@@ -14,24 +14,25 @@ describe('Lock change actioner', () => {
         state: LockState.LOCKED,
         stateImages: {
           [LockState.LOCKED]: 'Door0-4.png',
-          [LockState.UNLOCKED]: 'Door0-5.png'
-        }
+          [LockState.UNLOCKED]: 'Door0-5.png',
+        },
       }),
       new Renderable({ image: '', zOrder: 1 })
     ).id;
   });
 
   it('should do nothing if no lock change is present', () => {
-    const out = lock({ effectTargetId }, em);
+    const out = lock({ effectTargetId, effectReport: null }, em);
     expect(em.getComponent(effectTargetId, Lock).state).toEqual(
       LockState.LOCKED
     );
-    expect(out.worldStateChanged).toEqual(false);
+    expect(out.effectReport).toEqual(null);
   });
   it('should update the entity manager state when a lock change is present', () => {
     const lockChange = {
       effectTargetId,
-      lockChange: {}
+      lockChange: {},
+      effectReport: null,
     };
     const out = lock(lockChange, em);
     expect(em.getComponent(effectTargetId, Lock).state).toEqual(
@@ -40,13 +41,14 @@ describe('Lock change actioner', () => {
     expect(em.getComponent(effectTargetId, Renderable).image).toEqual(
       'Door0-5.png'
     );
-    expect(out.worldStateChanged).toEqual(true);
+    expect(out.effectReport.lock.worldStateChangeDescription).toBeTruthy();
   });
 
   it('should not create a Renderable component if one is not already present', () => {
     const lockChange = {
       effectTargetId,
-      lockChange: {}
+      lockChange: {},
+      effectReport: null,
     };
     em.removeComponent(effectTargetId, Renderable);
     const out = lock(lockChange, em);
@@ -54,6 +56,6 @@ describe('Lock change actioner', () => {
       LockState.UNLOCKED
     );
     expect(em.getComponent(effectTargetId, Renderable)).toEqual(undefined);
-    expect(out.worldStateChanged).toEqual(true);
+    expect(out.effectReport.lock.worldStateChangeDescription).toBeTruthy();
   });
 });

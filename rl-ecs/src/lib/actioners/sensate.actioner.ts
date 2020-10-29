@@ -2,7 +2,12 @@ import { OperationStep } from '../operation-step.model';
 import { EntityManager } from 'rad-ecs';
 import { radClone } from '../systems.utils';
 import { Id } from '@rad/rl-applib';
-import { EffectTarget, Stun, WorldStateChangeReport } from '../systems.types';
+import {
+  EffectReport,
+  EffectTarget,
+  Stun,
+  WorldStateChangeReport,
+} from '../systems.types';
 import { isValidId } from '@rad/rl-utils';
 
 import { CountdownTimer } from '../components/coundown-timer.model';
@@ -14,16 +19,19 @@ import { Modifier, AdjustType } from '../components/modifier.model';
 import { StatusEffects } from '../components/status-effects.model';
 import { Renderable } from '../components/renderable.model';
 
-type Args = Partial<Stun> & EffectTarget & Partial<WorldStateChangeReport>;
+import * as _ from 'lodash';
+
+type Args = Partial<EffectReport> &
+  Partial<Stun> &
+  EffectTarget &
+  Partial<WorldStateChangeReport>;
 export type SensateArgs = Args;
 
-type Out = WorldStateChangeReport;
+type Out = EffectReport;
 export type SensateOut = Out;
 
 function sensateStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
-  let worldStateChanged: boolean = msg.worldStateChanged || false;
-  let worldStateChangeDescription: string =
-    msg.worldStateChangeDescription || null;
+  let out = { ...radClone(msg) };
   if (
     msg.stun &&
     isValidId(msg.effectTargetId) &&
@@ -63,10 +71,13 @@ function sensateStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
     const effectTargetDesc = em.hasComponent(msg.effectTargetId, Description)
       ? em.getComponent(msg.effectTargetId, Description).short
       : 'Unnamed';
-    worldStateChanged = true;
-    worldStateChangeDescription = `${effectTargetDesc} is stunned!`;
+    _.set(
+      out,
+      'effectReport.sensate.worldStateChangeDescription',
+      `${effectTargetDesc} is stunned!`
+    );
   }
-  return { ...radClone(msg), worldStateChanged, worldStateChangeDescription };
+  return out as T & Out;
 }
 
 type StepFunc = OperationStep<Args, Out>;

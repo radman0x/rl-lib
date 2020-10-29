@@ -32,8 +32,9 @@ function scoreApproachStep<T extends Args>(
     const newDistance = targetDistanceMap.get(
       new GridPos(msg.move.newPosition)
     );
-
-    score += newDistance === 0 ? 1 : 1 / newDistance;
+    if (newDistance !== undefined) {
+      score += newDistance === 0 ? 1 : 1 / newDistance;
+    }
   }
 
   return { ...radClone(msg), score };

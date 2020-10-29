@@ -6,6 +6,7 @@ import { ToggleLock } from '../components/toggle-lock.model';
 import { Lock, LockState } from '../components/lock.model';
 import { Renderable } from '../components/renderable.model';
 import { AreaResolver } from '../utils/area-resolver.util';
+import { ChangeReport, EffectReport } from '../systems.types';
 
 describe('Effect on Entity', () => {
   let em: EntityManager;
@@ -13,7 +14,7 @@ describe('Effect on Entity', () => {
   let results: {
     outcome: any;
     finished: boolean;
-    descriptions: Descriptions[] | null;
+    effectReport: ChangeReport | null;
     error: boolean | string;
   };
   const newFlow = (em: EntityManager) => {
@@ -25,7 +26,9 @@ describe('Effect on Entity', () => {
       },
       error: (err) => (results.error = err),
     });
-    flow.stateChangeSummary$.subscribe((msg) => (results.descriptions = msg));
+    flow.stateChangeSummary$.subscribe(
+      (msg) => (results.effectReport = msg.effectReport)
+    );
     return flow;
   };
   let effectTargetId: EntityId;
@@ -37,7 +40,7 @@ describe('Effect on Entity', () => {
     results = {
       outcome: null,
       finished: false,
-      descriptions: null,
+      effectReport: null,
       error: false,
     };
     process = newFlow(em);
@@ -67,9 +70,8 @@ describe('Effect on Entity', () => {
     ).id;
     process.start$.next({ effectTargetId, effectId });
 
-    console.log(JSON.stringify(results.descriptions, null, 2));
     expect(results.error).toBe(false);
-    expect(results.descriptions.length).toEqual(1);
+    expect(Object.keys(results.effectReport).length).toEqual(1);
     expect(em.getComponent(effectTargetId, Lock)).toMatchObject({
       state: LockState.UNLOCKED,
     });
@@ -82,17 +84,32 @@ describe('Effect on Entity', () => {
     const effectId = em.create().id;
     process.start$.next({ effectTargetId, effectId });
     expect(results.error).toBe(false);
-    expect(results.descriptions).toEqual(null); // no change description received
+    expect(results.effectReport).toEqual(null); // no change description received
     expect(results.finished).toEqual(true);
   });
 
   it('should receive only one finish event regardless of how many effects actioned', () => {
-    const effectId = em.create(new Teleport({ target: targetPos })).id;
+    const effectId = em.create(
+      new Teleport({ target: targetPos }),
+      new ToggleLock({ lockId: 'A' })
+    ).id;
+    const effectTargetId = em.create(
+      new Lock({
+        lockId: null,
+        state: LockState.LOCKED,
+        stateImages: {
+          [LockState.LOCKED]: 'Door0-4.png',
+          [LockState.UNLOCKED]: 'Door0-5.png',
+        },
+      }),
+      new Renderable({ image: '', zOrder: 1 })
+    ).id;
     let count = 0;
     process.finish$.subscribe(() => ++count);
     process.start$.next({ effectTargetId, effectId });
     expect(results.error).toBe(false);
     expect(results.finished).toEqual(true);
     expect(count).toEqual(1);
+    expect(Object.keys(results.effectReport).length).toEqual(2);
   });
 });

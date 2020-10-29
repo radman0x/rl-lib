@@ -14,6 +14,7 @@ import { positionNextToEntity } from '../mappers/position-next-to-entity.system'
 import { assessBumpMove } from '../operators/assess-bump-move.operator';
 import {
   AttackOrder,
+  EffectReport,
   MoveOrder,
   MovingEntity,
   ReapedEntity,
@@ -56,8 +57,8 @@ export function attemptMoveFlow(
   const out = {
     start$: new Subject<MovingEntity & { direction: CompassDirection }>(),
     finish$: new Subject<BumpMoveAssessment>(),
-    moved$: new Subject<MoveOrder & WorldStateChangeReport>(),
-    attacked$: new Subject<AttackOrder & WorldStateChangeReport>(),
+    moved$: new Subject<MoveOrder & EffectReport>(),
+    attacked$: new Subject<AttackOrder & EffectReport>(),
     noActionTaken$: new Subject(),
   };
 
@@ -82,7 +83,7 @@ export function attemptMoveFlow(
   assessed$
     .pipe(
       filter((msg) => !!msg.attack),
-      map((msg) => ({ ...msg.attack })),
+      map((msg) => ({ ...msg.attack, effectReport: null })),
       map((msg) => integrity(msg, em)),
       map((msg) => markForDeath(msg, em)),
       tap((msg) => messageLog && messageLog(playerAttackString(em, msg))),
@@ -95,7 +96,7 @@ export function attemptMoveFlow(
   assessed$
     .pipe(
       filter((msg) => !!(!msg.attack && msg.move)),
-      map((msg) => ({ ...msg.move })),
+      map((msg) => ({ ...msg.move, effectReport: null })),
       map((msg) => spatial(msg, em)),
       tap((msg) => updateDistanceMap(msg, em))
     )

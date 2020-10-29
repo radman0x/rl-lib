@@ -1,35 +1,41 @@
-import { OperationStep } from '../operation-step.model';
-import { EntityManager } from 'rad-ecs';
-import { radClone } from '../systems.utils';
 import { Id } from '@rad/rl-applib';
-import { ActiveEffect, ActiveEffectDescription, Stun } from '../systems.types';
 import { isValidId } from '@rad/rl-utils';
+import { EntityManager } from 'rad-ecs';
 import { Bang } from '../components/bang.model';
 import { Description } from '../components/description.model';
+import { OperationStep } from '../operation-step.model';
+import {
+  ActiveEffect,
+  ChangeReport,
+  EffectReport,
+  Stun,
+  StunDetails,
+} from '../systems.types';
+import { radClone } from '../systems.utils';
 
-type Args = ActiveEffect;
+type Args = ActiveEffect & Partial<EffectReport>;
 export type StunArgs = Args;
 
-type Out = Stun & ActiveEffectDescription;
+type Out = Stun & EffectReport;
 
 export type StunOut = Out;
 
 function stunStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
-  let stun: Stun = { stun: null };
-  let activeEffectDescription: ActiveEffectDescription = {
-    activeEffectDescription: null,
-  };
+  let stun: StunDetails = null;
+  let effectReport: ChangeReport = msg.effectReport || null;
   if (isValidId(msg.effectId) && em.hasComponent(msg.effectId, Bang)) {
     const bang = em.getComponent(msg.effectId, Bang);
-    stun = { stun: { strength: bang.strength, duration: bang.duration } };
-    activeEffectDescription.activeEffectDescription = em.hasComponent(
-      msg.effectId,
-      Description
-    )
+    stun = { strength: bang.strength, duration: bang.duration };
+    const activeEffectDescription = em.hasComponent(msg.effectId, Description)
       ? em.getComponent(msg.effectId, Description).short
       : 'Some effect';
+    effectReport = {
+      sensate: {
+        activeEffectDescription,
+      },
+    };
   }
-  return { ...radClone(msg), ...stun, ...activeEffectDescription };
+  return { ...radClone(msg), stun, effectReport };
 }
 
 type StepFunc = OperationStep<Args, Out>;

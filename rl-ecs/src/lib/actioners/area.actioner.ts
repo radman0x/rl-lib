@@ -1,26 +1,26 @@
-import { EntityId, EntityManager, Entity } from 'rad-ecs';
-import { AreaResolver } from '../utils/area-resolver.util';
+import { Id } from '@rad/rl-applib';
+import { isValidId } from '@rad/rl-utils';
+import * as _ from 'lodash';
+import { Entity, EntityManager } from 'rad-ecs';
+import { AreaIngress } from '../components/area-ingress.model';
+import { GridPos } from '../components/position.model';
+import { TransitionAreaOut } from '../mappers/transition-area.system';
 import { OperationStep } from '../operation-step.model';
 import {
-  TargetEntity,
+  EffectReport,
   EffectTarget,
-  WorldStateChangeDescription,
-  WorldStateChanged,
   WorldStateChangeReport,
 } from '../systems.types';
 import { radClone } from '../systems.utils';
-import { TransitionAreaOut } from '../mappers/transition-area.system';
-import { GridPos } from '../components/position.model';
-import { AreaIngress } from '../components/area-ingress.model';
-import { Id } from '@rad/rl-applib';
-import { isValidId } from '@rad/rl-utils';
+import { AreaResolver } from '../utils/area-resolver.util';
 
-type Args = Partial<TransitionAreaOut> &
+type Args = Partial<EffectReport> &
+  Partial<TransitionAreaOut> &
   Partial<EffectTarget> &
   Partial<WorldStateChangeReport>;
 export type AreaArgs = Args;
 
-type Out = WorldStateChangeReport;
+type Out = EffectReport;
 export type AreaOut = Out;
 
 function areaStep<T extends Args>(
@@ -28,9 +28,7 @@ function areaStep<T extends Args>(
   em: EntityManager,
   areaResolver: AreaResolver
 ): Id<T & Out> {
-  let worldStateChanged: boolean = msg.worldStateChanged || false;
-  let worldStateChangeDescription: string =
-    msg.worldStateChangeDescription || null;
+  let out = { ...radClone(msg) };
   if (msg.areaTransition && isValidId(msg.effectTargetId)) {
     const targetEntity = em.get(msg.effectTargetId);
     areaResolver.load(msg.areaTransition.areaId, em);
@@ -50,14 +48,13 @@ function areaStep<T extends Args>(
         `Ingress label: ${msg.areaTransition.ingressLabel} not found in new level!!`
       );
     }
-    worldStateChangeDescription = `enter ${msg.areaTransition.areaId}`;
-    worldStateChanged = true;
+    _.set(
+      out,
+      'effectReport.area.worldStateChangeDescription',
+      `enter ${msg.areaTransition.areaId}`
+    );
   }
-  return {
-    ...radClone(msg),
-    worldStateChanged,
-    worldStateChangeDescription,
-  };
+  return out as T & Out;
 }
 
 type StepFunc = OperationStep<Args, Out>;

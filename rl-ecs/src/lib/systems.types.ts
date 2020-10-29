@@ -92,8 +92,11 @@ export interface WorldStateChanged {
   worldStateChanged: boolean;
 }
 
+export interface TeleportDetails {
+  targetLocation: GridPosData;
+}
 export interface Teleported {
-  teleport: { targetLocation: GridPosData } | null;
+  teleport: TeleportDetails | null;
 }
 
 export interface EffectStart {
@@ -126,8 +129,11 @@ export interface Collected {
   collectedId: EntityId;
 }
 
+export interface LockChangeDetails {
+  lockId?: string;
+}
 export interface LockChange {
-  lockChange: { lockId?: string } | null;
+  lockChange: LockChangeDetails | null;
 }
 
 export interface NewPosition {
@@ -216,11 +222,30 @@ export interface GameEnded {
   endType: EndType | null;
 }
 
+export interface EntityRemovalDetails {
+  removeId: EntityId;
+  doRemove: boolean;
+}
 export interface EntityRemoval {
-  removeId: EntityId | null;
-  doRemove: boolean | null;
+  entityRemoval: EntityRemovalDetails | null;
+}
+
+export interface StunDetails {
+  strength: number;
+  duration: number;
 }
 
 export interface Stun {
-  stun: { strength: number; duration: number } | null;
+  stun: StunDetails | null;
+}
+
+export interface ChangeReport {
+  [change: string]: {
+    activeEffectDescription: string;
+    effectModificationDescription?: string;
+    worldStateChangeDescription?: string;
+  };
+}
+export interface EffectReport {
+  effectReport: ChangeReport | null;
 }

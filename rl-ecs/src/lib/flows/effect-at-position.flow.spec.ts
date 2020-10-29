@@ -1,15 +1,12 @@
-import { EntityManager, EntityId } from 'rad-ecs';
-import {
-  Descriptions,
-  effectOnEntityFlowInstant,
-} from './effect-on-entity.flow';
-import { GridPosData, GridPos } from '../components/position.model';
-import { effectAtPositionFlow, Summaries } from './effect-at-position.flow';
-import { ToggleLock } from '../components/toggle-lock.model';
+import { EntityId, EntityManager } from 'rad-ecs';
 import { Lock, LockState } from '../components/lock.model';
+import { GridPos, GridPosData } from '../components/position.model';
 import { Renderable } from '../components/renderable.model';
 import { Teleport } from '../components/teleport.model';
+import { ToggleLock } from '../components/toggle-lock.model';
+import { ChangeReport } from '../systems.types';
 import { AreaResolver } from '../utils/area-resolver.util';
+import { effectAtPositionFlow, Summaries } from './effect-at-position.flow';
 
 function standardLock(em: EntityManager, pos: GridPosData) {
   return em.create(
@@ -70,9 +67,9 @@ describe('Effect at position flow', () => {
     expect(results.summaries).toEqual({});
   });
 
-  it('should receive a finish event if no effect is actioned', () => {
+  it('should not receive any messages if no effects were attempted to be actioned', () => {
     process.start$.next({ targetPos, effectId: em.create().id });
-    expect(results.finished).toBe(true);
+    expect(results.finished).toBe(false);
   });
 
   it('should receive the correct output when multiple outcomes occur as part of applying an effect', () => {
@@ -84,7 +81,7 @@ describe('Effect at position flow', () => {
     process.start$.next({ effectId, targetPos });
     expect(results.error).toBe(false);
     expect(results.summaries).toMatchObject({
-      [effectTargetId]: [{}, {}],
+      [effectTargetId]: {},
     });
   });
   it('should update the state of a locked entity when a toggle lock effect is applied at its position', () => {
@@ -94,7 +91,7 @@ describe('Effect at position flow', () => {
 
     expect(results.error).toBe(false);
     expect(results.summaries).toMatchObject({
-      [effectTargetId]: [{}],
+      [effectTargetId]: {},
     });
     expect(em.getComponent(effectTargetId, Lock)).toMatchObject({
       state: LockState.UNLOCKED,

@@ -32,7 +32,6 @@ function scoreRandomMoveStep<T extends Args>(
     if (rand.floating({ min: 0, max: 1 }) <= randomMove.chance) {
       score += randomMove.scoreAdjust;
     }
-    let test = 0;
   }
   return { ...radClone(msg), score };
 }
