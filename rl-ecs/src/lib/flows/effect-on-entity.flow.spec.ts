@@ -1,12 +1,18 @@
 import { EntityId, EntityManager } from 'rad-ecs';
-import { GridPosData, GridPos } from '../components/position.model';
-import { Teleport } from '../components/teleport.model';
-import { Descriptions, effectOnEntityFlow } from './effect-on-entity.flow';
-import { ToggleLock } from '../components/toggle-lock.model';
+import { merge, Subject } from 'rxjs';
+import { mergeMap, reduce, take } from 'rxjs/operators';
 import { Lock, LockState } from '../components/lock.model';
+import { GridPos, GridPosData } from '../components/position.model';
+import { RemoveSelf } from '../components/remove-self.model';
 import { Renderable } from '../components/renderable.model';
+import { Teleport } from '../components/teleport.model';
+import { ToggleLock } from '../components/toggle-lock.model';
+import { ChangeReport } from '../systems.types';
 import { AreaResolver } from '../utils/area-resolver.util';
-import { ChangeReport, EffectReport } from '../systems.types';
+import {
+  effectOnEntityFlow,
+  effectOnEntityFlowInstant,
+} from './effect-on-entity.flow';
 
 describe('Effect on Entity', () => {
   let em: EntityManager;
@@ -26,9 +32,7 @@ describe('Effect on Entity', () => {
       },
       error: (err) => (results.error = err),
     });
-    flow.stateChangeSummary$.subscribe(
-      (msg) => (results.effectReport = msg.effectReport)
-    );
+    flow.finish$.subscribe((msg) => (results.effectReport = msg.effectReport));
     return flow;
   };
   let effectTargetId: EntityId;
@@ -111,5 +115,55 @@ describe('Effect on Entity', () => {
     expect(results.finished).toEqual(true);
     expect(count).toEqual(1);
     expect(Object.keys(results.effectReport).length).toEqual(2);
+  });
+
+  describe('Instant flow', () => {
+    it('should provide an output event when used', () => {
+      const instant = effectOnEntityFlowInstant(
+        em,
+        areaResolver,
+        { effectId: em.create().id, effectTargetId },
+        () => null
+      );
+      let message = false;
+      let completed = false;
+      instant.finish$.subscribe({
+        next: () => (message = true),
+        complete: () => (completed = true),
+      });
+      expect(completed).toBe(true);
+      expect(message).toBe(true);
+    });
+
+    it('should complete correctly when used with a take operator back in the chain', () => {
+      const start = new Subject();
+      const effectId = em.create(new RemoveSelf({})).id;
+      let complete = false;
+      let message = false;
+      let piped = start.pipe(
+        take(1),
+        mergeMap(
+          () =>
+            effectOnEntityFlowInstant(
+              em,
+              areaResolver,
+              { effectId, effectTargetId },
+              () => null
+            ).finish$
+        )
+      );
+      const test = merge(piped)
+        .pipe(reduce((acc, curr) => null, null))
+        .subscribe({
+          next: () => (message = true),
+          complete: () => (complete = true),
+        });
+      start.next();
+
+      expect(message).toBe(true);
+      expect(complete).toBe(true);
+
+      expect(em.exists(effectId)).toBe(false);
+    });
   });
 });

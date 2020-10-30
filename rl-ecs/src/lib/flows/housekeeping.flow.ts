@@ -46,9 +46,7 @@ export function housekeepingFlow(
       effectTargetId: null,
     })),
     mergeMap(
-      (msg) =>
-        effectOnEntityFlowInstant(em, areaResolver, msg, ender)
-          .stateChangeSummary$
+      (msg) => effectOnEntityFlowInstant(em, areaResolver, msg, ender).finish$
     )
   );
 

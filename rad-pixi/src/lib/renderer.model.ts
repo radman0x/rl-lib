@@ -23,12 +23,12 @@ export class Renderer {
     PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
     this.pixiApp = new PIXI.Application(options);
 
-    this.pixiApp.renderer.plugins.interaction.on('pointermove', event => {
+    this.pixiApp.renderer.plugins.interaction.on('pointermove', (event) => {
       if (this.pixiApp.stage) {
         this.mouseOver$.next(event.data.getLocalPosition(this.pixiApp.stage));
       }
     });
-    this.pixiApp.renderer.plugins.interaction.on('pointerdown', event => {
+    this.pixiApp.renderer.plugins.interaction.on('pointerdown', (event) => {
       if (this.pixiApp.stage) {
         this.mousePress$.next(event.data.getLocalPosition(this.pixiApp.stage));
       }
@@ -56,10 +56,21 @@ export class Renderer {
   }
 
   sprite(name: string): PIXI.Sprite {
-    if (name === '') {
+    if (!name) {
       throw Error(`Sprite name must not be an empty string`);
     }
     return new PIXI.Sprite(this.resources.textures![name]);
+  }
+
+  animatedSprite(name: string, speed: number): PIXI.AnimatedSprite {
+    if (!name) {
+      throw Error(`Animated sprite name must not be an empty string`);
+    }
+    const anim = new PIXI.AnimatedSprite(
+      this.resources.spritesheet.animations[name]
+    );
+    anim.animationSpeed = speed;
+    return anim;
   }
 
   resize(): void {

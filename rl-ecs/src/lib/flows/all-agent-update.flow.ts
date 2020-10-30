@@ -52,8 +52,8 @@ export function allAgentUpdateFlow(
 
   out.start$
     .pipe(
-      rxjsSpy.operators.tag('allAgentUpdate'),
       take(1),
+      rxjsSpy.operators.tag('turnEnd.allAgentUpdate'),
       map(() => addProperty({}, 'componentTypes', [MovingAgent])),
       mergeMap((msg) => of(...entitiesWithComponents(msg, em, 'agentId'))),
       filter((msg) => em.exists(msg.agentId)), // in case agent got reaped due to other agent actions
@@ -69,7 +69,7 @@ export function allAgentUpdateFlow(
             map((msg) => scoreApproach(msg, em)),
             map((msg) => scoreRandomMove(msg, em, rand)),
             map((msg) => scoreAttack(msg, em)),
-            rxjsSpy.operators.tag('orderScores'),
+            rxjsSpy.operators.tag('turnEnd.allAgentUpdate.orderScores'),
             reduce(
               (acc, curr) => {
                 if (curr.score === null) {
@@ -87,7 +87,7 @@ export function allAgentUpdateFlow(
                 agentId: null,
               }
             ),
-            rxjsSpy.operators.tag('chosenOrder'),
+            rxjsSpy.operators.tag('turnEnd.allAgentUpdate.chosenOrder'),
             map((msg) => {
               let spatial: { newPosition: GridPosData; movingId: EntityId } = {
                 newPosition: null,
@@ -124,7 +124,7 @@ export function allAgentUpdateFlow(
         }
         return acc;
       }, [] as Order[]),
-      rxjsSpy.operators.tag('allFinalOrders'),
+      rxjsSpy.operators.tag('turnEnd.allAgentUpdate.finalOrders'),
       tap((orders) => {
         if (messageLog) {
           for (const order of orders) {

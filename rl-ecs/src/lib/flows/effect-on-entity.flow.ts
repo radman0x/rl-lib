@@ -1,11 +1,10 @@
 import { EntityManager } from 'rad-ecs';
-import { BehaviorSubject, Subject } from 'rxjs';
-import { mergeMap, reduce, take } from 'rxjs/operators';
+import { of, ReplaySubject } from 'rxjs';
+import { mergeMap, share, shareReplay, take } from 'rxjs/operators';
 import { effectPipeline } from '../operators/effect-pipeline.operator';
 import {
   ActiveEffect,
   ActiveEffectDescription,
-  EffectReport,
   EffectTarget,
   WorldStateChangeDescription,
 } from '../systems.types';
@@ -19,27 +18,16 @@ export function effectOnEntityFlow(
   areaResolver: AreaResolver,
   ender: (EndType) => void
 ) {
-  const out = {
-    start$: new Subject<ActiveEffect & EffectTarget>(),
-    finish$: new Subject(),
-    stateChangeSummary$: new Subject<EffectReport>(),
-  };
+  const start$ = new ReplaySubject<ActiveEffect & EffectTarget>();
 
-  const internal = {
-    processed$: new Subject<EffectReport>(),
-  };
-
-  internal.processed$.subscribe(out.stateChangeSummary$);
-  internal.processed$.subscribe(out.finish$);
-
-  out.start$
-    .pipe(
+  return {
+    start$,
+    finish$: start$.pipe(
       take(1),
-      mergeMap((msg) => effectPipeline(msg, em, areaResolver, ender))
-    )
-    .subscribe(internal.processed$);
-
-  return out;
+      mergeMap((msg) => effectPipeline(msg, em, areaResolver, ender)),
+      shareReplay()
+    ),
+  };
 }
 
 export function effectOnEntityFlowInstant(
@@ -49,7 +37,6 @@ export function effectOnEntityFlowInstant(
   ender: (EndType) => void
 ) {
   const flow = effectOnEntityFlow(em, areaResolver, ender);
-  const out = new BehaviorSubject(msg);
-  out.pipe(take(1)).subscribe(flow.start$);
+  of(msg).subscribe(flow.start$);
   return flow;
 }

@@ -12,7 +12,7 @@ import { GridPos } from 'libs/rl-ecs/src/lib/components/position.model';
 import { Renderable } from 'libs/rl-ecs/src/lib/components/renderable.model';
 import * as PIXI from 'pixi.js-legacy';
 import { Entity, EntityManager, EntityId } from 'rad-ecs';
-import { ReplaySubject, Subject } from 'rxjs';
+import { Observable, ReplaySubject, Subject } from 'rxjs';
 import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 import {
   KnowledgeMap,
@@ -43,6 +43,10 @@ export class GridRendererComponent implements OnInit {
   @Output('mousePressGridPos') mousePressGridPos$: Subject<PointXY>;
 
   private sprites = new Map<number, PIXI.Sprite>();
+  private overlaySprites = new Map<number, PIXI.Sprite>();
+  private animations = new Map<number, PIXI.AnimatedSprite>();
+  private overlaySpriteCounter = 1;
+  private animationCounter = 1;
   private desiredDisplayWidthPx: number;
   private desiredDisplayHeightPx: number;
 
@@ -51,6 +55,8 @@ export class GridRendererComponent implements OnInit {
 
   private rendererSubject = new ReplaySubject<Renderer>();
   private renderer: Renderer;
+
+  private haltRender = false;
 
   constructor() {
     this.mouseOverGridPos$ = new Subject<PointXY>();
@@ -102,6 +108,53 @@ export class GridRendererComponent implements OnInit {
     });
   }
 
+  playAnimation(
+    name: string,
+    pos: PointXY,
+    speed: number,
+    scale?: number
+  ): Observable<void> {
+    const anim = this.renderer.animatedSprite(name, speed);
+    const animId = this.animationCounter++;
+    this.animations.set(animId, anim);
+    anim.play();
+    anim.scale.set(scale || 1);
+    anim.loop = false;
+    anim.position.set(
+      pos.x * this.settings.tileSize,
+      this.maxTileY - pos.y * this.settings.tileSize
+    );
+    const completion = new Subject<void>();
+    anim.onComplete = () => {
+      this.haltRender = false;
+      completion.next();
+      completion.complete();
+    };
+    completion.subscribe(() => {
+      this.animations.get(animId).destroy();
+      this.animations.delete(animId);
+    });
+    // this.renderer.pixiApp.stage.addChild(anim);
+    // this.haltRender = true;
+    return completion;
+  }
+
+  addSprite(name: string, pos: PointXY) {
+    const sprite = this.renderer.sprite(name);
+    const id = this.overlaySpriteCounter++;
+    this.overlaySprites.set(id, sprite);
+    sprite.position.set(
+      pos.x * this.settings.tileSize,
+      this.maxTileY - pos.y * this.settings.tileSize
+    );
+    return id;
+  }
+
+  removeSprite(id: number) {
+    this.overlaySprites.get(id).destroy();
+    this.overlaySprites.delete(id);
+  }
+
   reset(): void {
     for (const [, sprite] of this.sprites) {
       sprite.destroy();
@@ -110,6 +163,9 @@ export class GridRendererComponent implements OnInit {
   }
 
   renderUpdate(): void {
+    if (this.haltRender) {
+      return;
+    }
     this.renderer.pixiApp.stage = new PIXI.Container();
 
     const stage = this.renderer.pixiApp.stage;
@@ -171,6 +227,14 @@ export class GridRendererComponent implements OnInit {
         Renderable,
         GridPos
       );
+
+      for (let [, anim] of this.animations) {
+        stage.addChild(anim);
+      }
+
+      for (let [, sprite] of this.overlaySprites) {
+        stage.addChild(sprite);
+      }
 
       const widthLimit =
         this.renderer.pixiApp.renderer.width / this.desiredDisplayWidthPx;

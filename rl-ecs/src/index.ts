@@ -32,6 +32,7 @@ export * from './lib/components/consumable.model';
 export * from './lib/components/random-move.model';
 export * from './lib/components/approach-target.model';
 export * from './lib/components/moving-agent.model';
+export * from './lib/components/animation.model';
 
 export * from './lib/mappers/grim-reaper.system';
 export * from './lib/mappers/mark-for-death.system';

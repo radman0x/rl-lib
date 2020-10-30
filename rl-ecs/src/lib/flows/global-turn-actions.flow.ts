@@ -9,6 +9,8 @@ import { radClone } from '../systems.utils';
 import { AreaResolver } from '../utils/area-resolver.util';
 import { effectOnEntityFlowInstant } from './effect-on-entity.flow';
 
+import * as rxjsSpy from 'rxjs-spy';
+
 export function globalTurnActionsFlow(
   em: EntityManager,
   areaResolver: AreaResolver,
@@ -18,6 +20,7 @@ export function globalTurnActionsFlow(
 
   const countdownTimer = start$.pipe(
     take(1),
+    rxjsSpy.operators.tag('turnEnd.globalTurnActions.start'),
     map(() => ({ componentTypes: [CountdownTimer] })),
     mergeMap((msg) => of(...entitiesWithComponents(msg, em, 'timerId'))),
     filter((msg) => isValidId(msg.timerId)),
@@ -35,15 +38,16 @@ export function globalTurnActionsFlow(
       effectTargetId: null,
     })),
     mergeMap(
-      (msg) =>
-        effectOnEntityFlowInstant(em, areaResolver, msg, ender)
-          .stateChangeSummary$
+      (msg) => effectOnEntityFlowInstant(em, areaResolver, msg, ender).finish$
     )
   );
 
   return {
     start$,
-    finish$: merge(countdownTimer).pipe(reduce((acc, curr) => null, null)),
+    finish$: merge(countdownTimer).pipe(
+      reduce((acc, curr) => null, null),
+      rxjsSpy.operators.tag('turnEnd.globalTurnActions.end')
+    ),
   };
 }
 
