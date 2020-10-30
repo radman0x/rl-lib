@@ -12,6 +12,7 @@ import { spatial, SpatialArgs } from '../actioners/spatial.actioner';
 import { endState, EndStateArgs } from '../actioners/end-state.actioner';
 import { EffectTarget } from '../systems.types';
 import { AreaResolver } from '../utils/area-resolver.util';
+import { physics } from '../actioners/physics.actioner';
 
 type Args = EffectTarget &
   SpatialArgs &
@@ -34,6 +35,7 @@ export function actionEffectOutput<T extends Args>(
     map((msg) => lock(msg, em)),
     map((msg) => area(msg, em, areaResolver)),
     map((msg) => sensate(msg, em)),
+    map((msg) => physics(msg, em)),
     map((msg) => endState(msg, em, ender)),
     map((msg) => removeEntity(msg, em))
   );

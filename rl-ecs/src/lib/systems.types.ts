@@ -249,3 +249,12 @@ export interface ChangeReport {
 export interface EffectReport {
   effectReport: ChangeReport | null;
 }
+
+export interface AppliedForceDetails {
+  magnitude: number;
+  direction: CompassDirection;
+}
+
+export interface AppliedForce {
+  force: AppliedForceDetails | null;
+}

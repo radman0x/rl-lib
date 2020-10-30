@@ -9,6 +9,7 @@ export class InputHandler {
   public climb$ = new Subject();
   public rest$ = new Subject();
   public applyItem$ = new Subject();
+  public useAbility$ = new Subject();
   public collect$ = new Subject();
   public escape$ = new Subject();
 
@@ -41,6 +42,13 @@ export class InputHandler {
         tap((key) => console.log(`Apply key: ${key}`))
       )
       .subscribe(this.applyItem$);
+
+    this.keyInput$
+      .pipe(
+        filter((key) => key === 'A'),
+        tap((key) => console.log(`Use ability key: ${key}`))
+      )
+      .subscribe(this.useAbility$);
 
     this.keyInput$
       .pipe(

@@ -8,7 +8,7 @@ import { EffectReport, EntityRemoval } from '../systems.types';
 import * as _ from 'lodash';
 import { radClone } from '../systems.utils';
 
-type Args = Partial<EffectReport> & Partial<EntityRemoval>;
+type Args = Partial<EffectReport> & EntityRemoval;
 export type RemoveEntityArgs = Args;
 
 type Out = EffectReport;
