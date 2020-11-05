@@ -239,11 +239,19 @@ export interface Stun {
   stun: StunDetails | null;
 }
 
+export interface SpawnedEffect {
+  effectId: EntityId;
+  effectTargetId: EntityId | null;
+  targetPos: GridPosData | null;
+  effectOrigin: GridPosData | null;
+}
+
 export interface ChangeReport {
   [change: string]: {
     activeEffectDescription: string;
     effectModificationDescription?: string;
     worldStateChangeDescription?: string;
+    spawnedEffects?: SpawnedEffect[];
   };
 }
 export interface EffectReport {
@@ -257,4 +265,27 @@ export interface AppliedForceDetails {
 
 export interface AppliedForce {
   force: AppliedForceDetails | null;
+}
+
+export interface EnergyDeltaDetails {
+  amount: number;
+}
+
+export interface EnergyDelta {
+  energyDelta: EnergyDeltaDetails | null;
+}
+
+export interface ProcessConsequence {
+  consequenceId: EntityId;
+}
+
+export interface Payer {
+  payerId: EntityId;
+}
+export interface CostPaid {
+  costPaid: boolean | null;
+}
+
+export interface EffectOrigin {
+  effectOrigin: GridPosData | null;
 }

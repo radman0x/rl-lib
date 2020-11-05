@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { Description, Inventory } from '@rad/rl-ecs';
 import { MenuItem } from 'primeng/api';
 import { EntityId, EntityManager } from 'rad-ecs';
@@ -14,7 +14,7 @@ export class InventoryDisplayComponent implements OnInit {
 
   public inventoryEntries: MenuItem[] = [];
 
-  constructor() {}
+  constructor(private changeDetector: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     if (!this.em) {
@@ -35,7 +35,9 @@ export class InventoryDisplayComponent implements OnInit {
 
   private updateInventory(current: Inventory) {
     const itemEntries = [];
-    this.inventoryEntries = [{ label: 'Items', items: itemEntries }];
+    this.inventoryEntries = [
+      { label: 'Inventory', items: itemEntries, expanded: true },
+    ];
     for (let id of current.contents) {
       const desc = this.em.getComponent(id, Description);
       if (desc) {
@@ -44,6 +46,7 @@ export class InventoryDisplayComponent implements OnInit {
         });
       }
     }
+    this.changeDetector.detectChanges();
   }
 
   private observeInventory() {

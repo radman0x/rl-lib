@@ -1,11 +1,10 @@
 import { CompassDirection } from '@rad/rl-utils';
 import * as Chance from 'chance';
 import { EntityId, EntityManager } from 'rad-ecs';
-import { merge, Subject } from 'rxjs';
-import { filter, map, take, tap } from 'rxjs/operators';
+import { Observer, of, Subject } from 'rxjs';
+import { filter, map, share, shareReplay, tap } from 'rxjs/operators';
 import { spatial } from '../actioners/spatial.actioner';
 import { updateDistanceMap } from '../actioners/update-distance-map.actioner';
-import { BumpMoveAssessment } from '../assessors/bump-move.assessor';
 import { Description } from '../components/description.model';
 import { grimReaper } from '../mappers/grim-reaper.system';
 import { integrity } from '../mappers/integrity.system';
@@ -18,9 +17,11 @@ import {
   MoveOrder,
   MovingEntity,
   ReapedEntity,
-  WorldStateChangeReport,
 } from '../systems.types';
 import { radClone } from '../systems.utils';
+
+import * as rxjsSpy from 'rxjs-spy';
+import { logName } from '@rad/rl-applib';
 
 function playerAttackString(
   em: EntityManager,
@@ -49,64 +50,76 @@ function playerAttackString(
   }
 }
 
-export function attemptMoveFlow(
+type Args = MovingEntity & { direction: CompassDirection };
+
+export function attemptMoveFlow<T extends Args>(
   em: EntityManager,
   rand: Chance.Chance,
-  messageLog: (string) => void = null
+  messageLog: (string) => void = null,
+  tagBase: string = ''
 ) {
-  const out = {
-    start$: new Subject<MovingEntity & { direction: CompassDirection }>(),
-    finish$: new Subject<BumpMoveAssessment>(),
-    moved$: new Subject<MoveOrder & EffectReport>(),
-    attacked$: new Subject<AttackOrder & EffectReport>(),
-    noActionTaken$: new Subject(),
-  };
+  tagBase = logName(tagBase, 'attemptMoveFlow');
+  const start$ = new Subject<T>();
+  const assessed$ = start$.pipe(
+    map((msg) =>
+      positionNextToEntity(
+        {
+          ...radClone(msg),
+          protagId: msg.movingId,
+          aggressorId: msg.movingId,
+        },
+        em
+      )
+    ),
+    map((msg) => assessBumpMove(msg, em, rand)),
+    rxjsSpy.operators.tag(logName(tagBase, 'assessed')),
+    shareReplay()
+  );
 
-  const assessed$ = new Subject<BumpMoveAssessment>();
-  out.start$
-    .pipe(
-      take(1),
-      map((msg) =>
-        positionNextToEntity(
-          {
-            ...radClone(msg),
-            protagId: msg.movingId,
-            aggressorId: msg.movingId,
-          },
-          em
-        )
-      ),
-      map((msg) => assessBumpMove(msg, em, rand))
-    )
-    .subscribe(assessed$);
+  const attacked$ = assessed$.pipe(
+    filter((msg) => !!msg.attack),
+    map((msg) => ({ ...msg.attack, effectReport: null })),
+    map((msg) => {
+      console.log(`${JSON.stringify(msg, null, 2)}`);
+      return msg;
+    }),
+    map((msg) => integrity(msg, em)),
+    map((msg) => markForDeath(msg, em)),
+    tap((msg) => messageLog && messageLog(playerAttackString(em, msg))),
+    map((msg) => grimReaper(msg, em)),
+    rxjsSpy.operators.tag(logName(tagBase, 'attacked')),
+    shareReplay()
+  );
+  attacked$.subscribe();
 
-  assessed$
-    .pipe(
-      filter((msg) => !!msg.attack),
-      map((msg) => ({ ...msg.attack, effectReport: null })),
-      map((msg) => integrity(msg, em)),
-      map((msg) => markForDeath(msg, em)),
-      tap((msg) => messageLog && messageLog(playerAttackString(em, msg))),
-      map((msg) => grimReaper(msg, em))
-    )
-    .subscribe(out.attacked$);
+  const moved$ = assessed$.pipe(
+    filter((msg) => !!(!msg.attack && msg.move)),
+    map((msg) => ({ ...msg.move, effectReport: null })),
+    map((msg) => spatial(msg, em)),
+    tap((msg) => updateDistanceMap(msg, em)),
+    rxjsSpy.operators.tag(logName(tagBase, 'moved')),
+    shareReplay()
+  );
+  moved$.subscribe();
 
-  out.attacked$.subscribe(() => console.log(`ATTACKED!!!!`));
+  const noActionTaken$ = assessed$.pipe(
+    filter((msg) => !!(!msg.attack && !msg.move)),
+    rxjsSpy.operators.tag(logName(tagBase, 'noActionTaken')),
+    shareReplay()
+  );
+  noActionTaken$.subscribe();
 
-  assessed$
-    .pipe(
-      filter((msg) => !!(!msg.attack && msg.move)),
-      map((msg) => ({ ...msg.move, effectReport: null })),
-      map((msg) => spatial(msg, em)),
-      tap((msg) => updateDistanceMap(msg, em))
-    )
-    .subscribe(out.moved$);
+  return { start$, attacked$, moved$, noActionTaken$ };
+}
 
-  assessed$
-    .pipe(filter((msg) => !!(!msg.attack && !msg.move)))
-    .subscribe(out.noActionTaken$);
-
-  merge(out.attacked$, out.moved$, out.noActionTaken$).subscribe(out.finish$);
-
-  return out;
+export function attemptMoveFlowInstant<T extends Args>(
+  msg: T,
+  em: EntityManager,
+  rand: Chance.Chance,
+  messageLog: (string) => void = null,
+  tagBase: string = ''
+) {
+  const flow = attemptMoveFlow(em, rand, messageLog, tagBase);
+  of(msg).subscribe(flow.start$);
+  return flow;
 }

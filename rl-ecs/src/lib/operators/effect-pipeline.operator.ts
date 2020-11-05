@@ -1,13 +1,20 @@
 import { EntityManager } from 'rad-ecs';
 import { BehaviorSubject } from 'rxjs';
 import { map, mergeMap, take } from 'rxjs/operators';
-import { ActiveEffect, EffectTarget } from '../systems.types';
+import {
+  ActiveEffect,
+  EffectOrigin,
+  EffectTarget,
+  TargetPos,
+} from '../systems.types';
 import { AreaResolver } from '../utils/area-resolver.util';
 import { actionEffectOutput } from './action-effect-output.operator';
 import { modifyEffectOutput } from './modify-effect-output.operator';
 import { produceEffectOutput } from './produce-effect-output.operator';
 
-export function effectPipeline<T extends ActiveEffect & EffectTarget>(
+export function effectPipeline<
+  T extends ActiveEffect & EffectTarget & TargetPos & EffectOrigin
+>(
   msg: T,
   em: EntityManager,
   areaResolver: AreaResolver,

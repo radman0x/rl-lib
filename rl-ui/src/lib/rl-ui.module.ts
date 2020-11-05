@@ -8,6 +8,7 @@ import { StatsDisplayComponent } from './stats-display/stats-display.component';
 import { MessageLogComponent } from './message-log/message-log.component';
 import { PanelMenuModule } from 'primeng/panelmenu';
 import { InventoryDisplayComponent } from './inventory-display/inventory-display.component';
+import { AbilitiesDisplayComponent } from './abilities-display/abilities-display.component';
 
 export { MessageLogComponent } from './message-log/message-log.component';
 export { InventoryDisplayComponent } from './inventory-display/inventory-display.component';
@@ -19,12 +20,14 @@ export { InventoryDisplayComponent } from './inventory-display/inventory-display
     StatsDisplayComponent,
     MessageLogComponent,
     InventoryDisplayComponent,
+    AbilitiesDisplayComponent,
   ],
   exports: [
     GridRendererComponent,
     StatsDisplayComponent,
     MessageLogComponent,
     InventoryDisplayComponent,
+    AbilitiesDisplayComponent,
   ],
 })
 export class RlUiModule {}

@@ -1,4 +1,5 @@
 import { ComponentConstructor, EntityManager, EntityId } from 'rad-ecs';
+import { MemberOf } from '../components/member-of.model';
 import { Modifier, AdjustType } from '../components/modifier.model';
 import { StatusEffects } from '../components/status-effects.model';
 
@@ -28,4 +29,16 @@ export function getModifiedComponent<T_Component extends ComponentConstructor>(
   }
 
   return component as InstanceType<T_Component>;
+}
+
+export function findComponentInEntityChain<
+  T_Component extends ComponentConstructor
+>(em: EntityManager, id: EntityId, c: T_Component): EntityId | null {
+  if (em.hasComponent(id, c)) {
+    return id;
+  } else if (em.hasComponent(id, MemberOf)) {
+    return findComponentInEntityChain(em, em.getComponent(id, MemberOf).id, c);
+  } else {
+    return null;
+  }
 }

@@ -1,4 +1,4 @@
-import { Id } from '@rad/rl-applib';
+import { Id, selAddToArray, selSuggest } from '@rad/rl-applib';
 import {
   addVec3,
   compassDirectionToUnitVector,
@@ -11,11 +11,13 @@ import { Description } from '../components/description.model';
 import { Force } from '../components/force.model';
 import { Mental } from '../components/mental.model';
 import { GridPos } from '../components/position.model';
+import { Teleport } from '../components/teleport.model';
 import { OperationStep } from '../operation-step.model';
 import {
   AppliedForce,
   EffectReport,
   EffectTarget,
+  SpawnedEffect,
   WorldStateChangeReport,
 } from '../systems.types';
 import { radClone } from '../systems.utils';
@@ -37,15 +39,25 @@ function physicsStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
     em.hasComponent(msg.effectTargetId, GridPos)
   ) {
     let gridPos = em.getComponent(msg.effectTargetId, GridPos);
-    let pos = { ...gridPos };
-    let counter = msg.force.magnitude;
+    let newPos = { ...gridPos };
     let changeBy = compassDirectionToUnitVector.get(msg.force.direction);
-    while (counter > 0) {
-      pos = addVec3(pos, changeBy);
-      --counter;
-    }
-    if (!equalsVec3(gridPos, pos)) {
-      em.setComponent(msg.effectTargetId, new GridPos(pos));
+
+    if (msg.force.magnitude > 0) {
+      selSuggest(out, 'effectReport.physics.spawnedEffects', []);
+      selAddToArray(out, 'effectReport.physics.spawnedEffects', {
+        effectId: em.create(new Teleport({ target: addVec3(newPos, changeBy) }))
+          .id,
+        effectTargetId: msg.effectTargetId,
+      });
+      selAddToArray(out, 'effectReport.physics.spawnedEffects', {
+        effectId: em.create(
+          new Force({
+            magnitude: msg.force.magnitude - 1,
+            direction: msg.force.direction,
+          })
+        ).id,
+        effectTargetId: msg.effectTargetId,
+      });
     }
 
     const effectTargetDesc = em.hasComponent(msg.effectTargetId, Description)

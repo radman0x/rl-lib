@@ -18,3 +18,13 @@ export function selAddToArray(obj: object, selector: string, value: any) {
     _.set(obj, selector, [value]);
   }
 }
+
+export function selSuggestToArray(obj: object, selector: string, value: any) {
+  selSuggest(obj, selector, []);
+  selAddToArray(obj, selector, value);
+}
+
+export function logName(base: string, name: string) {
+  base = base ? `${base}.` : '';
+  return `${base}${name}`;
+}

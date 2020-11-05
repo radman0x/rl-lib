@@ -1,19 +1,29 @@
 import { Id } from '@rad/rl-applib';
-import { isValidId } from '@rad/rl-utils';
+import {
+  asCompassDirectionVec3,
+  isValidId,
+  roundDirectionVec3,
+  unitDirectionVec3,
+} from '@rad/rl-utils';
 import { EntityManager } from 'rad-ecs';
 import { Description } from '../components/description.model';
 import { Force } from '../components/force.model';
+import { GridPos } from '../components/position.model';
+import { Push } from '../components/push.model';
 import { OperationStep } from '../operation-step.model';
 import {
   ActiveEffect,
   AppliedForce,
   AppliedForceDetails,
   ChangeReport,
+  EffectOrigin,
   EffectReport,
+  EffectTarget,
+  TargetPos,
 } from '../systems.types';
 import { radClone } from '../systems.utils';
 
-type Args = ActiveEffect & Partial<EffectReport>;
+type Args = ActiveEffect & EffectOrigin & EffectTarget & Partial<EffectReport>;
 export type PushArgs = Args;
 
 type Out = AppliedForce & EffectReport;
@@ -22,7 +32,12 @@ export type PushOut = Out;
 function pushStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
   let force: AppliedForceDetails = null;
   let effectReport: ChangeReport = msg.effectReport || null;
-  if (isValidId(msg.effectId) && em.hasComponent(msg.effectId, Force)) {
+  if (
+    isValidId(msg.effectId) &&
+    em.hasComponent(msg.effectId, Push) &&
+    isValidId(msg.effectTargetId) &&
+    em.hasComponent(msg.effectTargetId, GridPos)
+  ) {
     const activeEffectDescription = em.hasComponent(msg.effectId, Description)
       ? em.getComponent(msg.effectId, Description).short
       : 'Some effect';
@@ -31,8 +46,16 @@ function pushStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
         activeEffectDescription,
       },
     };
-    const forceComp = em.getComponent(msg.effectId, Force);
-    force = { magnitude: forceComp.magnitude, direction: forceComp.direction };
+    const direction = asCompassDirectionVec3(
+      unitDirectionVec3(
+        msg.effectOrigin,
+        em.getComponent(msg.effectTargetId, GridPos)
+      )
+    );
+    force = {
+      magnitude: em.getComponent(msg.effectId, Push).strength,
+      direction,
+    };
   }
 
   return { ...radClone(msg), force, effectReport };

@@ -35,6 +35,10 @@ export * from './lib/components/moving-agent.model';
 export * from './lib/components/animation.model';
 export * from './lib/components/abilities.model';
 export * from './lib/components/force.model';
+export * from './lib/components/energy-cost.model';
+export * from './lib/components/cooldown.model';
+export * from './lib/components/directed.model';
+export * from './lib/components/push.model';
 
 export * from './lib/mappers/grim-reaper.system';
 export * from './lib/mappers/mark-for-death.system';
@@ -54,6 +58,11 @@ export * from './lib/flows/bump-move.flow';
 export * from './lib/flows/effect-at-position.flow';
 export * from './lib/flows/collect-item.flow';
 export * from './lib/flows/global-turn-actions.flow';
+
+export * from './lib/operators/cost-pipeline.operator';
+export * from './lib/operators/consequence-pipeline.operator';
+export * from './lib/operators/targeting-pipeline.operator';
+export * from './lib/operators/acquire-positions-pipeline.operator';
 
 export * from './lib/areas/area-spec.model';
 

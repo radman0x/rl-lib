@@ -1,6 +1,7 @@
 import { EntityManager } from 'rad-ecs';
-import { BehaviorSubject } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { collision, CollisionArgs } from '../mappers/collision.system';
 import {
   magicResistance,
   MagicResistanceArgs,
@@ -9,12 +10,11 @@ import {
 /** Operator that parses target entity of an effect for resistances/modifiers
  *  and updates any effect data in the message as approriate.
  */
-export function modifyEffectOutput<T extends MagicResistanceArgs>(
-  msg: T,
-  em: EntityManager
-) {
-  return new BehaviorSubject(msg).pipe(
-    take(1),
-    map((msg) => magicResistance(msg, em))
+export function modifyEffectOutput<
+  T extends MagicResistanceArgs & CollisionArgs
+>(msg: T, em: EntityManager) {
+  return of(msg).pipe(
+    map((msg) => magicResistance(msg, em)),
+    map((msg) => collision(msg, em))
   );
 }

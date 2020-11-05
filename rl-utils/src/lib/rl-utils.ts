@@ -123,6 +123,36 @@ export enum CompassDirection {
   NW = 'North-West',
 }
 
+export interface CompassDirectionEntry {
+  [-1]: CompassDirection;
+  0: CompassDirection | null;
+  1: CompassDirection;
+}
+
+export interface UnitVectorToCompassDirectionIndex {
+  [-1]: CompassDirectionEntry;
+  0: CompassDirectionEntry;
+  1: CompassDirectionEntry;
+}
+
+export const UNIT_VECTOR_TO_COMPASS_DIRECTION: UnitVectorToCompassDirectionIndex = {
+  [-1]: {
+    [-1]: CompassDirection.SW,
+    0: CompassDirection.W,
+    1: CompassDirection.NW,
+  },
+  0: {
+    [-1]: CompassDirection.S,
+    0: null,
+    1: CompassDirection.N,
+  },
+  1: {
+    [-1]: CompassDirection.SE,
+    0: CompassDirection.E,
+    1: CompassDirection.NE,
+  },
+};
+
 export const compassDirectionToUnitVector: Map<
   CompassDirection,
   Coord
@@ -203,15 +233,53 @@ export interface Vec3 {
   z: number;
 }
 
-export function equalsVec3(lhs: Vec3, rhs: Vec3) {
+export function equalsVec3(lhs: Vec3, rhs: Vec3): boolean {
   return lhs.x === rhs.x && lhs.y === rhs.y && lhs.z === rhs.z;
 }
-export function addVec3(lhs: Vec3, rhs: Vec3) {
+
+export function addVec3(lhs: Vec3, rhs: Vec3): Vec3 {
   return {
     x: lhs.x + rhs.x,
     y: lhs.y + rhs.y,
     z: lhs.z + rhs.z,
   };
+}
+export function subVec3(lhs: Vec3, rhs: Vec3): Vec3 {
+  return {
+    x: lhs.x - rhs.x,
+    y: lhs.y - rhs.y,
+    z: lhs.z - rhs.z,
+  };
+}
+
+export function magnitudeVec3(vec: Vec3): number {
+  return Math.sqrt(vec.x ** 2 + vec.y ** 2 + vec.z ** 2);
+}
+
+export function normaliseVec3(vec: Vec3): Vec3 {
+  const magnitude = magnitudeVec3(vec);
+  return {
+    x: vec.x / magnitude,
+    y: vec.y / magnitude,
+    z: vec.z / magnitude,
+  };
+}
+
+export function unitDirectionVec3(from: Vec3, to: Vec3): Vec3 {
+  return normaliseVec3(subVec3(to, from));
+}
+
+export function roundDirectionVec3(vec: Vec3): Vec3 {
+  return {
+    x: Math.round(vec.x),
+    y: Math.round(vec.y),
+    z: Math.round(vec.z),
+  };
+}
+
+export function asCompassDirectionVec3(vec: Vec3): CompassDirection {
+  const dir = roundDirectionVec3(normaliseVec3(vec));
+  return UNIT_VECTOR_TO_COMPASS_DIRECTION[dir.x][dir.y];
 }
 
 export function isValidId(id: EntityId | null | undefined) {

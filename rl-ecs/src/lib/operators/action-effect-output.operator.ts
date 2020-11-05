@@ -1,20 +1,22 @@
 import { EntityManager } from 'rad-ecs';
-import { BehaviorSubject } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { area, AreaArgs } from '../actioners/area.actioner';
+import { endState, EndStateArgs } from '../actioners/end-state.actioner';
 import { lock, LockArgs } from '../actioners/lock.actioner';
+import { mana } from '../actioners/mana.actioner';
+import { physics } from '../actioners/physics.actioner';
 import {
   removeEntity,
   RemoveEntityArgs,
 } from '../actioners/remove-entity.actioner';
 import { sensate } from '../actioners/sensate.actioner';
 import { spatial, SpatialArgs } from '../actioners/spatial.actioner';
-import { endState, EndStateArgs } from '../actioners/end-state.actioner';
-import { EffectTarget } from '../systems.types';
+import { ActiveEffect, EffectTarget } from '../systems.types';
 import { AreaResolver } from '../utils/area-resolver.util';
-import { physics } from '../actioners/physics.actioner';
 
 type Args = EffectTarget &
+  ActiveEffect &
   SpatialArgs &
   LockArgs &
   AreaArgs &
@@ -29,8 +31,7 @@ export function actionEffectOutput<T extends Args>(
   areaResolver: AreaResolver,
   ender: (EndType) => void
 ) {
-  return new BehaviorSubject(msg).pipe(
-    take(1),
+  return of(msg).pipe(
     map((msg) => spatial(msg, em)),
     map((msg) => lock(msg, em)),
     map((msg) => area(msg, em, areaResolver)),
