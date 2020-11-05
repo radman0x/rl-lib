@@ -47,7 +47,8 @@ export function collectItemFlow<T extends Args>(em: EntityManager) {
     map((msg) => addToInventory(msg, em)),
     map((msg) => msg.collectedId),
     toArray(),
-    filter((arr) => arr.length !== 0)
+    filter((arr) => arr.length !== 0),
+    shareReplay()
   );
   itemsCollected$.subscribe();
 
