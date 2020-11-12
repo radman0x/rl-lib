@@ -1,8 +1,10 @@
 import { ComponentConstructor, Entity, EntityId, EntityManager } from 'rad-ecs';
 import { merge, Observable, of } from 'rxjs';
-import { expand, map, mergeMap, takeLast, toArray } from 'rxjs/operators';
+import { expand, map, mergeMap, takeLast, tap, toArray } from 'rxjs/operators';
 import { Equipped } from '../components/equipped.model';
 import { Inventory } from '../components/inventory.model';
+import { Mental, MentalOverride } from '../components/mental.model';
+import { ModifierPriority } from '../components/modifier-priority.model';
 import { PassiveEffect } from '../components/passive-effect.model';
 import { StatusEffects } from '../components/status-effects.model';
 import { StrengthDelta } from '../components/strength-delta.model';
@@ -25,46 +27,59 @@ function deltaValue<
     const delta = em.getComponent(msg.modifierId, deltaType);
     msg.working = new Entity(
       null,
-      new modifyType({ count: curr.count + delta.change })
+      ...[
+        ...msg.working.allComponents().map((e) => e.component),
+        new modifyType({ count: curr.count + delta.change }),
+      ]
     );
   }
 
   return msg;
 }
 
-export function inventoryModifiers<T extends Args>(
-  msg: T,
-  em: EntityManager
-): Observable<number> {
-  return of(msg).pipe(
-    mergeMap((msg) => {
-      if (em.hasComponent(msg.modifyId, Inventory)) {
-        const inv = em.getComponent(msg.modifyId, Inventory);
-        return of(
-          ...inv.contents.filter((id) => em.hasComponent(id, Equipped))
-        );
-      } else {
-        return of() as Observable<number>;
-      }
-    })
-  );
+function overrideValue<
+  T extends ModifierPipeInput,
+  U extends typeof Mental,
+  V extends typeof MentalOverride
+>(msg: T, em: EntityManager, modifyType: U, overrideType: V) {
+  if (
+    msg.working.has(modifyType) &&
+    em.hasComponent(msg.modifierId, overrideType)
+  ) {
+    const override = em.getComponent(msg.modifierId, overrideType);
+    msg.working = new Entity(
+      null,
+      ...[
+        ...msg.working.allComponents().map((e) => e.component),
+        new modifyType({ ...override }),
+      ]
+    );
+  }
+
+  return msg;
 }
 
-export function statusEffectModifiers<T extends Args>(
+export function modifiers<
+  T extends Args,
+  U extends typeof Inventory | typeof StatusEffects,
+  V extends typeof Equipped | typeof PassiveEffect
+>(
   msg: T,
-  em: EntityManager
-): Observable<number> {
+  em: EntityManager,
+  containerType: U,
+  signalComponent: V
+): Observable<EntityId> {
   return of(msg).pipe(
     mergeMap((msg) => {
-      if (em.hasComponent(msg.modifyId, StatusEffects)) {
-        const statusEffects = em.getComponent(msg.modifyId, StatusEffects);
+      if (em.hasComponent(msg.modifyId, containerType)) {
+        const container = em.getComponent(msg.modifyId, containerType);
         return of(
-          ...statusEffects.contents.filter((id) =>
-            em.hasComponent(id, PassiveEffect)
+          ...container.contents.filter((id) =>
+            em.hasComponent(id, signalComponent)
           )
         );
       } else {
-        return of() as Observable<number>;
+        return of() as Observable<EntityId>;
       }
     })
   );
@@ -75,8 +90,22 @@ export function modifieredEntity<T extends Args>(msg: T, em: EntityManager) {
   of(msg)
     .pipe(
       mergeMap((msg) =>
-        merge(statusEffectModifiers(msg, em), inventoryModifiers(msg, em)).pipe(
+        merge(
+          modifiers(msg, em, Inventory, Equipped),
+          modifiers(msg, em, StatusEffects, PassiveEffect)
+        ).pipe(
           toArray(),
+          tap((arr) => {
+            const getScore = (id) =>
+              em.hasComponent(id, ModifierPriority)
+                ? em.getComponent(id, ModifierPriority).score
+                : 0;
+            arr.sort((lhs, rhs) => {
+              const leftScore = getScore(lhs);
+              const rightScore = getScore(rhs);
+              return leftScore - rightScore;
+            });
+          }),
           map((arr) => ({ ...msg, modifiers: arr }))
         )
       ),
@@ -84,7 +113,8 @@ export function modifieredEntity<T extends Args>(msg: T, em: EntityManager) {
         if (msg.modifiers.length !== 0) {
           return of({ ...msg, modifierId: msg.modifiers.pop() }).pipe(
             map((msg) => deltaValue(msg, em, Strength, StrengthDelta)),
-            map((msg) => deltaValue(msg, em, WeaponSkill, WeaponSkillDelta))
+            map((msg) => deltaValue(msg, em, WeaponSkill, WeaponSkillDelta)),
+            map((msg) => overrideValue(msg, em, Mental, MentalOverride))
           );
         } else {
           return of();
@@ -103,7 +133,10 @@ export function getModifiedComponent<T extends ComponentConstructor>(
   id: EntityId,
   c: T,
   em: EntityManager
-) {
+): InstanceType<T> | null {
+  if (!em.hasComponent(id, c)) {
+    return null;
+  }
   const comp = em.getComponent(id, c);
   return modifieredEntity(
     { modifyId: id, working: new Entity(null, comp) },

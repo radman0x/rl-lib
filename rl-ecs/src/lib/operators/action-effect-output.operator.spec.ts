@@ -49,7 +49,7 @@ describe('Action effect output', () => {
     };
     const { error, out } = newFlow(teleport);
     expect(error).toEqual(false);
-    expect(out).toMatchObject({ worldStateChanged: true });
+    expect(out.effectReport.spatial.worldStateChangeDescription).toBeTruthy();
     expect(em.getComponent(effectTargetId, GridPos)).toEqual(pos);
   });
 
@@ -60,6 +60,6 @@ describe('Action effect output', () => {
     };
     const { error, out } = newFlow(lockChange);
     expect(error).toEqual(false);
-    expect(out).toMatchObject({ worldStateChanged: true });
+    expect(out.effectReport.lock.worldStateChangeDescription).toBeTruthy();
   });
 });

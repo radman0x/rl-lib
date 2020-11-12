@@ -25,18 +25,18 @@ describe('Collect item flow', () => {
       collected: false,
       noCollection: false,
       finished: false,
-      error: false
+      error: false,
     };
     em = new EntityManager();
     em.indexBy(GridPos);
-    collectFlow = collectItemFlow(em);
+    collectFlow = collectItemFlow(em, 'test');
     collectFlow.itemsCollected$.subscribe(() => (results.collected = true));
     collectFlow.noItemsCollected$.subscribe(
       () => (results.noCollection = true)
     );
     collectFlow.finish$.subscribe({
-      error: err => (results.error = err),
-      complete: () => (results.finished = true)
+      error: (err) => (results.error = err),
+      complete: () => (results.finished = true),
     });
 
     emptyPos = { x: 1, y: 1, z: 1 };
@@ -53,7 +53,7 @@ describe('Collect item flow', () => {
       noCollection: true,
       collected: false,
       finished: true,
-      error: false
+      error: false,
     });
     expect(em.getComponent(collectorId, Inventory).contents.length).toEqual(1);
     expect(em.getComponent(collectorId, Inventory).contents[0]).toEqual(999);
@@ -66,13 +66,13 @@ describe('Collect item flow', () => {
     collectFlow.start$.next({ collectorId });
     expect(em.getComponent(collectorId, Inventory).contents).toEqual([
       999,
-      collectId
+      collectId,
     ]);
     expect(results).toEqual({
       collected: true,
       noCollection: false,
       finished: true,
-      error: false
+      error: false,
     });
   });
 
@@ -91,7 +91,7 @@ describe('Collect item flow', () => {
       collected: false,
       noCollection: true,
       finished: true,
-      error: false
+      error: false,
     });
   });
 
@@ -100,7 +100,7 @@ describe('Collect item flow', () => {
     let completed = false;
     collectFlow.finish$.subscribe({
       error: () => (errorOccurred = true),
-      complete: () => (completed = true)
+      complete: () => (completed = true),
     });
     collectFlow.start$.complete();
     expect(errorOccurred).toEqual(false);

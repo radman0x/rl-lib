@@ -5,6 +5,9 @@ import { Attacks } from '../components/attacks.model';
 import { Martial } from '../components/martial.model';
 import { Physical, Size } from '../components/physical.model';
 import { GridPos, GridPosData } from '../components/position.model';
+import { Strength } from '../components/strength.model';
+import { Toughness } from '../components/toughness.model';
+import { WeaponSkill } from '../components/weapon-skill.model';
 import { Wounds } from '../components/wounds.model';
 import { BumpMoveAssessment, bumpMoveAssessor } from './bump-move.assessor';
 
@@ -18,10 +21,10 @@ describe('Bump move asssssor', () => {
   const newFlow = (em: EntityManager, rand: Chance.Chance) => {
     const bmAssessor = bumpMoveAssessor(em, rand);
     bmAssessor.finish$.subscribe({
-      next: msg => {
+      next: (msg) => {
         out = msg;
       },
-      error: err => (error = err)
+      error: (err) => (error = err),
     });
     return bmAssessor;
   };
@@ -55,12 +58,16 @@ describe('Bump move asssssor', () => {
     // EAST of the player -> COMBAT TARGET
     combatTargetId = em.create(
       new GridPos({ x: 2, y: 1, z: 1 }),
-      new Martial({ strength: 1, toughness: 1, weaponSkill: 1 }),
+      new Strength({ count: 1 }),
+      new WeaponSkill({ count: 1 }),
+      new Toughness({ count: 1 }),
       new Wounds({ current: 10, max: 10 })
     ).id;
     movingId = em.create(
       new GridPos(protagPos),
-      new Martial({ strength: 1, toughness: 1, weaponSkill: 1 }),
+      new Strength({ count: 1 }),
+      new WeaponSkill({ count: 1 }),
+      new Toughness({ count: 1 }),
       new Attacks({ damage: 1 })
     ).id;
   });
@@ -69,7 +76,7 @@ describe('Bump move asssssor', () => {
     bmAssessor.start$.next({ movingId, direction: CompassDirection.S });
     expect(out).toMatchObject({
       move: null,
-      attack: null
+      attack: null,
     });
   });
 
@@ -78,9 +85,9 @@ describe('Bump move asssssor', () => {
     expect(out).toMatchObject({
       move: {
         movingId,
-        newPosition: { x: 0, y: 1, z: 1 }
+        newPosition: { x: 0, y: 1, z: 1 },
       },
-      attack: null
+      attack: null,
     });
   });
 
@@ -95,8 +102,8 @@ describe('Bump move asssssor', () => {
         combatTargetId,
         strikeSuccess: false,
         woundSuccess: false,
-        damage: null
-      }
+        damage: null,
+      },
     });
   });
 });

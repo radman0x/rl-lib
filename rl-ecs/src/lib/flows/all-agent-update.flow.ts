@@ -15,12 +15,12 @@ import { markForDeath } from '../mappers/mark-for-death.system';
 import { scoreApproach } from '../mappers/score-approach.system';
 import { scoreAttack } from '../mappers/score-attack.system';
 import { scoreRandomMove } from '../mappers/score-random-move.system';
+import { getModifiedComponent } from '../operators/modifiered-entity-pipeline.operator';
 import { produceAttackOrders } from '../operators/produce-attack-orders.operator';
 import { produceMoveOrders } from '../operators/produce-move-orders.operator';
 import { Order } from '../systems.types';
 import { addProperty, radClone } from '../systems.utils';
 import { AreaResolver } from '../utils/area-resolver.util';
-import { getModifiedComponent } from '../utils/rad-ecs.utils';
 import { housekeepingFlowInstant } from './housekeeping.flow';
 
 interface Args {
@@ -58,7 +58,7 @@ export function allAgentUpdateFlow(
       mergeMap((msg) => of(...entitiesWithComponents(msg, em, 'agentId'))),
       filter((msg) => em.exists(msg.agentId)), // in case agent got reaped due to other agent actions
       filter((msg) => {
-        const modifiedMental = getModifiedComponent(em, msg.agentId, Mental);
+        const modifiedMental = getModifiedComponent(msg.agentId, Mental, em);
         return !(
           modifiedMental && modifiedMental.state === MentalState.STUNNED
         );

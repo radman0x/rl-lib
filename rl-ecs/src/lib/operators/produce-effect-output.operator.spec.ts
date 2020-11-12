@@ -4,7 +4,7 @@ import { GridPos } from '../components/position.model';
 import { Teleport } from '../components/teleport.model';
 import { produceEffectOutput } from './produce-effect-output.operator';
 import { ToggleLock } from '../components/toggle-lock.model';
-import { reduce } from 'rxjs/operators';
+import { mergeMap, reduce } from 'rxjs/operators';
 
 import * as _ from 'lodash';
 
@@ -21,7 +21,7 @@ describe('Gather effect info', () => {
     error = false;
     out = null;
     start$
-      .pipe(produceEffectOutput(em))
+      .pipe(mergeMap((msg) => produceEffectOutput(msg, em)))
       .pipe(
         reduce((acc, msg) => {
           _.merge(acc, msg);
@@ -29,8 +29,8 @@ describe('Gather effect info', () => {
         }, {})
       )
       .subscribe({
-        next: msg => (out = msg),
-        error: err => (error = err)
+        next: (msg) => (out = msg),
+        error: (err) => (error = err),
       });
   });
 
@@ -42,7 +42,7 @@ describe('Gather effect info', () => {
 
     expect(error).toEqual(false);
     expect(out).toMatchObject({
-      teleport: { targetLocation: targetPos }
+      teleport: { targetLocation: targetPos },
     });
   });
 
@@ -53,7 +53,7 @@ describe('Gather effect info', () => {
     start$.complete();
     expect(error).toEqual(false);
     expect(out).toMatchObject({
-      lockChange: { lockId }
+      lockChange: { lockId },
     });
   });
 });

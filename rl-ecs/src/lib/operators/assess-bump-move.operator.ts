@@ -1,20 +1,16 @@
-import { OperationStep } from '../operation-step.model';
-import { EntityManager } from 'rad-ecs';
-import { radClone, addProperty } from '../systems.utils';
 import { Id } from '@rad/rl-applib';
+import * as Chance from 'chance';
+import * as _ from 'lodash';
+import { EntityManager } from 'rad-ecs';
+import { OperationStep } from '../operation-step.model';
+import { AttackOrder, MoveOrder, MovingEntity } from '../systems.types';
+import { addProperty, radClone } from '../systems.utils';
 import {
+  gatherBumpInfo,
   GatherBumpInfoArgs,
   GatherBumpInfoOut,
-  gatherBumpInfo,
 } from './gather-bump-info.operator';
-import {
-  ResolveBumpArgs,
-  ResolveBumpOut,
-  resolveBump,
-} from './resolve-bump.operator';
-import * as _ from 'lodash';
-import * as Chance from 'chance';
-import { MovingEntity, MoveOrder, AttackOrder } from '../systems.types';
+import { resolveBump, ResolveBumpOut } from './resolve-bump.operator';
 
 type Args = GatherBumpInfoArgs & MovingEntity;
 export type AssessBumpMoveArgs = Args;

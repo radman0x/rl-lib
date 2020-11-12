@@ -13,3 +13,9 @@ export class Mental extends Component implements MentalData {
     Object.assign(this, data);
   }
 }
+
+export class MentalOverride extends Mental {
+  constructor(data: MentalData) {
+    super(data);
+  }
+}

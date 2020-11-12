@@ -14,12 +14,17 @@ import { CountdownTimer } from '../components/coundown-timer.model';
 import { RemoveSelf } from '../components/remove-self.model';
 import { MemberOf } from '../components/member-of.model';
 import { Description } from '../components/description.model';
-import { Mental, MentalState } from '../components/mental.model';
+import {
+  Mental,
+  MentalOverride,
+  MentalState,
+} from '../components/mental.model';
 import { Modifier, AdjustType } from '../components/modifier.model';
 import { StatusEffects } from '../components/status-effects.model';
 import { Renderable } from '../components/renderable.model';
 
 import * as _ from 'lodash';
+import { PassiveEffect } from '../components/passive-effect.model';
 
 type Args = Partial<EffectReport> &
   Partial<Stun> &
@@ -40,16 +45,8 @@ function sensateStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
     const statusEffects = new StatusEffects({
       contents: [
         em.create(
-          new Modifier({
-            entries: [
-              {
-                type: Mental,
-                property: 'state',
-                adjustType: AdjustType.REPLACE,
-                adjustValue: MentalState.STUNNED,
-              },
-            ],
-          }),
+          new MentalOverride({ state: MentalState.STUNNED }),
+          new PassiveEffect(),
           new CountdownTimer({
             max: msg.stun.duration,
             current: msg.stun.duration,
