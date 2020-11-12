@@ -9,9 +9,11 @@ import { EntityId, EntityManager } from 'rad-ecs';
 import { Effects } from '../components/effects.model';
 import { MemberOf } from '../components/member-of.model';
 import { GridPos } from '../components/position.model';
+import { Targeted } from '../components/targeted.model';
 import {
   findComponentInEntityChain,
   getModifiedComponent,
+  recursiveObserveEntity,
 } from './rad-ecs.utils';
 
 describe('Rad ecs utils', () => {
@@ -36,7 +38,7 @@ describe('Rad ecs utils', () => {
     it('should return a modified Mental component', () => {
       em.setComponent(id, new Mental({ state: MentalState.NORMAL }));
       const statusEffects = new StatusEffects({
-        list: [
+        contents: [
           em.create(
             new Modifier({
               entries: [
@@ -103,6 +105,30 @@ describe('Rad ecs utils', () => {
         new GridPos({ x: 1, y: 1, z: 1 })
       ).id;
       expect(findComponentInEntityChain(em, child, GridPos)).toBe(child);
+    });
+  });
+
+  describe('Recursive observe entity', () => {
+    let em: EntityManager;
+    beforeEach(() => {
+      em = new EntityManager();
+    });
+
+    it('should observe a change to a single entity', () => {
+      const id = em.create(new GridPos({ x: 1, y: 1, z: 1 })).id;
+      let updated = false;
+      recursiveObserveEntity(id, em).subscribe(() => (updated = true));
+      em.setComponent(id, new GridPos({ x: 0, y: 0, z: 0 }));
+      expect(updated).toBe(true);
+    });
+
+    it('should observe a change in a child effect entity', () => {
+      const effectId = em.create(new Targeted({ range: 5 })).id;
+      const id = em.create(new Effects({ contents: [effectId] })).id;
+      let updated = false;
+      recursiveObserveEntity(id, em).subscribe(() => (updated = true));
+      em.setComponent(effectId, new Targeted({ range: 7 }));
+      expect(updated).toBe(true);
     });
   });
 });

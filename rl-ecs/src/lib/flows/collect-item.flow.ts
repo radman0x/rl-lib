@@ -16,6 +16,9 @@ import { suitableForCollection } from '../mappers/suitable-for-collection.mapper
 import { noneOf } from '../operators/none-of.operator';
 import { addProperty } from '../systems.utils';
 
+import * as rxjsSpy from 'rxjs-spy';
+import { logName } from '@rad/rl-applib';
+
 export type CollectItemFlowOut = {
   collectorId: EntityId | null;
   itemsCollected: EntityId[];
@@ -23,7 +26,12 @@ export type CollectItemFlowOut = {
 };
 
 type Args = { collectorId: EntityId };
-export function collectItemFlow<T extends Args>(em: EntityManager) {
+
+export function collectItemFlow<T extends Args>(
+  em: EntityManager,
+  tagBase: string
+) {
+  tagBase = logName(tagBase, 'collectItemFlow');
   const start$ = new Subject<T>();
 
   const collectAssessed$ = start$.pipe(
@@ -34,7 +42,8 @@ export function collectItemFlow<T extends Args>(em: EntityManager) {
     mergeMap((msg) => of(...entitiesAtPosition(msg, em, 'collectibleId'))),
     filter((msg) => msg.collectibleId !== msg.collectorId),
     map((msg) => suitableForCollection(msg, em)),
-    shareReplay()
+    shareReplay(),
+    rxjsSpy.operators.tag(logName(tagBase, 'collectAssessed'))
   );
 
   const noItemsCollected$ = collectAssessed$.pipe(
@@ -48,7 +57,8 @@ export function collectItemFlow<T extends Args>(em: EntityManager) {
     map((msg) => msg.collectedId),
     toArray(),
     filter((arr) => arr.length !== 0),
-    shareReplay()
+    shareReplay(),
+    rxjsSpy.operators.tag(logName(tagBase, 'itemCollected'))
   );
   itemsCollected$.subscribe();
 
@@ -77,9 +87,10 @@ export function collectItemFlow<T extends Args>(em: EntityManager) {
 
 export function collectItemFlowInstant<T extends Args>(
   msg: T,
-  em: EntityManager
+  em: EntityManager,
+  tagBase: string
 ) {
-  const flow = collectItemFlow(em);
+  const flow = collectItemFlow(em, tagBase);
   of(msg).subscribe(flow.start$);
   return flow;
 }

@@ -6,6 +6,9 @@ import { CombatTargetEntity, WoundResult } from '../systems.types';
 import { radClone } from '../systems.utils';
 import * as Chance from 'chance';
 import { Id } from '@rad/rl-applib';
+import { Strength } from '../components/strength.model';
+import { Toughness } from '../components/toughness.model';
+import { getModifiedComponent } from '../operators/modifiered-entity-pipeline.operator';
 
 type Args = { aggressorId: EntityId | null } & CombatTargetEntity;
 export type ResolveWoundArgs = Args;
@@ -21,10 +24,15 @@ function resolveWoundStep<T extends Args>(
   if (!isValidId(msg.combatTargetId) || !isValidId(msg.aggressorId)) {
     return { ...radClone(msg), woundSuccess: null };
   }
-  const protagMartial = em.getComponent(msg.aggressorId, Martial);
-  const targetMartial = em.getComponent(msg.combatTargetId, Martial);
+  const attackerStrength = getModifiedComponent(msg.aggressorId, Strength, em)
+    .count;
+  const targetToughness = getModifiedComponent(
+    msg.combatTargetId,
+    Toughness,
+    em
+  ).count;
   const BASE_TO_WOUND = 6;
-  const stDiff = protagMartial.strength - targetMartial.toughness;
+  const stDiff = attackerStrength - targetToughness;
   const actualToWound = BASE_TO_WOUND - stDiff;
   const woundRoll = rand.d10();
   let woundSuccess = false;

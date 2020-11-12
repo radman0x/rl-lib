@@ -321,7 +321,8 @@ export class GridRendererComponent implements OnInit {
     }
 
     if (this.em.hasComponent(id, StatusEffects)) {
-      for (let statusEffectId of this.em.getComponent(id, StatusEffects).list) {
+      for (let statusEffectId of this.em.getComponent(id, StatusEffects)
+        .contents) {
         this.renderEntity(statusEffectId, stage, tint, pos);
       }
     }

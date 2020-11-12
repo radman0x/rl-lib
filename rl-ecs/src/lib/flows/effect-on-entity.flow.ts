@@ -9,6 +9,7 @@ import {
   SpawnedEffect,
   WorldStateChangeDescription,
 } from '../systems.types';
+import { radClone } from '../systems.utils';
 import { AreaResolver } from '../utils/area-resolver.util';
 
 export type Descriptions = WorldStateChangeDescription &
@@ -25,7 +26,14 @@ export function effectOnEntityFlow(
     start$,
     finish$: start$.pipe(
       take(1),
-      mergeMap((msg) => effectPipeline(msg, em, areaResolver, ender)),
+      mergeMap((msg) =>
+        effectPipeline(
+          radClone({ ...msg, effectOrigin: null }),
+          em,
+          areaResolver,
+          ender
+        )
+      ),
       shareReplay()
     ),
   };

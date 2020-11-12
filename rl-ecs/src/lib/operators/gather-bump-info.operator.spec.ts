@@ -4,6 +4,9 @@ import { Physical, Size } from '../components/physical.model';
 import { Subject } from 'rxjs';
 import { gatherBumpInfo } from './gather-bump-info.operator';
 import { Martial } from '../components/martial.model';
+import { Strength } from '../components/strength.model';
+import { Toughness } from '../components/toughness.model';
+import { WeaponSkill } from '../components/weapon-skill.model';
 describe('Gather bump info', () => {
   let em: EntityManager;
   let targetPos: GridPosData;
@@ -49,7 +52,9 @@ describe('Gather bump info', () => {
   });
   it('should produce correct data when the target can be stood on and there is a combat target', () => {
     const combatTargetId = em.create(
-      new Martial({ strength: 1, toughness: 1, weaponSkill: 1 }),
+      new Strength({ count: 3 }),
+      new Toughness({ count: 3 }),
+      new WeaponSkill({ count: 3 }),
       new GridPos(targetPos)
     ).id;
     em.create(new GridPos(targetPos), new Physical({ size: Size.FILL }));

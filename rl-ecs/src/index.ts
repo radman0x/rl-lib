@@ -39,6 +39,8 @@ export * from './lib/components/energy-cost.model';
 export * from './lib/components/cooldown.model';
 export * from './lib/components/directed.model';
 export * from './lib/components/push.model';
+export * from './lib/components/wielder.model';
+export * from './lib/components/wieldable.model';
 
 export * from './lib/mappers/grim-reaper.system';
 export * from './lib/mappers/mark-for-death.system';
@@ -62,6 +64,7 @@ export * from './lib/flows/global-turn-actions.flow';
 export * from './lib/operators/cost-pipeline.operator';
 export * from './lib/operators/consequence-pipeline.operator';
 export * from './lib/operators/targeting-pipeline.operator';
+export * from './lib/operators/modifiered-entity-pipeline.operator';
 export * from './lib/operators/acquire-positions-pipeline.operator';
 
 export * from './lib/areas/area-spec.model';

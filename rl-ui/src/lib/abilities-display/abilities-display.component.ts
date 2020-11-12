@@ -45,7 +45,6 @@ export class AbilitiesDisplayComponent implements OnInit {
       if (desc) {
         abilityEntries.push({
           label: `${desc.short} - ${cooldown.curr}`,
-          badge: 5,
           id,
         });
 

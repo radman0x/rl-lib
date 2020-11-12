@@ -14,6 +14,7 @@ import { addProperty } from '../systems.utils';
 
 import * as Chance from 'chance';
 import { markForDeath } from '../mappers/mark-for-death.system';
+import { WeaponSkill } from '../components/weapon-skill.model';
 
 interface Args {
   agentId: EntityId;
@@ -51,7 +52,7 @@ export function produceAttackOrders<T extends Args>(
   return out
     .pipe(
       take(1),
-      filter((msg) => msg.agentId && em.hasComponent(msg.agentId, Martial)),
+      filter((msg) => msg.agentId && em.hasComponent(msg.agentId, WeaponSkill)),
       map((msg) => addProperty(msg, 'aggressorId', msg.agentId)),
       mergeMap((msg) => {
         return of(...positionsAroundEntity(msg, em));

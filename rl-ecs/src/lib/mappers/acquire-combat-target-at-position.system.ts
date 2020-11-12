@@ -1,13 +1,13 @@
-import { EntityManager, Entity } from 'rad-ecs';
+import { Id } from '@rad/rl-applib';
+import { Entity, EntityManager } from 'rad-ecs';
+import { WeaponSkill } from '../components/weapon-skill.model';
 import { OperationStep } from '../operation-step.model';
+import { CombatTargetEntity } from '../systems.types';
+import { radClone } from '../systems.utils';
 import {
   entitiesAtPosition,
   EntitiesAtPositionArgs,
 } from './entities-at-position.system';
-import { renameKey, radClone } from '../systems.utils';
-import { CombatTargetEntity } from '../systems.types';
-import { Martial } from '../components/martial.model';
-import { Id } from '@rad/rl-applib';
 
 type Args = EntitiesAtPositionArgs;
 export type AcquireCombatTargetAtPositionArgs = Args;
@@ -25,7 +25,7 @@ function acquireCombatTargetAtPositionStep<T extends Args>(
     em,
     'targetId',
     (candidate) =>
-      candidate.has(Martial) &&
+      candidate.has(WeaponSkill) &&
       (!predicate || (predicate && predicate(candidate)))
   );
   if (acquired.length !== 0) {

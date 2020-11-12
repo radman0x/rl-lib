@@ -7,6 +7,8 @@ import { Martial } from '../components/martial.model';
 import * as Chance from 'chance';
 import { Id } from '@rad/rl-applib';
 import { isValidId } from '@rad/rl-utils';
+import { WeaponSkill } from '../components/weapon-skill.model';
+import { getModifiedComponent } from '../operators/modifiered-entity-pipeline.operator';
 
 type Args = { aggressorId: EntityId | null } & CombatTargetEntity;
 export type ResolveStrikeArgs = Args;
@@ -22,13 +24,21 @@ function resolveStrikeStep<T extends Args>(
   if (!isValidId(msg.combatTargetId) || !isValidId(msg.aggressorId)) {
     return { ...radClone(msg), strikeSuccess: null };
   }
-  const targetMartial = em.getComponent(msg.combatTargetId, Martial);
-  if (targetMartial.weaponSkill === 0) {
+  const targetWeaponSkill = getModifiedComponent(
+    msg.combatTargetId,
+    WeaponSkill,
+    em
+  ).count;
+  if (targetWeaponSkill === 0) {
     return { ...radClone(msg), strikeSuccess: true };
   }
-  const protagMartial = em.getComponent(msg.aggressorId, Martial);
+  const protagWeaponSkill = getModifiedComponent(
+    msg.aggressorId,
+    WeaponSkill,
+    em
+  ).count;
   const BASE_TO_HIT = 6;
-  const wsDiff = protagMartial.weaponSkill - targetMartial.weaponSkill;
+  const wsDiff = protagWeaponSkill - targetWeaponSkill;
   const actualToHit = BASE_TO_HIT - wsDiff;
   const hitRoll = rand.d10();
   let strikeSuccess = false;

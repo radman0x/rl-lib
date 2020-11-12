@@ -13,7 +13,7 @@ import { modifyEffectOutput } from './modify-effect-output.operator';
 import { produceEffectOutput } from './produce-effect-output.operator';
 
 export function effectPipeline<
-  T extends ActiveEffect & EffectTarget & TargetPos & EffectOrigin
+  T extends ActiveEffect & EffectTarget & Partial<TargetPos> & EffectOrigin
 >(
   msg: T,
   em: EntityManager,

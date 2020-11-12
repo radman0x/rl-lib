@@ -4,13 +4,16 @@ import { Subject } from 'rxjs';
 import { Attacks } from '../components/attacks.model';
 import { Martial } from '../components/martial.model';
 import { GridPos, GridPosData } from '../components/position.model';
+import { Strength } from '../components/strength.model';
+import { Toughness } from '../components/toughness.model';
+import { WeaponSkill } from '../components/weapon-skill.model';
 import { CanOccupyPositionOut } from '../mappers/can-occupy-position.system';
 import { CanStandAtOut } from '../mappers/can-stand-at-position.system';
 import {
   CombatTargetEntity,
   DamageType,
   MovingEntity,
-  TargetPos
+  TargetPos,
 } from '../systems.types';
 import { resolveBump } from './resolve-bump.operator';
 
@@ -25,12 +28,16 @@ describe('', () => {
     em.indexBy(GridPos);
     targetPos = { x: 0, y: 1, z: 0 };
     movingId = em.create(
-      new Martial({ strength: 1, toughness: 1, weaponSkill: 1 }),
+      new Strength({ count: 1 }),
+      new Toughness({ count: 1 }),
+      new WeaponSkill({ count: 1 }),
       new Attacks({ damage: 1 })
     ).id;
     aggressorId = movingId;
     combatTargetId = em.create(
-      new Martial({ strength: 1, toughness: 1, weaponSkill: 1 })
+      new Strength({ count: 1 }),
+      new Toughness({ count: 1 }),
+      new WeaponSkill({ count: 1 })
     ).id;
   });
 
@@ -44,7 +51,7 @@ describe('', () => {
         isBlocked: null,
         canStand: true,
         canOccupy: true,
-        targetPos
+        targetPos,
       },
       em,
       rand
@@ -55,7 +62,7 @@ describe('', () => {
       strikeSuccess: null,
       woundSuccess: null,
       newPosition: targetPos,
-      movingId
+      movingId,
     });
   });
 
@@ -69,7 +76,7 @@ describe('', () => {
         isBlocked: null,
         canStand: null,
         canOccupy: null,
-        targetPos: null
+        targetPos: null,
       },
       em,
       rand
@@ -79,7 +86,7 @@ describe('', () => {
       damageTargetId: null,
       strikeSuccess: true,
       woundSuccess: false,
-      newPosition: null
+      newPosition: null,
     });
   });
 
@@ -93,7 +100,7 @@ describe('', () => {
         isBlocked: null,
         canStand: null,
         canOccupy: null,
-        targetPos: null
+        targetPos: null,
       },
       em,
       rand
@@ -101,12 +108,12 @@ describe('', () => {
     expect(out).toMatchObject({
       damage: {
         amount: 1,
-        type: DamageType.PHYSICAL
+        type: DamageType.PHYSICAL,
       },
       damageTargetId: combatTargetId,
       strikeSuccess: true,
       woundSuccess: true,
-      newPosition: null
+      newPosition: null,
     });
   });
 });

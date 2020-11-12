@@ -2,6 +2,8 @@ import { CompassDirection, DIR_FROM_KEY_VI } from '@rad/rl-utils';
 import { Subject } from 'rxjs';
 import { filter, map, tap } from 'rxjs/operators';
 
+import * as rxjsSpy from 'rxjs-spy';
+
 export class InputHandler {
   public keyInput$ = new Subject<string>();
 
@@ -17,6 +19,7 @@ export class InputHandler {
     this.keyInput$
       .pipe(
         filter((key) => key === '.' || key === '5'),
+        rxjsSpy.operators.tag('inputHandler.rest'),
         tap((key) => console.log(`Resting: ${key}`))
       )
       .subscribe(this.rest$);
@@ -24,7 +27,7 @@ export class InputHandler {
     this.keyInput$
       .pipe(
         filter((key) => DIR_FROM_KEY_VI.has(key)),
-        tap((key) => console.log(`Move key: ${key}`)),
+        rxjsSpy.operators.tag('inputHandler.move'),
         map((key) => DIR_FROM_KEY_VI.get(key)!)
       )
       .subscribe(this.move$);
@@ -32,6 +35,7 @@ export class InputHandler {
     this.keyInput$
       .pipe(
         filter((key) => key === '<' || key === '>'),
+        rxjsSpy.operators.tag('inputHandler.climb'),
         tap((key) => console.log(`Climb key: ${key}`))
       )
       .subscribe(this.climb$);
@@ -39,27 +43,27 @@ export class InputHandler {
     this.keyInput$
       .pipe(
         filter((key) => key === 'a'),
-        tap((key) => console.log(`Apply key: ${key}`))
+        rxjsSpy.operators.tag('inputHandler.apply')
       )
       .subscribe(this.applyItem$);
 
     this.keyInput$
       .pipe(
         filter((key) => key === 'A'),
-        tap((key) => console.log(`Use ability key: ${key}`))
+        rxjsSpy.operators.tag('inputHandler.ability')
       )
       .subscribe(this.useAbility$);
 
     this.keyInput$
       .pipe(
         filter((key) => key === ','),
-        tap((key) => console.log(`Collect key: ${key}`))
+        rxjsSpy.operators.tag('inputHandler.collect')
       )
       .subscribe(this.collect$);
     this.keyInput$
       .pipe(
         filter((key) => key === 'Escape'),
-        tap((key) => console.log(`Escape key: ${key}`))
+        rxjsSpy.operators.tag('inputHandler.escape')
       )
       .subscribe(this.escape$);
   }

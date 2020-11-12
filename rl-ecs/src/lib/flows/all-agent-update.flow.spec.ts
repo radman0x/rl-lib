@@ -3,19 +3,19 @@ import * as Chance from 'chance';
 import { EntityId, EntityManager } from 'rad-ecs';
 import { updateDistanceMap } from '../actioners/update-distance-map.actioner';
 import { Alignment, AlignmentType } from '../components/alignment.model';
+import { ApproachTarget } from '../components/approach-target.model';
 import { DistanceMap } from '../components/distance-map.model';
-import { Martial } from '../components/martial.model';
 import { Mobile } from '../components/mobile.model';
 import { MovingAgent } from '../components/moving-agent.model';
 import { Physical, Size } from '../components/physical.model';
 import { GridPos } from '../components/position.model';
 import { Sighted } from '../components/sighted.model';
+import { Strength } from '../components/strength.model';
+import { Toughness } from '../components/toughness.model';
+import { WeaponSkill } from '../components/weapon-skill.model';
 import { Order, SpatialReport } from '../systems.types';
 import { AreaResolver } from '../utils/area-resolver.util';
 import { allAgentUpdateFlow } from './all-agent-update.flow';
-
-import * as rxjsSpy from 'rxjs-spy';
-import { ApproachTarget } from '../components/approach-target.model';
 
 describe('All agent update', () => {
   let em: EntityManager;
@@ -90,13 +90,14 @@ describe('All agent update', () => {
   it('should get an order summary for an attack for one agent', () => {
     const combatTargetId = em.create(
       new GridPos({ x: 1, y: 2, z: 1 }),
-      new Martial({ weaponSkill: 3, toughness: 3, strength: 3 }),
+      new Strength({ count: 3 }),
+      new Toughness({ count: 3 }),
+      new WeaponSkill({ count: 3 }),
       new Alignment({ type: AlignmentType.GOOD })
     ).id;
-    em.setComponent(
-      agentId,
-      new Martial({ weaponSkill: 3, toughness: 3, strength: 3 })
-    );
+    em.setComponent(agentId, new Strength({ count: 3 }));
+    em.setComponent(agentId, new Toughness({ count: 3 }));
+    em.setComponent(agentId, new WeaponSkill({ count: 3 }));
     process.start$.next();
     expect(results.error).toBe(false);
     expect(results.completedActions[0]).toMatchObject({

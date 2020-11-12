@@ -31,6 +31,6 @@ describe('Modify effect output', () => {
       error: (err) => (error = err),
     });
     expect(error).toEqual(false);
-    expect(out).toEqual({ effectTargetId, teleport: null });
+    expect(out).toMatchObject({ effectTargetId, teleport: null });
   });
 });

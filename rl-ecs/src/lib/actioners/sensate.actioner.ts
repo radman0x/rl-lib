@@ -38,7 +38,7 @@ function sensateStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
     em.hasComponent(msg.effectTargetId, Mental)
   ) {
     const statusEffects = new StatusEffects({
-      list: [
+      contents: [
         em.create(
           new Modifier({
             entries: [
@@ -62,7 +62,7 @@ function sensateStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
           new MemberOf({
             component: StatusEffects,
             id: msg.effectTargetId,
-            property: 'list',
+            property: 'contents',
           })
         ).id,
       ],

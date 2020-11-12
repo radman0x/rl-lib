@@ -1,7 +1,20 @@
-import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
-import { Description, Inventory } from '@rad/rl-ecs';
+import {
+  ChangeDetectorRef,
+  Component,
+  Input,
+  OnInit,
+  Output,
+} from '@angular/core';
+import {
+  Description,
+  Inventory,
+  recursiveObserveEntity,
+  Wieldable,
+} from '@rad/rl-ecs';
+import { Equipped } from 'libs/rl-ecs/src/lib/components/equipped.model';
 import { MenuItem } from 'primeng/api';
-import { EntityId, EntityManager } from 'rad-ecs';
+import { Entity, EntityId, EntityManager } from 'rad-ecs';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'rad-inventory-display',
@@ -11,6 +24,11 @@ import { EntityId, EntityManager } from 'rad-ecs';
 export class InventoryDisplayComponent implements OnInit {
   @Input() em: EntityManager;
   @Input() inventoryId: EntityId;
+  @Output() wield = new Subject<EntityId>();
+
+  contextItems = {
+    label: 'something',
+  };
 
   public inventoryEntries: MenuItem[] = [];
 
@@ -25,39 +43,55 @@ export class InventoryDisplayComponent implements OnInit {
         `Inventory entity with id: ${this.inventoryId} doesn't exist`
       );
     }
-    if (this.em.hasComponent(this.inventoryId, Inventory)) {
-      const inventory = this.em.getComponent(this.inventoryId, Inventory);
-      this.updateInventory(inventory);
-    }
-
-    this.observeInventory();
+    this.inventoryEntries = [{ label: 'Inventory', items: [], expanded: true }];
+    this.update();
+    recursiveObserveEntity(this.inventoryId, this.em).subscribe(() =>
+      this.update()
+    );
   }
 
-  private updateInventory(current: Inventory) {
-    const itemEntries = [];
-    this.inventoryEntries = [
-      { label: 'Inventory', items: itemEntries, expanded: true },
-    ];
-    for (let id of current.contents) {
-      const desc = this.em.getComponent(id, Description);
-      if (desc) {
-        itemEntries.push({
-          label: desc.short,
-        });
+  private update() {
+    if (this.em.hasComponent(this.inventoryId, Inventory)) {
+      for (let id of this.em.getComponent(this.inventoryId, Inventory)
+        .contents) {
+        const entry = this.inventoryItemEntry(id);
+        const existing = this.inventoryEntries[0].items.find(
+          (entry) => entry.id === id.toString()
+        );
+        if (existing) {
+          Object.assign(existing, entry);
+        } else {
+          this.inventoryEntries[0].items.push(entry);
+        }
       }
     }
     this.changeDetector.detectChanges();
   }
 
-  private observeInventory() {
-    this.em
-      .observeEntityComponent$(this.inventoryId, Inventory)
-      .subscribe((change) => {
-        if (change.c) {
-          this.updateInventory(change.c);
-        } else {
-          console.log(`Inventory disappeared!? hmmmm..`);
-        }
-      });
+  private inventoryItemEntry(itemId: EntityId): MenuItem | null {
+    const desc = this.em.getComponent(itemId, Description);
+    const equipped = this.em.hasComponent(itemId, Equipped)
+      ? ` - EQUIPPED`
+      : ``;
+    if (desc) {
+      let actions = null;
+      if (this.em.hasComponent(itemId, Wieldable)) {
+        actions = actions || [];
+        const label = this.em.hasComponent(itemId, Equipped)
+          ? 'Stop Wielding'
+          : 'Wield';
+        actions.push({
+          label,
+          command: () => this.wield.next(itemId),
+        });
+      }
+      return {
+        label: `${desc.short}${equipped}`,
+        items: actions,
+        id: itemId.toString(),
+      };
+    } else {
+      return null;
+    }
   }
 }

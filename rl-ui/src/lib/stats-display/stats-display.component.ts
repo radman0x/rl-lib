@@ -1,5 +1,15 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { Attacks, Martial, Wounds } from '@rad/rl-ecs';
+import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import {
+  Attacks,
+  getModifiedComponent,
+  Martial,
+  recursiveObserveEntity,
+  Wounds,
+} from '@rad/rl-ecs';
+import { Damage } from 'libs/rl-ecs/src/lib/components/damage.model';
+import { Strength } from 'libs/rl-ecs/src/lib/components/strength.model';
+import { Toughness } from 'libs/rl-ecs/src/lib/components/toughness.model';
+import { WeaponSkill } from 'libs/rl-ecs/src/lib/components/weapon-skill.model';
 import { EntityId, EntityManager } from 'rad-ecs';
 
 @Component({
@@ -29,7 +39,7 @@ export class StatsDisplayComponent implements OnInit {
   private WARD_INDEX = 5;
   private W_INDEX = 6;
 
-  constructor() {}
+  constructor(private changeDetector: ChangeDetectorRef) {}
 
   ngOnInit() {
     if (!this.em) {
@@ -40,81 +50,42 @@ export class StatsDisplayComponent implements OnInit {
         `Inventory entity with id: ${this.statsEntityId} doesn't exist`
       );
     }
-    if (this.em.hasComponent(this.statsEntityId, Martial)) {
-      const martial = this.em.getComponent(this.statsEntityId, Martial);
-      this.setMartial(martial);
+
+    this.updateValues();
+
+    recursiveObserveEntity(this.statsEntityId, this.em).subscribe(() =>
+      this.updateValues()
+    );
+  }
+
+  updateValues() {
+    this.updateValue(WeaponSkill, this.WS_INDEX, (ws) => ws.count.toString());
+    this.updateValue(Strength, this.S_INDEX, (s) => s.count.toString());
+    this.updateValue(Toughness, this.T_INDEX, (t) => t.count.toString());
+    this.updateValue(Attacks, this.D_INDEX, (a) => a.damage.toString());
+    this.updateValue(Wounds, this.W_INDEX, (w) => w.current.toString());
+
+    this.changeDetector.detectChanges();
+  }
+
+  private updateValue<
+    T extends
+      | typeof Strength
+      | typeof Toughness
+      | typeof Attacks
+      | typeof Wounds
+  >(
+    componentType: T,
+    index: number,
+    extractor: (c: InstanceType<T>) => string
+  ) {
+    const value = getModifiedComponent(
+      this.statsEntityId,
+      componentType,
+      this.em
+    );
+    if (value) {
+      this.stats[index].value = extractor(value);
     }
-    if (this.em.hasComponent(this.statsEntityId, Attacks)) {
-      const attacks = this.em.getComponent(this.statsEntityId, Attacks);
-      this.stats[this.D_INDEX].value = attacks.damage.toString();
-    }
-    if (this.em.hasComponent(this.statsEntityId, Wounds)) {
-      const wounds = this.em.getComponent(this.statsEntityId, Wounds);
-      this.setWounds(wounds);
-    }
-    this.stats[this.ARMOR_INDEX].value = '-';
-    this.stats[this.WARD_INDEX].value = '-';
-
-    this.observeMartialComponent();
-    this.observeWoundsComponent();
-    this.observeAttacksComponent();
-
-    this.em.observeInitialisation$().subscribe(() => {
-      this.observeMartialComponent();
-      this.observeWoundsComponent();
-      this.observeAttacksComponent();
-    });
-  }
-
-  private setMartial(martial: Martial) {
-    this.stats[this.WS_INDEX].value = martial.weaponSkill.toString();
-    this.stats[this.S_INDEX].value = martial.strength.toString();
-    this.stats[this.T_INDEX].value = martial.toughness.toString();
-  }
-
-  private observeMartialComponent() {
-    this.em
-      .observeEntityComponent$(this.statsEntityId, Martial)
-      .subscribe((change) => {
-        if (change.c) {
-          this.setMartial(change.c);
-        } else {
-          console.log(`Martial disappeared!? hmmmm..`);
-        }
-      });
-  }
-
-  private setWounds(wounds: Wounds) {
-    this.stats[
-      this.W_INDEX
-    ].value = `${wounds.current.toString()} / ${wounds.max.toString()}`;
-  }
-
-  private observeWoundsComponent() {
-    this.em
-      .observeEntityComponent$(this.statsEntityId, Wounds)
-      .subscribe((change) => {
-        if (change.c) {
-          this.setWounds(change.c);
-        } else {
-          console.log(`Wounds disappeared!? hmmmm..`);
-        }
-      });
-  }
-
-  private setAttacks(attacks: Attacks) {
-    this.stats[this.D_INDEX].value = attacks.damage.toString();
-  }
-
-  private observeAttacksComponent() {
-    this.em
-      .observeEntityComponent$(this.statsEntityId, Attacks)
-      .subscribe((change) => {
-        if (change.c) {
-          this.setAttacks(change.c);
-        } else {
-          console.log(`Attacks disappeared!? hmmmm..`);
-        }
-      });
   }
 }
