@@ -1,6 +1,8 @@
 import { ComponentConstructor, Entity, EntityId, EntityManager } from 'rad-ecs';
 import { merge, Observable, of } from 'rxjs';
 import { expand, map, mergeMap, takeLast, tap, toArray } from 'rxjs/operators';
+import { ArmorDelta } from '../components/armor-delta.model';
+import { Armor } from '../components/armor.model';
 import { Equipped } from '../components/equipped.model';
 import { Inventory } from '../components/inventory.model';
 import { Mental, MentalOverride } from '../components/mental.model';
@@ -114,6 +116,7 @@ export function modifieredEntity<T extends Args>(msg: T, em: EntityManager) {
           return of({ ...msg, modifierId: msg.modifiers.pop() }).pipe(
             map((msg) => deltaValue(msg, em, Strength, StrengthDelta)),
             map((msg) => deltaValue(msg, em, WeaponSkill, WeaponSkillDelta)),
+            map((msg) => deltaValue(msg, em, Armor, ArmorDelta)),
             map((msg) => overrideValue(msg, em, Mental, MentalOverride))
           );
         } else {

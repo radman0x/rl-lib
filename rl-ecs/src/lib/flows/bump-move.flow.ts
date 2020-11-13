@@ -2,7 +2,7 @@ import { CompassDirection } from '@rad/rl-utils';
 import * as Chance from 'chance';
 import { EntityId, EntityManager } from 'rad-ecs';
 import { Observer, of, Subject } from 'rxjs';
-import { filter, map, share, shareReplay, tap } from 'rxjs/operators';
+import { filter, map, mergeMap, share, shareReplay, tap } from 'rxjs/operators';
 import { spatial } from '../actioners/spatial.actioner';
 import { updateDistanceMap } from '../actioners/update-distance-map.actioner';
 import { Description } from '../components/description.model';
@@ -23,15 +23,7 @@ import { radClone } from '../systems.utils';
 import * as rxjsSpy from 'rxjs-spy';
 import { logName } from '@rad/rl-applib';
 
-function playerAttackString(
-  em: EntityManager,
-  msg: {
-    combatTargetId: EntityId;
-    damage: { amount: number };
-    strikeSuccess: boolean;
-    woundSuccess: boolean;
-  } & ReapedEntity
-): string {
+function playerAttackString(em: EntityManager, msg: AttackOrder): string {
   const pluraler = (n: number) => (n === 1 ? '' : 's');
   const targetDescription = em.hasComponent(msg.combatTargetId, Description)
     ? em.getComponent(msg.combatTargetId, Description).short
@@ -39,10 +31,12 @@ function playerAttackString(
   if (msg.reapedId) {
     return `The ${targetDescription} is killed!`;
   }
-  if (msg.woundSuccess && msg.strikeSuccess) {
+  if (msg.woundSuccess && msg.strikeSuccess && !msg.armorSaveSuccess) {
     return `You hit the ${targetDescription}, inflicting ${
       msg.damage.amount
     } wound${pluraler(msg.damage.amount)}`;
+  } else if (msg.woundSuccess && msg.strikeSuccess && msg.armorSaveSuccess) {
+    return `Your blow is deflected by ${targetDescription}'s armor!`;
   } else if (msg.strikeSuccess) {
     return `You hit the ${targetDescription} but fail to cause any damage`;
   } else {
@@ -71,7 +65,7 @@ export function attemptMoveFlow<T extends Args>(
         em
       )
     ),
-    map((msg) => assessBumpMove(msg, em, rand)),
+    mergeMap((msg) => assessBumpMove(msg, em, rand)),
     rxjsSpy.operators.tag(logName(tagBase, 'assessed')),
     shareReplay()
   );
@@ -79,10 +73,6 @@ export function attemptMoveFlow<T extends Args>(
   const attacked$ = assessed$.pipe(
     filter((msg) => !!msg.attack),
     map((msg) => ({ ...msg.attack, effectReport: null })),
-    map((msg) => {
-      console.log(`${JSON.stringify(msg, null, 2)}`);
-      return msg;
-    }),
     map((msg) => integrity(msg, em)),
     map((msg) => markForDeath(msg, em)),
     tap((msg) => messageLog && messageLog(playerAttackString(em, msg))),

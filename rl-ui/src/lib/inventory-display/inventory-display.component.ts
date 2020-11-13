@@ -9,6 +9,7 @@ import {
   Description,
   Inventory,
   recursiveObserveEntity,
+  Wearable,
   Wieldable,
 } from '@rad/rl-ecs';
 import { Equipped } from 'libs/rl-ecs/src/lib/components/equipped.model';
@@ -25,6 +26,7 @@ export class InventoryDisplayComponent implements OnInit {
   @Input() em: EntityManager;
   @Input() inventoryId: EntityId;
   @Output() wield = new Subject<EntityId>();
+  @Output() wear = new Subject<EntityId>();
 
   contextItems = {
     label: 'something',
@@ -83,6 +85,16 @@ export class InventoryDisplayComponent implements OnInit {
         actions.push({
           label,
           command: () => this.wield.next(itemId),
+        });
+      }
+      if (this.em.hasComponent(itemId, Wearable)) {
+        actions = actions || [];
+        const label = this.em.hasComponent(itemId, Equipped)
+          ? 'Take off'
+          : 'Wear';
+        actions.push({
+          label,
+          command: () => this.wear.next(itemId),
         });
       }
       return {

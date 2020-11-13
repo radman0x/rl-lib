@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import {
+  Armor,
   Attacks,
   getModifiedComponent,
   Martial,
@@ -64,6 +65,7 @@ export class StatsDisplayComponent implements OnInit {
     this.updateValue(Toughness, this.T_INDEX, (t) => t.count.toString());
     this.updateValue(Attacks, this.D_INDEX, (a) => a.damage.toString());
     this.updateValue(Wounds, this.W_INDEX, (w) => w.current.toString());
+    this.updateValue(Armor, this.ARMOR_INDEX, (arm) => arm.count.toString());
 
     this.changeDetector.detectChanges();
   }
@@ -74,6 +76,7 @@ export class StatsDisplayComponent implements OnInit {
       | typeof Toughness
       | typeof Attacks
       | typeof Wounds
+      | typeof Armor
   >(
     componentType: T,
     index: number,

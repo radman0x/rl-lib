@@ -9,7 +9,6 @@ describe('Collect item flow', () => {
   let em: EntityManager;
   let collectorId: EntityId;
   let collectPos: { x: number; y: number; z: number };
-  let fixedPos: { x: number; y: number; z: number };
   let emptyPos: { x: number; y: number; z: number };
   let baseItemComponents: Component[];
   let results: {
@@ -41,7 +40,6 @@ describe('Collect item flow', () => {
 
     emptyPos = { x: 1, y: 1, z: 1 };
     collectPos = { x: 1, y: 1, z: 1 };
-    fixedPos = { x: 2, y: 1, z: 1 };
     baseItemComponents = [new Physical({ size: Size.SMALL })];
     collectorId = em.create(new Inventory({ contents: [999] })).id;
   });

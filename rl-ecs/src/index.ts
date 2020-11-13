@@ -42,6 +42,8 @@ export * from './lib/components/push.model';
 export * from './lib/components/wielder.model';
 export * from './lib/components/wieldable.model';
 export * from './lib/components/modifier-priority.model';
+export * from './lib/components/armor.model';
+export * from './lib/components/wearable.model';
 
 export * from './lib/mappers/grim-reaper.system';
 export * from './lib/mappers/mark-for-death.system';

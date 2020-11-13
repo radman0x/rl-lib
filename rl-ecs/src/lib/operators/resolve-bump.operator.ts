@@ -22,6 +22,9 @@ import {
 import { OperationStep } from '../operation-step.model';
 
 import * as Chance from 'chance';
+import { resolveArmorSave } from '../mappers/resolve-armor-save.system';
+import { of } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 type Args = ResolveStrikeArgs & ResolveWoundArgs & ResolveMoveArgs;
 export type ResolveBumpArgs = Args;
@@ -32,20 +35,16 @@ type Out = ResolveStrikeOut &
   ResolveMoveOut;
 export type ResolveBumpOut = Out;
 
-function resolveBumpStep<T extends Args>(
+export function resolveBump<T extends Args>(
   msg: T,
   em: EntityManager,
   rand: Chance.Chance
-): Id<T & Out> {
-  return resolveMove(
-    resolveMeleeAttackDamage(
-      resolveWound(resolveStrike(msg, em, rand), em, rand),
-      em
-    )
+) {
+  return of(msg).pipe(
+    map((msg) => resolveMove(msg)),
+    map((msg) => resolveStrike(msg, em, rand)),
+    map((msg) => resolveWound(msg, em, rand)),
+    map((msg) => resolveArmorSave(msg, em, rand)),
+    map((msg) => resolveMeleeAttackDamage(msg, em))
   );
 }
-
-type StepFunc = OperationStep<Args, Out>;
-const typeCheck: StepFunc = resolveBumpStep;
-
-export const resolveBump = typeCheck as typeof resolveBumpStep;

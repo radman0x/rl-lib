@@ -15,6 +15,7 @@ import { addProperty } from '../systems.utils';
 import * as Chance from 'chance';
 import { markForDeath } from '../mappers/mark-for-death.system';
 import { WeaponSkill } from '../components/weapon-skill.model';
+import { resolveArmorSave } from '../mappers/resolve-armor-save.system';
 
 interface Args {
   agentId: EntityId;
@@ -31,10 +32,12 @@ function combatString(msg: AttackOrder, em: EntityManager): string | null {
     if (msg.reapedId) {
       return `The ${aggressorDescription} kills ${targetDescription}!`;
     }
-    if (msg.woundSuccess && msg.strikeSuccess) {
+    if (msg.woundSuccess && msg.strikeSuccess && !msg.armorSaveSuccess) {
       return `The ${aggressorDescription} wounds ${targetDescription}`;
+    } else if (msg.woundSuccess && msg.strikeSuccess && msg.armorSaveSuccess) {
+      return `The ${aggressorDescription}'s blow is deflected by ${targetDescription}'s armor!`;
     } else if (msg.strikeSuccess) {
-      return `the ${aggressorDescription} hits ${targetDescription} but fails to cause any damage`;
+      return `The ${aggressorDescription} hits ${targetDescription} but fails to cause any damage`;
     } else {
       return `The ${aggressorDescription} misses ${targetDescription}`;
     }
@@ -75,10 +78,11 @@ export function produceAttackOrders<T extends Args>(
       ),
       map((msg) => resolveStrike(msg, em, rand)),
       map((msg) => resolveWound(msg, em, rand)),
-      map((msg) => resolveMeleeAttackDamage(msg, em)),
-      map((msg) => markForDeath(msg, em))
+      map((msg) => resolveArmorSave(msg, em, rand))
     )
     .pipe(
+      map((msg) => resolveMeleeAttackDamage(msg, em)),
+      map((msg) => markForDeath(msg, em)),
       map((msg) => {
         let attack: AttackOrder = null;
         if (msg.combatTargetId) {
@@ -89,6 +93,7 @@ export function produceAttackOrders<T extends Args>(
             damageTargetId: msg.damageTargetId,
             strikeSuccess: msg.strikeSuccess,
             woundSuccess: msg.woundSuccess,
+            armorSaveSuccess: msg.armorSaveSuccess,
             reapedId: msg.reapedId,
           };
         }

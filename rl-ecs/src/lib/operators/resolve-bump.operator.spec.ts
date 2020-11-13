@@ -1,20 +1,11 @@
 import * as Chance from 'chance';
 import { EntityId, EntityManager } from 'rad-ecs';
-import { Subject } from 'rxjs';
 import { Attacks } from '../components/attacks.model';
-import { Martial } from '../components/martial.model';
 import { GridPos, GridPosData } from '../components/position.model';
 import { Strength } from '../components/strength.model';
 import { Toughness } from '../components/toughness.model';
 import { WeaponSkill } from '../components/weapon-skill.model';
-import { CanOccupyPositionOut } from '../mappers/can-occupy-position.system';
-import { CanStandAtOut } from '../mappers/can-stand-at-position.system';
-import {
-  CombatTargetEntity,
-  DamageType,
-  MovingEntity,
-  TargetPos,
-} from '../systems.types';
+import { DamageType } from '../systems.types';
 import { resolveBump } from './resolve-bump.operator';
 
 describe('', () => {
@@ -43,7 +34,8 @@ describe('', () => {
 
   it('should produce correct data when a move can be completed', () => {
     let rand = new Chance();
-    const out = resolveBump(
+    let out: any;
+    resolveBump(
       {
         movingId,
         aggressorId: null,
@@ -55,7 +47,7 @@ describe('', () => {
       },
       em,
       rand
-    );
+    ).subscribe((msg) => (out = msg));
     expect(out).toMatchObject({
       damage: null,
       damageTargetId: null,
@@ -68,7 +60,8 @@ describe('', () => {
 
   it('should produce correct data when combat results in a hit only', () => {
     let rand = new Chance(3);
-    const out = resolveBump(
+    let out: any;
+    resolveBump(
       {
         movingId,
         aggressorId,
@@ -80,7 +73,7 @@ describe('', () => {
       },
       em,
       rand
-    );
+    ).subscribe((msg) => (out = msg));
     expect(out).toMatchObject({
       damage: null,
       damageTargetId: null,
@@ -92,7 +85,8 @@ describe('', () => {
 
   it('should produce correct data when combat results in a hit and a wound', () => {
     let rand = new Chance(4);
-    const out = resolveBump(
+    let out: any;
+    resolveBump(
       {
         movingId,
         aggressorId,
@@ -104,7 +98,7 @@ describe('', () => {
       },
       em,
       rand
-    );
+    ).subscribe((msg) => (out = msg));
     expect(out).toMatchObject({
       damage: {
         amount: 1,

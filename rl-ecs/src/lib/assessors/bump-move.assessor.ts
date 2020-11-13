@@ -2,7 +2,7 @@ import { CompassDirection } from '@rad/rl-utils';
 import * as Chance from 'chance';
 import { EntityManager } from 'rad-ecs';
 import { Subject } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { map, mergeMap, take } from 'rxjs/operators';
 import { positionNextToEntity } from '../mappers/position-next-to-entity.system';
 import { assessBumpMove } from '../operators/assess-bump-move.operator';
 import { AttackOrder, MoveOrder, MovingEntity } from '../systems.types';
@@ -32,7 +32,7 @@ export function bumpMoveAssessor(em: EntityManager, rand: Chance.Chance) {
           em
         )
       ),
-      map((msg) => assessBumpMove(msg, em, rand))
+      mergeMap((msg) => assessBumpMove(msg, em, rand))
     )
     .subscribe(out.finish$);
 

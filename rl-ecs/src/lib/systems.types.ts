@@ -73,6 +73,10 @@ export interface WoundResult {
   woundSuccess: boolean | null;
 }
 
+export interface ArmorSaveResult {
+  armorSaveSuccess: boolean | null;
+}
+
 export interface WoundsInflicted {
   woundsInflicted: number | null;
 }
@@ -196,6 +200,7 @@ export interface AttackOrder {
   aggressorId: EntityId;
   strikeSuccess: boolean;
   woundSuccess: boolean;
+  armorSaveSuccess: boolean;
   damage: DamageData | null;
   damageTargetId: EntityId | null;
   reapedId: EntityId | null;

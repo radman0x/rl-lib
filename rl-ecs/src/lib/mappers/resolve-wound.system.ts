@@ -1,14 +1,13 @@
-import { d10, isValidId } from '@rad/rl-utils';
-import { EntityManager, EntityId } from 'rad-ecs';
-import { Martial } from '../components/martial.model';
-import { OperationStep } from '../operation-step.model';
-import { CombatTargetEntity, WoundResult } from '../systems.types';
-import { radClone } from '../systems.utils';
-import * as Chance from 'chance';
 import { Id } from '@rad/rl-applib';
+import { isValidId } from '@rad/rl-utils';
+import * as Chance from 'chance';
+import { EntityId, EntityManager } from 'rad-ecs';
 import { Strength } from '../components/strength.model';
 import { Toughness } from '../components/toughness.model';
+import { OperationStep } from '../operation-step.model';
 import { getModifiedComponent } from '../operators/modifiered-entity-pipeline.operator';
+import { CombatTargetEntity, WoundResult } from '../systems.types';
+import { radClone } from '../systems.utils';
 
 type Args = { aggressorId: EntityId | null } & CombatTargetEntity;
 export type ResolveWoundArgs = Args;

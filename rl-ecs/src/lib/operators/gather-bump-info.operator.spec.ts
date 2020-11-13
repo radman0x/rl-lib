@@ -23,7 +23,8 @@ describe('Gather bump info', () => {
   });
 
   it('should produce correct data when there are no entities at the target', () => {
-    const out = gatherBumpInfo({ targetPos: otherPos }, em);
+    let out: any;
+    gatherBumpInfo({ targetPos: otherPos }, em).subscribe((msg) => (out = msg));
     expect(out).toMatchObject({
       targetPos: otherPos,
       canOccupy: true,
@@ -32,7 +33,8 @@ describe('Gather bump info', () => {
     });
   });
   it('should produce correct data when the target can be stood on', () => {
-    const out = gatherBumpInfo({ targetPos }, em);
+    let out: any;
+    gatherBumpInfo({ targetPos }, em).subscribe((msg) => (out = msg));
     expect(out).toMatchObject({
       targetPos,
       canOccupy: true,
@@ -42,7 +44,8 @@ describe('Gather bump info', () => {
   });
   it('should produce correct data when the target can be stood on but cannot be occupied', () => {
     em.create(new GridPos(targetPos), new Physical({ size: Size.FILL }));
-    const out = gatherBumpInfo({ targetPos }, em);
+    let out: any;
+    gatherBumpInfo({ targetPos }, em).subscribe((msg) => (out = msg));
     expect(out).toMatchObject({
       targetPos,
       canOccupy: false,
@@ -58,7 +61,8 @@ describe('Gather bump info', () => {
       new GridPos(targetPos)
     ).id;
     em.create(new GridPos(targetPos), new Physical({ size: Size.FILL }));
-    const out = gatherBumpInfo({ targetPos }, em);
+    let out: any;
+    gatherBumpInfo({ targetPos }, em).subscribe((msg) => (out = msg));
     expect(out).toMatchObject({
       targetPos,
       canOccupy: false,

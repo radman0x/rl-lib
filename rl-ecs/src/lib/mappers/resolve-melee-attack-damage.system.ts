@@ -3,6 +3,7 @@ import { EntityId, EntityManager } from 'rad-ecs';
 import { Attacks } from '../components/attacks.model';
 import { OperationStep } from '../operation-step.model';
 import {
+  ArmorSaveResult,
   CombatTargetEntity,
   Damaged,
   DamageTargetEntity,
@@ -14,6 +15,7 @@ import { radClone } from '../systems.utils';
 
 type Args = { aggressorId: EntityId } & StrikeResult &
   WoundResult &
+  ArmorSaveResult &
   CombatTargetEntity;
 export type ResolveMeleeAttackDamageArgs = Args;
 
@@ -24,7 +26,7 @@ function resolveMeleeAttackDamageStep<T extends Args>(
   msg: T,
   em: EntityManager
 ): Id<T & Out> {
-  if (!msg.woundSuccess || !msg.strikeSuccess) {
+  if (!msg.woundSuccess || !msg.strikeSuccess || msg.armorSaveSuccess) {
     // console.log(`COMBAT: Wound not occurring`);
     return { ...radClone(msg), damage: null, damageTargetId: null };
   }
