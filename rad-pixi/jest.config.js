@@ -1,8 +1,7 @@
 module.exports = {
-  name: 'rad-pixi',
-  preset: '../../jest.config.js',
+  preset: '../../jest.preset.js',
   transform: {
-    '^.+\\.[tj]sx?$': 'ts-jest'
+    '^.+\\.[tj]sx?$': 'ts-jest',
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'html'],
   coverageDirectory: '../../coverage/libs/rad-pixi',
@@ -12,7 +11,10 @@ module.exports = {
       tsConfig: './tsconfig.spec.json',
       diagnostics: { warnOnly: true },
       stringifyContentPathRegex: '\\.html$',
-      astTransformers: ['jest-preset-angular/InlineHtmlStripStylesTransformer']
-    }
-  }
+      astTransformers: {
+        before: ['jest-preset-angular/InlineHtmlStripStylesTransformer'],
+      },
+    },
+  },
+  displayName: 'rad-pixi',
 };

@@ -1,10 +1,9 @@
 module.exports = {
-  name: 'rl-ui',
-  preset: '../../jest.config.js',
+  preset: '../../jest.preset.js',
   coverageDirectory: '../../coverage/libs/rl-ui',
   snapshotSerializers: [
     'jest-preset-angular/AngularSnapshotSerializer.js',
-    'jest-preset-angular/HTMLCommentSerializer.js'
+    'jest-preset-angular/HTMLCommentSerializer.js',
   ],
   setupFilesAfterEnv: ['./src/test-setup.ts'],
   globals: {
@@ -12,7 +11,10 @@ module.exports = {
       tsConfig: './tsconfig.spec.json',
       diagnostics: { warnOnly: true },
       stringifyContentPathRegex: '\\.html$',
-      astTransformers: ['jest-preset-angular/InlineHtmlStripStylesTransformer']
-    }
-  }
+      astTransformers: {
+        before: ['jest-preset-angular/InlineHtmlStripStylesTransformer'],
+      },
+    },
+  },
+  displayName: 'rl-ui',
 };

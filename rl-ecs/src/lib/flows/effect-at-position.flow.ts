@@ -2,15 +2,8 @@ import { selSuggestToArray } from '@rad/rl-applib';
 import { isValidId } from '@rad/rl-utils';
 import { EntityManager } from 'rad-ecs';
 import { BehaviorSubject, merge, Observable, of, ReplaySubject } from 'rxjs';
-import {
-  expand,
-  map,
-  mergeMap,
-  reduce,
-  share,
-  take,
-  toArray,
-} from 'rxjs/operators';
+import * as rxjsSpy from 'rxjs-spy';
+import { expand, map, mergeMap, reduce, share, take } from 'rxjs/operators';
 import { Animation } from '../components/animation.model';
 import { EndType } from '../components/end-state.model';
 import { GridPosData } from '../components/position.model';
@@ -24,8 +17,6 @@ import {
   TargetPos,
 } from '../systems.types';
 import { AreaResolver } from '../utils/area-resolver.util';
-
-import * as rxjsSpy from 'rxjs-spy';
 
 type Args = ActiveEffect & TargetPos & EffectOrigin;
 export interface Summaries {
