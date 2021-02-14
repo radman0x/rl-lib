@@ -1,3 +1,8 @@
+describe('Agent move assessor', () => {
+  it('should be a dummy test', () => {
+    expect(true).toBe(true);
+  });
+});
 // import { addVec3, CompassDirection } from '@rad/rl-utils';
 // import * as Chance from 'chance';
 // import { EntityId, EntityManager } from 'rad-ecs';

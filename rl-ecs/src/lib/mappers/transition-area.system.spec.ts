@@ -1,7 +1,7 @@
 import { EntityId, EntityManager } from 'rad-ecs';
 import {
   AreaTransition,
-  AreaTransitionData
+  AreaTransitionData,
 } from '../components/area-transition.model';
 import { GridPos } from '../components/position.model';
 import { transitionArea } from './transition-area.system';
@@ -22,7 +22,11 @@ describe('Transition Area', () => {
   it('should do nothing if the appropriate component is not present', () => {
     em.removeComponent(effectId, AreaTransition);
     const out = transitionArea(msg, em);
-    expect(out).toStrictEqual({ ...msg, activeEffectDescription: null });
+    expect(out).toStrictEqual({
+      ...msg,
+      areaTransition: null,
+      effectReport: null,
+    });
   });
 
   it('should add appropriate data if the appropriate component is present', () => {

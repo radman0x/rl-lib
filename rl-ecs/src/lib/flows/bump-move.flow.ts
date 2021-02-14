@@ -71,6 +71,10 @@ export function attemptMoveFlow<T extends Args>(
   );
 
   const attacked$ = assessed$.pipe(
+    map((msg) => {
+      console.log(`${JSON.stringify(msg, null, 2)}`);
+      return msg;
+    }),
     filter((msg) => !!msg.attack),
     map((msg) => ({ ...msg.attack, effectReport: null })),
     map((msg) => integrity(msg, em)),

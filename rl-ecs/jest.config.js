@@ -11,9 +11,6 @@ module.exports = {
       tsConfig: './tsconfig.spec.json',
       diagnostics: { warnOnly: true },
       stringifyContentPathRegex: '\\.html$',
-      astTransformers: {
-        before: ['jest-preset-angular/InlineHtmlStripStylesTransformer'],
-      },
     },
   },
   displayName: 'rl-ecs',

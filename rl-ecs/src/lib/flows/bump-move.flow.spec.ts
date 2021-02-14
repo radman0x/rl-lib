@@ -9,6 +9,10 @@ import { AreaResolver } from '../utils/area-resolver.util';
 import * as Chance from 'chance';
 import { Attacks } from '../components/attacks.model';
 import { Wounds } from '../components/wounds.model';
+import { merge } from 'rxjs';
+import { WeaponSkill } from '../components/weapon-skill.model';
+import { Toughness } from '../components/toughness.model';
+import { Strength } from '../components/strength.model';
 
 describe('Bump move flow', () => {
   let em: EntityManager;
@@ -45,12 +49,16 @@ describe('Bump move flow', () => {
     // EAST of the player -> COMBAT TARGET
     combatTargetId = em.create(
       new GridPos({ x: 2, y: 1, z: 1 }),
-      new Martial({ strength: 1, toughness: 1, weaponSkill: 1 }),
+      new WeaponSkill({ count: 1 }),
+      new Strength({ count: 1 }),
+      new Toughness({ count: 1 }),
       new Wounds({ current: 10, max: 10 })
     ).id;
     movingId = em.create(
       new GridPos(protagPos),
-      new Martial({ strength: 1, toughness: 1, weaponSkill: 1 }),
+      new WeaponSkill({ count: 1 }),
+      new Strength({ count: 1 }),
+      new Toughness({ count: 1 }),
       new Attacks({ damage: 1 })
     ).id;
 
@@ -58,45 +66,45 @@ describe('Bump move flow', () => {
   });
 
   it('should behave well if completed without receiving a value', () => {
-    let finished = false;
-    moveFlow = attemptMoveFlow(em, new Chance());
-    moveFlow.finish$.subscribe(() => (finished = true));
-    moveFlow.start$.complete();
-    expect(finished).toEqual(false);
+    let message = jest.fn();
+    const { start$, attacked$, moved$, noActionTaken$ } = attemptMoveFlow(
+      em,
+      new Chance()
+    );
+    merge(moved$, attacked$, noActionTaken$).subscribe(message);
+    start$.complete();
+    expect(message).not.toHaveBeenCalled();
   });
 
   it('should error out if the moving entity id does not exist in the em', () => {
     const ID_NOT_EXIST = 9999999;
-    let errored = false;
+    const errorHandler = jest.fn();
     moveFlow = attemptMoveFlow(em, new Chance());
-    moveFlow.finish$.subscribe({
-      error: msg => {
-        errored = true;
-      }
-    });
-    moveFlow.start$.next({
+    const { start$, attacked$, moved$, noActionTaken$ } = attemptMoveFlow(
+      em,
+      new Chance()
+    );
+    merge(noActionTaken$).subscribe({ error: errorHandler });
+    start$.next({
       direction: CompassDirection.W,
-      movingId: ID_NOT_EXIST
+      movingId: ID_NOT_EXIST,
     });
 
-    expect(errored).toEqual(true);
+    expect(errorHandler).toHaveBeenCalledTimes(1);
   });
 
   describe('Simple deterministic results', () => {
     let moved: boolean;
     let attacked: boolean;
     let noAction: boolean;
-    let finished: boolean;
     beforeEach(() => {
       moved = false;
       attacked = false;
       noAction = false;
-      finished = false;
       moveFlow = attemptMoveFlow(em, new Chance());
       moveFlow.moved$.subscribe(() => (moved = true));
       moveFlow.attacked$.subscribe(() => (attacked = true));
       moveFlow.noActionTaken$.subscribe(() => (noAction = true));
-      moveFlow.finish$.subscribe(() => (finished = true));
     });
     it('should update the em state on successful move', () => {
       moveFlow.start$.next({ direction: CompassDirection.W, movingId });
@@ -108,7 +116,6 @@ describe('Bump move flow', () => {
       expect(moved).toEqual(true);
       expect(attacked).toEqual(false);
       expect(noAction).toEqual(false);
-      expect(finished).toEqual(true);
     });
 
     it('should NOT update the em state when no action is taken', () => {
@@ -120,15 +127,6 @@ describe('Bump move flow', () => {
       expect(moved).toEqual(false);
       expect(attacked).toEqual(false);
       expect(noAction).toEqual(true);
-      expect(finished).toEqual(true);
-    });
-
-    it('should always produce a finish event', () => {
-      let finished = false;
-      moveFlow.finish$.subscribe(() => (finished = true));
-      moveFlow.start$.next({ direction: CompassDirection.W, movingId });
-      expect(finished).toEqual(true);
-      // could do more cases...
     });
   });
 
@@ -143,41 +141,34 @@ describe('Bump move flow', () => {
       moved = false;
       attacked = false;
       noAction = false;
-      finished = false;
       error = false;
-      subMoveFlow = moveFlow => {
+      subMoveFlow = (moveFlow) => {
         moveFlow.moved$.subscribe(() => (moved = true));
         moveFlow.attacked$.subscribe(() => (attacked = true));
         moveFlow.noActionTaken$.subscribe(() => (noAction = true));
-        moveFlow.finish$.subscribe(() => (finished = true));
-        moveFlow.finish$.subscribe({ error: msg => (error = msg) });
       };
     });
     it('should update the em state when damage successfully inflicted', () => {
       moveFlow = attemptMoveFlow(em, new Chance(13));
       subMoveFlow(moveFlow);
-      let hit: boolean;
-      let wound: boolean;
-      let damageInflicted: number;
-      moveFlow.attacked$.subscribe(msg => {
-        hit = msg.strikeSuccess;
-        wound = msg.woundSuccess;
-        damageInflicted = msg.damage.amount;
+      moveFlow.attacked$.subscribe((msg) => {
+        expect(msg.strikeSuccess).toBe(true);
+        expect(msg.woundSuccess).toBe(true);
+        expect(msg.damage.amount).toEqual(1);
       });
       moveFlow.start$.next({ direction: CompassDirection.E, movingId });
       expect(error).toBe(false);
       startEmData.entities[combatTargetId]['Wounds'] = { current: 9, max: 10 };
-      expect(hit).toEqual(true);
-      expect(wound).toEqual(true);
-      expect(damageInflicted).toEqual(1);
       expect(em.export()).toEqual(startEmData);
+
+      expect.assertions(5);
     });
 
     it('should NOT update the state of the em when the attack was unsuccessful', () => {
       moveFlow = attemptMoveFlow(em, new Chance(1));
       subMoveFlow(moveFlow);
       let hit: boolean;
-      moveFlow.attacked$.subscribe(msg => {
+      moveFlow.attacked$.subscribe((msg) => {
         hit = msg.strikeSuccess;
       });
       moveFlow.start$.next({ direction: CompassDirection.E, movingId });
@@ -194,7 +185,6 @@ describe('Bump move flow', () => {
       expect(moved).toEqual(false);
       expect(attacked).toEqual(true);
       expect(noAction).toEqual(false);
-      expect(finished).toEqual(true);
     });
   });
 });
