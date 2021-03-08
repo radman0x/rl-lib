@@ -69,9 +69,12 @@ export * from './lib/operators/consequence-pipeline.operator';
 export * from './lib/operators/targeting-pipeline.operator';
 export * from './lib/operators/modifiered-entity-pipeline.operator';
 export * from './lib/operators/acquire-positions-pipeline.operator';
+export * from './lib/operators/vision-knowledge.operator';
+export * from './lib/operators/gather-move-info.operator';
+export * from './lib/operators/gather-attack-info.operator';
+export * from './lib/operators/process-attack.operator';
+export * from './lib/operators/process-move.operator';
 
 export * from './lib/areas/area-spec.model';
-
-export * from './lib/assessors/bump-move.assessor';
 
 export * from './lib/utils/rad-ecs.utils';

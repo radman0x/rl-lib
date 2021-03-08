@@ -1,12 +1,11 @@
-import { OperationStep } from '../operation-step.model';
+import { Id } from '@rad/rl-applib';
+import * as deepEqual from 'fast-deep-equal';
 import { EntityManager } from 'rad-ecs';
-import { radClone, addProperty } from '../systems.utils';
-import { TargetPos, IsBlocked } from '../systems.types';
 import { Blockage } from '../components/blockage.model';
 import { GridPos } from '../components/position.model';
-
-import * as deepEqual from 'fast-deep-equal';
-import { Id } from '@rad/rl-applib';
+import { OperationStep } from '../operation-step.model';
+import { IsBlocked, TargetPos } from '../systems.types';
+import { addProperty } from '../systems.utils';
 
 type Args = TargetPos;
 export type PositionBlockedArgs = Args;

@@ -252,3 +252,5 @@ export function hasNewPosition<T>(a: T): a is T & NewPosition {
 export function noNewPosition<T>(a: T): a is T {
   return !hasNewPosition(a);
 }
+
+export type RadRxOperator<T, U> = (input: Observable<T>) => Observable<T & U>;

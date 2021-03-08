@@ -40,7 +40,7 @@ export function produceMoveOrders<T extends Args>(
       map((msg) => canStandAtPosition(msg, em))
     )
     .pipe(
-      map((msg) => resolveMove(msg)),
+      resolveMove,
       map((msg) => {
         let move: MoveOrder = null;
         if (msg.newPosition) {

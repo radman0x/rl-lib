@@ -1,119 +1,83 @@
-import { CompassDirection } from '@rad/rl-utils';
-import * as Chance from 'chance';
-import { EntityId, EntityManager } from 'rad-ecs';
-import { Observer, of, Subject } from 'rxjs';
-import { filter, map, mergeMap, share, shareReplay, tap } from 'rxjs/operators';
-import { spatial } from '../actioners/spatial.actioner';
-import { updateDistanceMap } from '../actioners/update-distance-map.actioner';
-import { Description } from '../components/description.model';
-import { grimReaper } from '../mappers/grim-reaper.system';
-import { integrity } from '../mappers/integrity.system';
-import { markForDeath } from '../mappers/mark-for-death.system';
-import { positionNextToEntity } from '../mappers/position-next-to-entity.system';
-import { assessBumpMove } from '../operators/assess-bump-move.operator';
+import { EntityManager } from 'rad-ecs';
+import { Observable, of, NEVER } from 'rxjs';
+import { mergeMap } from 'rxjs/operators';
+import { AcquireCombatTargetAtPositionArgs } from '../mappers/acquire-combat-target-at-position.system';
+import { CanOccupyPositionArgs } from '../mappers/can-occupy-position.system';
+import { CanStandAtArgs } from '../mappers/can-stand-at-position.system';
 import {
-  AttackOrder,
-  EffectReport,
-  MoveOrder,
   MovingEntity,
-  ReapedEntity,
+  TargetPos,
+  AttackOrder,
+  MoveOrder,
+  AggressorEntity,
+  WorldStateChangeReport,
+  SpatialReport,
 } from '../systems.types';
-import { radClone } from '../systems.utils';
+import { RadRxOperator } from '../systems.utils';
 
-import * as rxjsSpy from 'rxjs-spy';
-import { logName } from '@rad/rl-applib';
+type MoveAssessment = CanOccupyPositionArgs &
+  CanStandAtArgs &
+  AcquireCombatTargetAtPositionArgs;
 
-function playerAttackString(em: EntityManager, msg: AttackOrder): string {
-  const pluraler = (n: number) => (n === 1 ? '' : 's');
-  const targetDescription = em.hasComponent(msg.combatTargetId, Description)
-    ? em.getComponent(msg.combatTargetId, Description).short
-    : 'unnamed';
-  if (msg.reapedId) {
-    return `The ${targetDescription} is killed!`;
-  }
-  if (msg.woundSuccess && msg.strikeSuccess && !msg.armorSaveSuccess) {
-    return `You hit the ${targetDescription}, inflicting ${
-      msg.damage.amount
-    } wound${pluraler(msg.damage.amount)}`;
-  } else if (msg.woundSuccess && msg.strikeSuccess && msg.armorSaveSuccess) {
-    return `Your blow is deflected by ${targetDescription}'s armor!`;
-  } else if (msg.strikeSuccess) {
-    return `You hit the ${targetDescription} but fail to cause any damage`;
-  } else {
-    return `You miss the ${targetDescription}`;
-  }
-}
+type Args = MovingEntity & TargetPos & AggressorEntity;
 
-type Args = MovingEntity & { direction: CompassDirection };
+type AttemptMoveFlowArgs = {
+  em: EntityManager;
+  rand: Chance.Chance;
+  gatherAttack: (
+    em: EntityManager,
+    rand: Chance.Chance
+  ) => RadRxOperator<
+    TargetPos & AggressorEntity,
+    { attack: AttackOrder | null }
+  >;
+  gatherMove: (
+    em: EntityManager
+  ) => RadRxOperator<MoveAssessment, { move: MoveOrder | null }>;
+  processAttack: (
+    em: EntityManager
+  ) => RadRxOperator<{ attack: AttackOrder | null }, any>;
+  processMove: (
+    em: EntityManager
+  ) => RadRxOperator<{ move: MoveOrder | null }, any>;
+  afterMove: (em: EntityManager) => RadRxOperator<any, any>;
+  afterAttack: (em: EntityManager) => RadRxOperator<any, any>;
+  afterNeither?: () => RadRxOperator<any, any>;
+};
 
-export function attemptMoveFlow<T extends Args>(
-  em: EntityManager,
-  rand: Chance.Chance,
-  messageLog: (string) => void = null,
-  tagBase: string = ''
-) {
-  tagBase = logName(tagBase, 'attemptMoveFlow');
-  const start$ = new Subject<T>();
-  const assessed$ = start$.pipe(
-    map((msg) =>
-      positionNextToEntity(
-        {
-          ...radClone(msg),
-          protagId: msg.movingId,
-          aggressorId: msg.movingId,
-        },
-        em
+export function attemptMoveFlow({
+  em,
+  rand,
+  gatherAttack,
+  gatherMove,
+  processAttack,
+  processMove,
+  afterMove,
+  afterAttack,
+  afterNeither,
+}: AttemptMoveFlowArgs) {
+  return <T extends Args>(input: Observable<T>) => {
+    return input.pipe(
+      gatherAttack(em, rand),
+      mergeMap((msg) =>
+        msg.attack
+          ? of(msg).pipe(
+              processAttack(em),
+              afterAttack(em),
+              mergeMap(() => NEVER)
+            )
+          : of(msg)
+      ),
+      gatherMove(em),
+      mergeMap((msg) =>
+        msg.move
+          ? of(msg).pipe(
+              processMove(em),
+              afterMove(em),
+              mergeMap(() => NEVER)
+            )
+          : of(msg)
       )
-    ),
-    mergeMap((msg) => assessBumpMove(msg, em, rand)),
-    rxjsSpy.operators.tag(logName(tagBase, 'assessed')),
-    shareReplay()
-  );
-
-  const attacked$ = assessed$.pipe(
-    map((msg) => {
-      console.log(`${JSON.stringify(msg, null, 2)}`);
-      return msg;
-    }),
-    filter((msg) => !!msg.attack),
-    map((msg) => ({ ...msg.attack, effectReport: null })),
-    map((msg) => integrity(msg, em)),
-    map((msg) => markForDeath(msg, em)),
-    tap((msg) => messageLog && messageLog(playerAttackString(em, msg))),
-    map((msg) => grimReaper(msg, em)),
-    rxjsSpy.operators.tag(logName(tagBase, 'attacked')),
-    shareReplay()
-  );
-  attacked$.subscribe();
-
-  const moved$ = assessed$.pipe(
-    filter((msg) => !!(!msg.attack && msg.move)),
-    map((msg) => ({ ...msg.move, effectReport: null })),
-    map((msg) => spatial(msg, em)),
-    tap((msg) => updateDistanceMap(msg, em)),
-    rxjsSpy.operators.tag(logName(tagBase, 'moved')),
-    shareReplay()
-  );
-  moved$.subscribe();
-
-  const noActionTaken$ = assessed$.pipe(
-    filter((msg) => !!(!msg.attack && !msg.move)),
-    rxjsSpy.operators.tag(logName(tagBase, 'noActionTaken')),
-    shareReplay()
-  );
-  noActionTaken$.subscribe();
-
-  return { start$, attacked$, moved$, noActionTaken$ };
-}
-
-export function attemptMoveFlowInstant<T extends Args>(
-  msg: T,
-  em: EntityManager,
-  rand: Chance.Chance,
-  messageLog: (string) => void = null,
-  tagBase: string = ''
-) {
-  const flow = attemptMoveFlow(em, rand, messageLog, tagBase);
-  of(msg).subscribe(flow.start$);
-  return flow;
+    );
+  };
 }
