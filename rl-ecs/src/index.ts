@@ -49,6 +49,7 @@ export * from './lib/mappers/grim-reaper.system';
 export * from './lib/mappers/mark-for-death.system';
 export * from './lib/mappers/acquire-aoe-targets.system';
 export * from './lib/mappers/acquire-single-target.system';
+export * from './lib/mappers/acquire-effects.system';
 
 export * from './lib/ecs.types';
 export * from './lib/systems.utils';

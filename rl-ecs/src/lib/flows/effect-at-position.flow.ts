@@ -40,6 +40,7 @@ export function effectAtPositionFlow<T extends Args>(
         return of(msg);
       }
     }),
+
     map((msg) => entitiesAtPosition(msg, em, 'effectTargetId')),
     mergeMap((msg) =>
       of(...msg.filter((elem) => isValidId(elem.effectTargetId)))
