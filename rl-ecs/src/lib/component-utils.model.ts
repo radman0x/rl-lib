@@ -71,10 +71,12 @@ export function staircasePrefab(
   em: EntityManager,
   position: GridPosData,
   areaIngress: AreaIngressData,
-  egress: Egress
+  egress: Egress,
+  downStairTexture: string,
+  upStairTexture: string
 ) {
   const stairImage = (direction: EgressDirection) =>
-    direction === EgressDirection.DOWN ? 'Tile-13.png' : 'Tile-12.png';
+    direction === EgressDirection.DOWN ? downStairTexture : upStairTexture;
   const stairTypeName = (direction: EgressDirection) =>
     direction === EgressDirection.DOWN ? 'down' : 'up';
   const stairActionName = (direction: EgressDirection) =>

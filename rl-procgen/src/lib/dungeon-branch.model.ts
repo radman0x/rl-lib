@@ -6,7 +6,7 @@ import {
   GridPosData,
   Physical,
   Renderable,
-  Size
+  Size,
 } from '@rad/rl-ecs';
 import { popRandomElement } from '@rad/rl-utils';
 import { AreaResolver } from 'libs/rl-ecs/src/lib/utils/area-resolver.util';
@@ -33,6 +33,10 @@ export class DungeonBranch {
       levelHeight: number;
       maxDepth: number;
       minDepth: number;
+      floorTexture: string;
+      wallTexture: string;
+      upStairTexture: string;
+      downStairTexture: string;
     }
   ) {}
 
@@ -66,7 +70,7 @@ export class DungeonBranch {
     const transitions: AreaTransitionSpec = {
       ingressOnly: [],
       egressOnly: [],
-      ingressEgress: []
+      ingressEgress: [],
     };
     const connectDownwards = (depth: number) => depth < this.options.maxDepth;
     const connectUpwards = (depth: number) => depth > this.options.minDepth;
@@ -77,7 +81,7 @@ export class DungeonBranch {
         egressArea: this.levelId(levelNumber + 1),
         egressAreaIngressLabel: this.ingressId(levelNumber + 1, 1),
         ingressLabel: this.ingressId(levelNumber, 2),
-        egressDirection: EgressDirection.DOWN
+        egressDirection: EgressDirection.DOWN,
       });
     }
     if (connectUpwards(levelNumber)) {
@@ -86,7 +90,7 @@ export class DungeonBranch {
         egressArea: this.levelId(levelNumber - 1),
         egressAreaIngressLabel: this.ingressId(levelNumber - 1, 2),
         ingressLabel: this.ingressId(levelNumber, 1),
-        egressDirection: EgressDirection.UP
+        egressDirection: EgressDirection.UP,
       });
     }
 
@@ -109,19 +113,19 @@ export class DungeonBranch {
         this.options.levelWidth,
         this.options.levelHeight,
         {
-          roomDugPercentage: 0.9
+          roomDugPercentage: 0.9,
         }
       );
       world.create((x: number, y: number, contents: number) => {
         if (contents === BLOCKED) {
           em.create(
-            new Renderable({ image: 'Wall-110.png', zOrder: 1 }),
+            new Renderable({ image: this.options.wallTexture, zOrder: 1 }),
             new GridPos({ x, y, z: GROUND }),
             new Physical({ size: Size.FILL })
           );
         } else if (contents === OPEN) {
           em.create(
-            new Renderable({ image: 'Floor-247.png', zOrder: 1 }),
+            new Renderable({ image: this.options.floorTexture, zOrder: 1 }),
             new GridPos({ x, y, z: BASEMENT }),
             new Physical({ size: Size.FILL })
           );
@@ -134,7 +138,7 @@ export class DungeonBranch {
         return {
           x: stairRoom.getCenter()[0],
           y: stairRoom.getCenter()[1],
-          z: GROUND
+          z: GROUND,
         };
       };
 
@@ -159,8 +163,10 @@ export class DungeonBranch {
           {
             egressArea: ingressEgress.egressArea,
             egressAreaIngressLabel: ingressEgress.egressAreaIngressLabel,
-            egressDirection: ingressEgress.egressDirection
-          }
+            egressDirection: ingressEgress.egressDirection,
+          },
+          this.options.downStairTexture,
+          this.options.upStairTexture
         );
       }
 
@@ -193,7 +199,7 @@ export class DungeonBranch {
     return {
       ingressOnly: lhs.ingressOnly.concat(rhs.ingressOnly),
       egressOnly: lhs.egressOnly.concat(rhs.egressOnly),
-      ingressEgress: lhs.ingressEgress.concat(rhs.ingressEgress)
+      ingressEgress: lhs.ingressEgress.concat(rhs.ingressEgress),
     };
   }
 
