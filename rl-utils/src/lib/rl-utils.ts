@@ -1,4 +1,5 @@
 import { EntityId } from 'rad-ecs';
+import * as ROT from 'rot-js';
 
 export interface Coord {
   x: number;
@@ -285,3 +286,7 @@ export function asCompassDirectionVec3(vec: Vec3): CompassDirection {
 export function isValidId(id: EntityId | null | undefined) {
   return id !== null && id !== undefined;
 }
+
+const modRgbString = (rgb: string) => '0x' + rgb.slice(1);
+export const rotColorToNumber = (rgb: [number, number, number]) =>
+  +modRgbString(ROT.Color.toHex(rgb));

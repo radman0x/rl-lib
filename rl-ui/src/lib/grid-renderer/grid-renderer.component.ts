@@ -20,6 +20,13 @@ import {
   AlwaysRendered,
   StatusEffects,
 } from '@rad/rl-ecs';
+import {
+  LEVEL_INDEX,
+  Lighting,
+  LightLevel,
+} from 'libs/rl-ecs/src/lib/components/light-level.model';
+import * as ROT from 'rot-js';
+import { rotColorToNumber } from '@rad/rl-utils';
 
 export interface RendererSettings {
   tileSize: number;
@@ -215,13 +222,13 @@ export class GridRendererComponent implements OnInit {
         historicalKnowledge,
         viewerZPos,
         stage,
-        0x999999
+        0x666666
       );
-      this.renderFromKnowledge(currentKnowledge, viewerZPos, stage, 0xffffff);
+      this.renderFromKnowledge(currentKnowledge, viewerZPos, stage, 0x000000);
 
       this.em.each(
         (e, ar, r, pos) => {
-          this.renderEntity(e.id, stage, 0xffffff, pos);
+          this.renderEntity(e.id, stage, 0x000000, pos, Lighting.ULTRA_BRIGHT);
         },
         AlwaysRendered,
         Renderable,
@@ -269,7 +276,7 @@ export class GridRendererComponent implements OnInit {
     knowledge: KnowledgeMap,
     viewerZPos: number,
     stage: PIXI.Container,
-    tint: number
+    tintModifier: number
   ) {
     const zValueCalc = (e: Entity) => e.component(Renderable).zOrder;
     const zSortedHistoricalKnowledgePositions = Array.from(knowledge.values())
@@ -277,6 +284,13 @@ export class GridRendererComponent implements OnInit {
       .sort((lhs, rhs) => lhs.k.z - rhs.k.z);
 
     for (const { k: seenPos, v: ids } of zSortedHistoricalKnowledgePositions) {
+      const posRawLight = this.em
+        .matchingIndex(seenPos)
+        .find((e) => e.has(LightLevel))
+        ?.component(LightLevel).raw;
+      const finalTint = posRawLight
+        ? Math.max(rotColorToNumber(posRawLight) - tintModifier, 0x444444)
+        : 0x444444;
       const sortedIds = [...ids]
         .filter(
           (id) =>
@@ -287,7 +301,7 @@ export class GridRendererComponent implements OnInit {
           return zValueCalc(this.em.get(lhs)) - zValueCalc(this.em.get(rhs));
         });
       for (const seenEntityId of sortedIds) {
-        this.renderEntity(seenEntityId, stage, tint, seenPos);
+        this.renderEntity(seenEntityId, stage, finalTint, seenPos);
       }
     }
   }
@@ -299,8 +313,13 @@ export class GridRendererComponent implements OnInit {
     pos: GridPos
   ) {
     let sprite = this.sprites.get(id);
-    if (this.em.hasComponent(id, Renderable)) {
-      const r = this.em.getComponent(id, Renderable);
+    const renderable = this.em.getComponent(id, Renderable);
+    // const renderable: Renderable | AlternateRenderable =
+    //   lightLevel >= LightLevels.DARK
+    //     ? this.em.getComponent(id, Renderable)
+    //     : this.em.getComponent(id, AlternateRenderable);
+    if (renderable) {
+      const r = renderable;
       if (!sprite) {
         sprite = this.renderer.sprite(r.image);
         this.sprites.set(id, sprite);
