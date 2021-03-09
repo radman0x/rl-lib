@@ -228,7 +228,7 @@ export class GridRendererComponent implements OnInit {
 
       this.em.each(
         (e, ar, r, pos) => {
-          this.renderEntity(e.id, stage, 0x000000, pos, Lighting.ULTRA_BRIGHT);
+          this.renderEntity(e.id, stage, 0x000000, pos);
         },
         AlwaysRendered,
         Renderable,
