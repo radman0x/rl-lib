@@ -28,7 +28,7 @@ function acquireCombatTargetAtPositionStep<T extends Args>(
       candidate.has(WeaponSkill) &&
       (!predicate || (predicate && predicate(candidate)))
   );
-  if (acquired.length !== 0) {
+  if (acquired.length !== 0 && acquired[0].targetId !== null) {
     // console.log(`COMBAT: target acquired: ${acquired[0].targetId}`);
     return { ...radClone(msg), combatTargetId: acquired[0].targetId };
   } else {

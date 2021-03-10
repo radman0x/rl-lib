@@ -6,6 +6,7 @@ import { OperationStep } from '../operation-step.model';
 import { TargetPos } from '../systems.types';
 import { Id } from '@rad/rl-applib';
 import { radClone } from '../systems.utils';
+import { Mobile } from '@rad/rl-ecs';
 
 type Args = TargetPos;
 export type CanOccupyPositionArgs = Args;
@@ -25,6 +26,9 @@ function canOccupyPositionStep<T extends Args>(
   let canOccupy = true;
   em.matchingIndex(new GridPos(msg.targetPos)).forEach((entity) => {
     if (entity.has(Physical) && entity.component(Physical).size === Size.FILL) {
+      canOccupy = false;
+    }
+    if (entity.has(Mobile)) {
       canOccupy = false;
     }
   });

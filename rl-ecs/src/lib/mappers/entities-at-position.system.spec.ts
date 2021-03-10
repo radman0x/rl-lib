@@ -40,7 +40,7 @@ describe('Entities at position', () => {
         { targetPos },
         em,
         'outId',
-        e => e.id === solitaryId
+        (e) => e.id === solitaryId
       );
       expect(matching.length).toEqual(1);
       expect(matching[0].outId).toEqual(solitaryId);
@@ -51,7 +51,7 @@ describe('Entities at position', () => {
         { targetPos },
         em,
         'outId',
-        e => e.id !== solitaryId
+        (e) => e.id !== solitaryId
       );
       expect(matching.length).toEqual(1);
       expect(matching[0].outId).toEqual(null);

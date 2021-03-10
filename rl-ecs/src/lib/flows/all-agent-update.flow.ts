@@ -45,95 +45,103 @@ export function allAgentUpdateFlow(
   messageLog: (string) => void = null,
   ender: (endType: EndType) => void = null
 ) {
-  const out = {
-    start$: new Subject(),
-    finish$: new Subject<Order[]>(),
-  };
-
-  out.start$
-    .pipe(
-      take(1),
-      rxjsSpy.operators.tag('turnEnd.allAgentUpdate'),
-      map(() => addProperty({}, 'componentTypes', [MovingAgent])),
-      mergeMap((msg) => of(...entitiesWithComponents(msg, em, 'agentId'))),
-      filter((msg) => em.exists(msg.agentId)), // in case agent got reaped due to other agent actions
-      filter((msg) => {
-        const modifiedMental = getModifiedComponent(msg.agentId, Mental, em);
-        return !(
-          modifiedMental && modifiedMental.state === MentalState.STUNNED
-        );
-      }),
-      mergeMap((msg) =>
-        produceCandidateOrders(msg, em, rand)
-          .pipe(
-            map((msg) => scoreApproach(msg, em)),
-            map((msg) => scoreRandomMove(msg, em, rand)),
-            map((msg) => scoreAttack(msg, em)),
-            rxjsSpy.operators.tag('turnEnd.allAgentUpdate.orderScores'),
-            reduce(
-              (acc, curr) => {
-                if (curr.score === null) {
-                  return acc;
-                }
-                return (!acc || curr.score > acc.score
-                  ? curr
-                  : acc) as typeof curr;
-              },
-              {
-                score: null,
-                move: null,
-                attack: null,
-                orderDescription: null,
-                agentId: null,
-              }
-            ),
-            rxjsSpy.operators.tag('turnEnd.allAgentUpdate.chosenOrder'),
-            map((msg) => {
-              let spatial: { newPosition: GridPosData; movingId: EntityId } = {
-                newPosition: null,
-                movingId: null,
-              };
-              let integrity: IntegrityArgs = {
-                damage: null,
-                damageTargetId: null,
-              };
-              if (msg.attack && msg.score !== null) {
-                integrity = msg.attack;
-              }
-              if (msg.move && msg.score !== null) {
-                spatial = msg.move;
-              }
-              return { ...radClone(msg), ...spatial, ...integrity };
-            })
-          )
-          .pipe(
-            map((msg) => spatial(msg, em)),
-            map((msg) => integrity(msg, em)),
-            map((msg) => markForDeath(msg, em)),
-            map((msg) => grimReaper(msg, em)),
-            mergeMap((msg) =>
-              housekeepingFlowInstant(em, areaResolver, ender).pipe(
-                map(() => msg)
+  return <T extends {}>(input: Observable<T>) => {
+    return input.pipe(
+      mergeMap(() =>
+        of(null).pipe(
+          rxjsSpy.operators.tag('turnEnd.allAgentUpdate'),
+          map(() => addProperty({}, 'componentTypes', [MovingAgent])),
+          mergeMap((msg) => of(...entitiesWithComponents(msg, em, 'agentId'))),
+          filter((msg) => em.exists(msg.agentId)), // in case agent got reaped due to other agent actions
+          filter((msg) => {
+            const modifiedMental = getModifiedComponent(
+              msg.agentId,
+              Mental,
+              em
+            );
+            return !(
+              modifiedMental && modifiedMental.state === MentalState.STUNNED
+            );
+          }),
+          mergeMap((msg) =>
+            produceCandidateOrders(msg, em, rand)
+              .pipe(
+                map((msg) => scoreApproach(msg, em)),
+                map((msg) => scoreRandomMove(msg, em, rand)),
+                map((msg) => scoreAttack(msg, em)),
+                rxjsSpy.operators.tag('turnEnd.allAgentUpdate.orderScores'),
+                reduce(
+                  (acc, curr) => {
+                    if (curr.score === null) {
+                      return acc;
+                    }
+                    return (!acc || curr.score > acc.score
+                      ? curr
+                      : acc) as typeof curr;
+                  },
+                  {
+                    score: null,
+                    move: null,
+                    attack: null,
+                    orderDescription: null,
+                    agentId: null,
+                  }
+                ),
+                map((msg) => {
+                  console.log(`${JSON.stringify(msg, null, 2)}`);
+                  return msg;
+                }),
+                rxjsSpy.operators.tag('turnEnd.allAgentUpdate.chosenOrder'),
+                map((msg) => {
+                  let spatial: {
+                    newPosition: GridPosData;
+                    movingId: EntityId;
+                  } = {
+                    newPosition: null,
+                    movingId: null,
+                  };
+                  let integrity: IntegrityArgs = {
+                    damage: null,
+                    damageTargetId: null,
+                  };
+                  if (msg.attack && msg.score !== null) {
+                    integrity = msg.attack;
+                  }
+                  if (msg.move && msg.score !== null) {
+                    spatial = msg.move;
+                  }
+                  return { ...radClone(msg), ...spatial, ...integrity };
+                })
               )
-            )
-          )
-      ),
-      reduce((acc, curr) => {
-        if (curr.score !== null) {
-          acc.push(curr);
-        }
-        return acc;
-      }, [] as Order[]),
-      rxjsSpy.operators.tag('turnEnd.allAgentUpdate.finalOrders'),
-      tap((orders) => {
-        if (messageLog) {
-          for (const order of orders) {
-            order.orderDescription !== '' && messageLog(order.orderDescription);
-          }
-        }
-      })
-    )
-    .subscribe(out.finish$);
-
-  return out;
+              .pipe(
+                map((msg) => spatial(msg, em)),
+                map((msg) => integrity(msg, em)),
+                map((msg) => markForDeath(msg, em)),
+                map((msg) => grimReaper(msg, em)),
+                mergeMap((msg) =>
+                  housekeepingFlowInstant(em, areaResolver, ender).pipe(
+                    map(() => msg)
+                  )
+                )
+              )
+          ),
+          reduce((acc, curr) => {
+            if (curr.score !== null) {
+              acc.push(curr);
+            }
+            return acc;
+          }, [] as Order[]),
+          rxjsSpy.operators.tag('turnEnd.allAgentUpdate.finalOrders'),
+          tap((orders) => {
+            if (messageLog) {
+              for (const order of orders) {
+                order.orderDescription !== '' &&
+                  messageLog(order.orderDescription);
+              }
+            }
+          })
+        )
+      )
+    );
+  };
 }

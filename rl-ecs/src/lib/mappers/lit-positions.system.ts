@@ -2,11 +2,11 @@ import { ValueMap } from '@rad/rl-utils';
 import { Entity, EntityManager } from 'rad-ecs';
 import * as ROT from 'rot-js';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 import {
   convertToLightLevel,
-  LightLevel,
   Lighting,
+  LightLevel,
 } from '../components/light-level.model';
 import { LightSource } from '../components/light-source.model';
 import { Physical, Size } from '../components/physical.model';
@@ -22,10 +22,10 @@ export type LitPositionsArgs = Args;
 interface Out {}
 export type LitPositionsOut = Out;
 
-export function litPositions(em: EntityManager) {
-  const litPositionsStep = <T extends Args>(input: Observable<T>) => {
+export function lightPositions(em: EntityManager) {
+  const lightPositionsStep = <T extends Args>(input: Observable<T>) => {
     return input.pipe(
-      map((msg) => {
+      tap((msg) => {
         const { closedMap } = msg;
 
         console.log(closedMap.count());
@@ -84,15 +84,11 @@ export function litPositions(em: EntityManager) {
     );
   };
 
-  return litPositionsStep;
+  return lightPositionsStep;
 }
 
 type BuildOpenMapArgs = {
   viewerPos: GridPos;
-};
-
-type BuildOpenMapOut = {
-  openMap: ValueMap<GridPos, boolean>;
 };
 
 export function buildOpenMap(em: EntityManager) {

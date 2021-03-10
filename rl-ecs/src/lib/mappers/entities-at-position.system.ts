@@ -23,6 +23,7 @@ export function entitiesAtPosition<T extends Args, K extends string>(
     }
     targetIds.push(candidate.id);
   }
+
   if (targetIds.length === 0) {
     return [addProperty(msg, outKey, null)];
   }

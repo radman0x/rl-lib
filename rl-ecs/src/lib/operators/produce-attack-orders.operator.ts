@@ -1,21 +1,18 @@
 import { EntityId, EntityManager } from 'rad-ecs';
-import { Observable, BehaviorSubject, of } from 'rxjs';
-import { take, filter, map, mergeMap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { filter, map, mergeMap, take } from 'rxjs/operators';
 import { Alignment } from '../components/alignment.model';
 import { Description } from '../components/description.model';
-import { Martial } from '../components/martial.model';
+import { WeaponSkill } from '../components/weapon-skill.model';
 import { acquireCombatTargetAtPosition } from '../mappers/acquire-combat-target-at-position.system';
+import { markForDeath } from '../mappers/mark-for-death.system';
 import { positionsAroundEntity } from '../mappers/positions-around-entity.system';
+import { resolveArmorSave } from '../mappers/resolve-armor-save.system';
 import { resolveMeleeAttackDamage } from '../mappers/resolve-melee-attack-damage.system';
 import { resolveStrike } from '../mappers/resolve-strike.system';
 import { resolveWound } from '../mappers/resolve-wound.system';
-import { Order, AttackOrder } from '../systems.types';
+import { AttackOrder, Order } from '../systems.types';
 import { addProperty } from '../systems.utils';
-
-import * as Chance from 'chance';
-import { markForDeath } from '../mappers/mark-for-death.system';
-import { WeaponSkill } from '../components/weapon-skill.model';
-import { resolveArmorSave } from '../mappers/resolve-armor-save.system';
 
 interface Args {
   agentId: EntityId;

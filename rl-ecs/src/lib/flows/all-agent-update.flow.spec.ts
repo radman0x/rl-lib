@@ -1,6 +1,8 @@
 import { ValueMap } from '@rad/rl-utils';
 import * as Chance from 'chance';
 import { EntityId, EntityManager } from 'rad-ecs';
+import { of } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { updateDistanceMap } from '../actioners/update-distance-map.actioner';
 import { Alignment, AlignmentType } from '../components/alignment.model';
 import { ApproachTarget } from '../components/approach-target.model';
@@ -26,32 +28,15 @@ describe('All agent update', () => {
     completedActions: Order[] | null;
     error: boolean | string;
   };
-  const newFlow = (em: EntityManager) => {
-    const flow = allAgentUpdateFlow(em, areaResolver, new Chance());
-    flow.finish$.subscribe({
-      next: (msg) => {
-        results.outcome = msg;
-        results.finished = true;
-      },
-      error: (err) => (results.error = err),
-    });
-    flow.finish$.subscribe((msg) => (results.completedActions = msg));
-    return flow;
-  };
   let agentId: EntityId;
   let spatialId: EntityId;
   let spatialReport: SpatialReport;
-  let process: ReturnType<typeof newFlow>;
+  let process: ReturnType<typeof allAgentUpdateFlow>;
+  let error: (any) => void;
   beforeEach(() => {
     em = new EntityManager();
     em.indexBy(GridPos);
-    results = {
-      outcome: null,
-      finished: false,
-      completedActions: null,
-      error: false,
-    };
-    process = newFlow(em);
+    process = allAgentUpdateFlow(em, areaResolver, new Chance());
     for (let x = 1; x < 2; ++x) {
       for (let y = 1; y < 6; ++y) {
         em.create(
@@ -75,16 +60,26 @@ describe('All agent update', () => {
     ).id;
     spatialReport = { spatialReport: { spatialId, newPos: null } };
     updateDistanceMap(spatialReport, em);
+    error = jest.fn();
   });
 
-  it('should get an order summary for a move for one agent', () => {
-    process.start$.next();
-    expect(results.error).toBe(false);
-    expect(results.completedActions[0]).toMatchObject({
-      movingId: agentId,
-      newPosition: { x: 1, y: 2, z: 1 },
-    });
-    expect(em.getComponent(agentId, GridPos)).toEqual({ x: 1, y: 2, z: 1 });
+  it('should process and move one agent', () => {
+    const moveTarget = { x: 1, y: 2, z: 1 };
+    of(null)
+      .pipe(process)
+      .subscribe({
+        next: (msg) => {
+          expect(msg[0]).toMatchObject({
+            movingId: agentId,
+            newPosition: moveTarget,
+          });
+        },
+        error,
+      });
+    expect(error).not.toHaveBeenCalled();
+    expect(em.getComponent(agentId, GridPos)).toEqual(moveTarget);
+
+    expect.assertions(3);
   });
 
   it('should get an order summary for an attack for one agent', () => {
@@ -98,11 +93,20 @@ describe('All agent update', () => {
     em.setComponent(agentId, new Strength({ count: 3 }));
     em.setComponent(agentId, new Toughness({ count: 3 }));
     em.setComponent(agentId, new WeaponSkill({ count: 3 }));
-    process.start$.next();
-    expect(results.error).toBe(false);
-    expect(results.completedActions[0]).toMatchObject({
-      combatTargetId,
-    });
+
+    of(null)
+      .pipe(process)
+      .subscribe({
+        next: (msg) => {
+          expect(msg[0]).toMatchObject({
+            combatTargetId,
+          });
+        },
+        error,
+      });
+    expect(error).not.toHaveBeenCalled();
+
+    expect.assertions(2);
   });
 
   it('should get an order summary for two agents', () => {
@@ -118,16 +122,25 @@ describe('All agent update', () => {
       new Sighted({ range: 5 }),
       new ApproachTarget({ targetId: spatialId })
     ).id;
-    process.start$.next();
-    expect(results.error).toBe(false);
-    expect(results.completedActions[0]).toMatchObject({
-      movingId: agentId,
-      newPosition: { x: 1, y: 2, z: 1 },
-    });
-    expect(results.completedActions[1]).toMatchObject({
-      movingId: agent2Id,
-      newPosition: { x: 1, y: 2, z: 1 },
-    });
+
+    of(null)
+      .pipe(process)
+      .subscribe({
+        next: (msg) => {
+          expect(msg[0]).toMatchObject({
+            movingId: agentId,
+            newPosition: { x: 1, y: 2, z: 1 },
+          });
+          expect(msg[1]).toMatchObject({
+            movingId: agent2Id,
+            newPosition: { x: 1, y: 2, z: 1 },
+          });
+        },
+        error,
+      });
+    expect(error).not.toHaveBeenCalled();
+
+    expect.assertions(3);
   });
 
   it('should only get a movement from one AI if the other moves first and blocks it', () => {
@@ -135,27 +148,44 @@ describe('All agent update', () => {
       new GridPos({ x: 1, y: 2, z: 0 }),
       new Physical({ size: Size.FILL })
     ).id;
-    em.setComponent(agentId, new Physical({ size: Size.FILL }));
-    const agent2Id = em.create(
+    // em.setComponent(agentId, new Physical({ size: Size.FILL }));
+    em.create(
       new GridPos({ x: 1, y: 1, z: 1 }),
       new MovingAgent({}),
       new Alignment({ type: AlignmentType.EVIL }),
       new Sighted({ range: 5 }),
       new ApproachTarget({ targetId: spatialId })
     ).id;
-    process.start$.next();
-    expect(results.error).toBe(false);
-    expect(results.completedActions.length).toEqual(1);
-    expect(results.completedActions[0]).toMatchObject({
-      movingId: agentId,
-      newPosition: { x: 1, y: 2, z: 1 },
-    });
+
+    of(null)
+      .pipe(process)
+      .subscribe({
+        next: (msg) => {
+          expect(msg.length).toEqual(1);
+          expect(msg[0]).toMatchObject({
+            movingId: agentId,
+            newPosition: { x: 1, y: 2, z: 1 },
+          });
+        },
+        error,
+      });
+    expect(error).not.toHaveBeenCalled();
+
+    expect.assertions(3);
   });
 
-  it('should behave well if there are no agents to be update', () => {
+  it('should behave well if there are no agents to be updated', () => {
     em.remove(agentId);
-    process.start$.next();
-    expect(results.error).toBe(false);
-    expect(results.completedActions.length).toEqual(0);
+    of(null)
+      .pipe(process)
+      .subscribe({
+        next: (msg) => {
+          expect(msg.length).toEqual(0);
+        },
+        error,
+      });
+    expect(error).not.toHaveBeenCalled();
+
+    expect.assertions(2);
   });
 });
