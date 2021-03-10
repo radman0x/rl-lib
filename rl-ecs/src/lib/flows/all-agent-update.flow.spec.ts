@@ -2,11 +2,12 @@ import { ValueMap } from '@rad/rl-utils';
 import * as Chance from 'chance';
 import { EntityId, EntityManager } from 'rad-ecs';
 import { of } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { map, mergeMap, tap } from 'rxjs/operators';
 import { updateDistanceMap } from '../actioners/update-distance-map.actioner';
 import { Alignment, AlignmentType } from '../components/alignment.model';
 import { ApproachTarget } from '../components/approach-target.model';
 import { DistanceMap } from '../components/distance-map.model';
+import { Knowledge } from '../components/knowledge.model';
 import { Mobile } from '../components/mobile.model';
 import { MovingAgent } from '../components/moving-agent.model';
 import { Physical, Size } from '../components/physical.model';
@@ -15,6 +16,9 @@ import { Sighted } from '../components/sighted.model';
 import { Strength } from '../components/strength.model';
 import { Toughness } from '../components/toughness.model';
 import { WeaponSkill } from '../components/weapon-skill.model';
+import { gatherApproachInfo } from '../mappers/gather-approach-info.system';
+import { buildOpenMap, lightPositions } from '../mappers/lit-positions.system';
+import { visionKnowledge } from '../operators/vision-knowledge.operator';
 import { Order, SpatialReport } from '../systems.types';
 import { AreaResolver } from '../utils/area-resolver.util';
 import { allAgentUpdateFlow } from './all-agent-update.flow';
@@ -56,10 +60,22 @@ describe('All agent update', () => {
       new MovingAgent({}),
       new Mobile({ range: 1 }),
       new Alignment({ type: AlignmentType.EVIL }),
-      new ApproachTarget({ targetId: spatialId })
+      new ApproachTarget({ targetId: spatialId }),
+      new Knowledge({ current: new ValueMap(), history: new ValueMap() })
     ).id;
     spatialReport = { spatialReport: { spatialId, newPos: null } };
     updateDistanceMap(spatialReport, em);
+
+    of(null)
+      .pipe(
+        map(() => ({
+          viewerPos: em.getComponent(agentId, GridPos),
+          sightedId: agentId,
+        })),
+        visionKnowledge(em)
+      )
+      .subscribe();
+
     error = jest.fn();
   });
 
@@ -120,8 +136,19 @@ describe('All agent update', () => {
       new Mobile({ range: 1 }),
       new Alignment({ type: AlignmentType.EVIL }),
       new Sighted({ range: 5 }),
-      new ApproachTarget({ targetId: spatialId })
+      new ApproachTarget({ targetId: spatialId }),
+      new Knowledge({ current: new ValueMap(), history: new ValueMap() })
     ).id;
+
+    of(null)
+      .pipe(
+        map((msg) => ({
+          viewerPos: em.getComponent(agent2Id, GridPos),
+          sightedId: agent2Id,
+        })),
+        visionKnowledge(em)
+      )
+      .subscribe();
 
     of(null)
       .pipe(process)

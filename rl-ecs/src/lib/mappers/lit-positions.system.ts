@@ -28,7 +28,6 @@ export function lightPositions(em: EntityManager) {
       tap((msg) => {
         const { closedMap } = msg;
 
-        console.log(closedMap.count());
         let lightFov = new ROT.FOV.PreciseShadowcasting(
           (x: number, y: number) => {
             const currPos = new GridPos({ x, y, z: msg.viewerPos.z });
