@@ -6,10 +6,9 @@ import {
   Renderable,
 } from '@rad/rl-ecs';
 import { AreaResolver } from 'libs/rl-ecs/src/lib/utils/area-resolver.util';
-import { Component, EntityManager } from 'rad-ecs';
-import { DungeonLevelTemplate } from './dungeon-level.model';
+import { EntityManager } from 'rad-ecs';
+import { DungeonLevelTemplate, EntityCreator } from './dungeon-level.model';
 
-export type EntityCreator = (em: EntityManager, ...extras: Component[]) => void;
 export class DungeonBranch {
   private levelEntities: {
     [levelNumber: string]: EntityCreator[];
@@ -90,7 +89,7 @@ export class DungeonBranch {
     }
 
     return this.levelTemplate.generate(em, mergedTransitions, levelNumber, [
-      (em, rooms, depth) => {
+      (em, depth, { rooms, takenMap }) => {
         let ids = [];
         for (let room of rooms) {
           const [x, y] = room.getCenter();

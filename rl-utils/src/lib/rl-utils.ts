@@ -85,7 +85,7 @@ export function xyWithinBounds(
 }
 
 export function randomElement<T>(array: T[]): T {
-  return array[randomInt(0, array.length)];
+  return array[randomInt(0, array.length - 1)];
 }
 
 export function popRandomElement<T>(array: T[]): T {

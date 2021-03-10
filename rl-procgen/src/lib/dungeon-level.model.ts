@@ -1,32 +1,13 @@
-import { AreaTransitionSpec, GridPos, GridPosData } from '@rad/rl-ecs';
-import { popRandomElement, ValueMap } from '@rad/rl-utils';
+import { AreaTransitionSpec, GridPos } from '@rad/rl-ecs';
+import { ValueMap } from '@rad/rl-utils';
 import { staircasePrefab } from 'libs/rl-ecs/src/lib/component-utils.model';
 import { AreaIngress } from 'libs/rl-ecs/src/lib/components/area-ingress.model';
 import { Component, EntityId, EntityManager } from 'rad-ecs';
 import * as ROT from 'rot-js';
+import { Room } from 'rot-js/lib/map/features';
+import { Pos2d, randomMiddleRoomPos } from './utils';
 
 export type EntityCreator = (em: EntityManager, ...extras: Component[]) => void;
-
-interface Count {
-  // per space
-  // per room
-  // per door
-  // number
-}
-
-interface Probability {
-  // definite
-  // percentage
-}
-
-interface Placement {
-  // wall
-  // room
-  // passage
-  // door
-}
-
-// rooms
 
 export interface LevelGenOptions {
   height: number;
@@ -38,6 +19,7 @@ export interface LevelGenOptions {
   fill: EntityCreator;
   upStairTexture: string;
   downStairTexture: string;
+  placers: Placer[];
 }
 
 enum OpenType {
@@ -52,19 +34,16 @@ enum RoomTileType {
   CORRIDOR = 4,
 }
 
-class Pos2d {
-  constructor(public x: number, public y: number) {}
-
-  hash() {
-    return `${this.x},${this.y}`;
-  }
+export interface PlacerState {
+  rooms: Room[];
+  takenMap: ValueMap<Pos2d, EntityId>;
 }
 
 export type Placer = (
   em: EntityManager,
-  rooms: any,
-  depth: number
-) => EntityId[];
+  depth: number,
+  state: PlacerState
+) => void;
 
 export class DungeonLevelTemplate {
   constructor(private options: LevelGenOptions) {}
@@ -101,13 +80,6 @@ export class DungeonLevelTemplate {
           filled.get(new Pos2d(x, y)) === OpenType.OPEN
         ) {
           return;
-        }
-        if (tileTypeMap.get(new Pos2d(x, y)) !== undefined) {
-          console.log(
-            `Adding dupe: existing: ${
-              RoomTileType[tileTypeMap.get(new Pos2d(x, y))]
-            } -> ${RoomTileType[type]}`
-          );
         }
         tileTypeMap.set(new Pos2d(x, y), type);
       });
@@ -150,24 +122,13 @@ export class DungeonLevelTemplate {
       }
     }
 
-    const randomMiddleRoomPos: () => GridPosData = () => {
-      let rooms = [...world.getRooms()];
-      console.log(`ROOM COUNT: ${rooms.length}`);
-      let stairRoom = popRandomElement(rooms);
-      return {
-        x: stairRoom.getCenter()[0],
-        y: stairRoom.getCenter()[1],
-        z: GROUND,
-      };
-    };
-
     const { downStairTexture, upStairTexture } = this.options;
     for (const ingressEgress of transitions.ingressEgress) {
-      const egressPos = randomMiddleRoomPos();
+      const egressPos = randomMiddleRoomPos(world.getRooms(), DEPTH);
       console.log(`Egress placed at: ${egressPos}`);
       staircasePrefab(
         em,
-        randomMiddleRoomPos(),
+        randomMiddleRoomPos(world.getRooms(), DEPTH),
         { label: ingressEgress.ingressLabel },
         {
           egressArea: ingressEgress.egressArea,
@@ -180,7 +141,7 @@ export class DungeonLevelTemplate {
     }
 
     for (const ingressLabel of transitions.ingressOnly) {
-      const ingressPos = randomMiddleRoomPos();
+      const ingressPos = randomMiddleRoomPos(world.getRooms(), DEPTH);
       console.log(`Ingress Only placed at: ${ingressPos}`);
       em.create(
         new GridPos(ingressPos),
@@ -188,10 +149,9 @@ export class DungeonLevelTemplate {
       );
     }
 
-    for (const placer of placers) {
-      const rooms = world.getRooms();
-      console.log(`ROOM COUNT: ${rooms.length}`);
-      placer(em, rooms, DEPTH);
+    const takenMap = new ValueMap<Pos2d, EntityId>();
+    for (const placer of [...placers, ...this.options.placers]) {
+      placer(em, DEPTH, { rooms: world.getRooms(), takenMap });
     }
   }
 }
