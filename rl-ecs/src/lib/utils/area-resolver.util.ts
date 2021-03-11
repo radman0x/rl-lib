@@ -1,6 +1,5 @@
-import { EntityData, EntityManager } from 'rad-ecs';
+import { EntityManager } from 'rad-ecs';
 import { GridPos } from '../..';
-import { radClone } from '../systems.utils';
 
 export type AreaBuilder = (em: EntityManager) => void;
 
@@ -16,7 +15,7 @@ export class AreaResolver {
     if (!(areaId in this.areaBuilders)) {
       throw Error(`Area requested: ${areaId} doesn't exist!`);
     }
-    if (!this.loadedAreas.find(e => e === areaId)) {
+    if (!this.loadedAreas.find((e) => e === areaId)) {
       em.indexBy(GridPos);
       console.log(`Building new area: ${areaId}`);
       this.areaBuilders[areaId](em);

@@ -2,8 +2,10 @@ import { Id } from '@rad/rl-applib';
 import { isValidId } from '@rad/rl-utils';
 import * as _ from 'lodash';
 import { Entity, EntityManager } from 'rad-ecs';
+import { of } from 'rxjs';
 import { AreaIngress } from '../components/area-ingress.model';
 import { GridPos } from '../components/position.model';
+import { buildOpenMap, lightPositions } from '../mappers/lit-positions.system';
 import { TransitionAreaOut } from '../mappers/transition-area.system';
 import { OperationStep } from '../operation-step.model';
 import {
@@ -35,7 +37,7 @@ function areaStep<T extends Args>(
 
     let ingressFound = false;
     em.each((e: Entity, ai: AreaIngress) => {
-      if (ai.label === msg.areaTransition.ingressLabel) {
+      if (!ingressFound && ai.label === msg.areaTransition.ingressLabel) {
         console.log(`Matched ingress label`);
         const playerAt = radClone(e.component(GridPos));
         console.log(`Player placed at: ${playerAt} in new area`);
@@ -48,6 +50,8 @@ function areaStep<T extends Args>(
         `Ingress label: ${msg.areaTransition.ingressLabel} not found in new level!!`
       );
     }
+    const viewerPos = em.getComponent(targetEntity.id, GridPos);
+    of({ viewerPos }).pipe(buildOpenMap(em), lightPositions(em)).subscribe();
     _.set(
       out,
       'effectReport.area.worldStateChangeDescription',

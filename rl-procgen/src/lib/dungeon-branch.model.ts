@@ -7,11 +7,11 @@ import {
 } from '@rad/rl-ecs';
 import { AreaResolver } from 'libs/rl-ecs/src/lib/utils/area-resolver.util';
 import { EntityManager } from 'rad-ecs';
-import { DungeonLevelTemplate, EntityCreator } from './dungeon-level.model';
+import { DungeonLevelTemplate, Placer } from './dungeon-level.model';
 
 export class DungeonBranch {
-  private levelEntities: {
-    [levelNumber: string]: EntityCreator[];
+  private levelPlacers: {
+    [levelNumber: string]: Placer[];
   } = {};
   private levelMergeTransitionSpecs: {
     [levelNumber: string]: AreaTransitionSpec[];
@@ -43,12 +43,9 @@ export class DungeonBranch {
     this.levelMergeTransitionSpecs[levelNumber].push(transitions);
   }
 
-  randomlyPlaceEntityInLevel(
-    levelNumber: number,
-    entityCreator: EntityCreator
-  ) {
-    this.levelEntities[levelNumber] = this.levelEntities[levelNumber] || [];
-    this.levelEntities[levelNumber].push(entityCreator);
+  addPlacerForLevel(levelNumber: number, placer: Placer) {
+    this.levelPlacers[levelNumber] = this.levelPlacers[levelNumber] || [];
+    this.levelPlacers[levelNumber].push(placer);
   }
 
   level(em: EntityManager, levelNumber: number) {
@@ -89,19 +86,17 @@ export class DungeonBranch {
     }
 
     return this.levelTemplate.generate(em, mergedTransitions, levelNumber, [
+      ...(this.levelPlacers[levelNumber] ?? []),
       (em, depth, { rooms, takenMap }) => {
-        let ids = [];
         for (let room of rooms) {
           const [x, y] = room.getCenter();
-          ids.push(
-            em.create(
-              new GridPos({ x, y, z: depth }),
-              new LightSource({ strength: [200, 200, 200] }),
-              new Renderable({ image: 'Decor0-65.png', zOrder: 0 })
-            ).id
-          );
+
+          em.create(
+            new GridPos({ x, y, z: depth }),
+            new LightSource({ strength: [200, 200, 200] }),
+            new Renderable({ image: 'Decor0-65.png', zOrder: 0 })
+          ).id;
         }
-        return ids;
       },
     ]);
   }

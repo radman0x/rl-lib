@@ -48,7 +48,9 @@ export function lightPositions(em: EntityManager) {
 
         em.each(
           (e: Entity, l: LightSource, p: GridPos) => {
-            lighting.setLight(p.x, p.y, l.strength);
+            if (p.z === msg.viewerPos.z) {
+              lighting.setLight(p.x, p.y, l.strength);
+            }
           },
           LightSource,
           GridPos
