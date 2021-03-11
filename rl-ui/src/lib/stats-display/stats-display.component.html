@@ -10,5 +10,22 @@
       </p>
       <p class="statValue text-light">{{ entry.value }}</p>
     </div>
+    <div
+      class="d-flex flex-column align-items-center pr-2 pl-2 pt-1 pb-1 border-right border-top border-bottom border-light"
+    >
+      <p class="statDesc">Wounds</p>
+      <div
+        class="bg-dark text-center"
+        style="width: 200px; height: 20px; position: relative"
+      >
+        <div
+          [ngStyle]="woundsStyle()"
+          style="position: absolute; height: 20px"
+        ></div>
+        <p [ngStyle]="woundText()" class="statValue" style="position: relative">
+          {{ wounds.current }} / {{ wounds.max }}
+        </p>
+      </div>
+    </div>
   </div>
 </p-panel>
