@@ -46,6 +46,7 @@ export * from './lib/components/armor.model';
 export * from './lib/components/wearable.model';
 export * from './lib/components/light-level.model';
 export * from './lib/components/light-source.model';
+export * from './lib/components/light-preference.model';
 
 export * from './lib/mappers/grim-reaper.system';
 export * from './lib/mappers/mark-for-death.system';

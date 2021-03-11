@@ -270,7 +270,7 @@ export function playerCombatString(
     } else if (msg.woundSuccess && msg.strikeSuccess && !msg.armorSaveSuccess) {
       return `You hit the ${targetDescription}!`;
     } else if (msg.woundSuccess && msg.strikeSuccess && msg.armorSaveSuccess) {
-      return `You hit the ${targetDescription} but is blocked by its armor.`;
+      return `You hit the ${targetDescription} but it's blocked by its armor.`;
     } else {
       return `You miss the ${targetDescription}.`;
     }
@@ -291,7 +291,7 @@ export function enemyCombatString(
     if (msg.reapedId) {
       return `The ${aggressorDescription} kills you!`;
     } else if (msg.woundSuccess && msg.strikeSuccess && !msg.armorSaveSuccess) {
-      return `The ${aggressorDescription}'s ${aggressorAttack}s!`;
+      return `The ${aggressorDescription} ${aggressorAttack}s!`;
     } else if (msg.woundSuccess && msg.strikeSuccess && msg.armorSaveSuccess) {
       return `The ${aggressorDescription}'s ${aggressorAttack} is blocked by your armour.`;
     } else {

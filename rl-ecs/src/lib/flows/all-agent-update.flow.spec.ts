@@ -2,7 +2,7 @@ import { ValueMap } from '@rad/rl-utils';
 import * as Chance from 'chance';
 import { EntityId, EntityManager } from 'rad-ecs';
 import { of } from 'rxjs';
-import { map, mergeMap, tap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { updateDistanceMap } from '../actioners/update-distance-map.actioner';
 import { Alignment, AlignmentType } from '../components/alignment.model';
 import { ApproachTarget } from '../components/approach-target.model';
@@ -16,8 +16,6 @@ import { Sighted } from '../components/sighted.model';
 import { Strength } from '../components/strength.model';
 import { Toughness } from '../components/toughness.model';
 import { WeaponSkill } from '../components/weapon-skill.model';
-import { gatherApproachInfo } from '../mappers/gather-approach-info.system';
-import { buildOpenMap, lightPositions } from '../mappers/lit-positions.system';
 import { visionKnowledge } from '../operators/vision-knowledge.operator';
 import { Order, SpatialReport } from '../systems.types';
 import { AreaResolver } from '../utils/area-resolver.util';
@@ -81,11 +79,11 @@ describe('All agent update', () => {
 
   it('should process and move one agent', () => {
     const moveTarget = { x: 1, y: 2, z: 1 };
-    of(null)
+    of({ messages: [] })
       .pipe(process)
       .subscribe({
         next: (msg) => {
-          expect(msg[0]).toMatchObject({
+          expect(msg.orders[0]).toMatchObject({
             movingId: agentId,
             newPosition: moveTarget,
           });
@@ -110,11 +108,11 @@ describe('All agent update', () => {
     em.setComponent(agentId, new Toughness({ count: 3 }));
     em.setComponent(agentId, new WeaponSkill({ count: 3 }));
 
-    of(null)
+    of({})
       .pipe(process)
       .subscribe({
         next: (msg) => {
-          expect(msg[0]).toMatchObject({
+          expect(msg.orders[0]).toMatchObject({
             combatTargetId,
           });
         },
@@ -140,7 +138,7 @@ describe('All agent update', () => {
       new Knowledge({ current: new ValueMap(), history: new ValueMap() })
     ).id;
 
-    of(null)
+    of({})
       .pipe(
         map((msg) => ({
           viewerPos: em.getComponent(agent2Id, GridPos),
@@ -150,15 +148,15 @@ describe('All agent update', () => {
       )
       .subscribe();
 
-    of(null)
+    of({})
       .pipe(process)
       .subscribe({
         next: (msg) => {
-          expect(msg[0]).toMatchObject({
+          expect(msg.orders[0]).toMatchObject({
             movingId: agentId,
             newPosition: { x: 1, y: 2, z: 1 },
           });
-          expect(msg[1]).toMatchObject({
+          expect(msg.orders[1]).toMatchObject({
             movingId: agent2Id,
             newPosition: { x: 1, y: 2, z: 1 },
           });
@@ -184,12 +182,12 @@ describe('All agent update', () => {
       new ApproachTarget({ targetId: spatialId })
     ).id;
 
-    of(null)
+    of({})
       .pipe(process)
       .subscribe({
         next: (msg) => {
-          expect(msg.length).toEqual(1);
-          expect(msg[0]).toMatchObject({
+          expect(msg.orders.length).toEqual(1);
+          expect(msg.orders[0]).toMatchObject({
             movingId: agentId,
             newPosition: { x: 1, y: 2, z: 1 },
           });
@@ -203,11 +201,11 @@ describe('All agent update', () => {
 
   it('should behave well if there are no agents to be updated', () => {
     em.remove(agentId);
-    of(null)
+    of({})
       .pipe(process)
       .subscribe({
         next: (msg) => {
-          expect(msg.length).toEqual(0);
+          expect(msg.orders.length).toEqual(0);
         },
         error,
       });

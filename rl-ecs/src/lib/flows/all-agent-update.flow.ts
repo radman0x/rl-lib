@@ -14,6 +14,7 @@ import { integrity, IntegrityArgs } from '../mappers/integrity.system';
 import { markForDeath } from '../mappers/mark-for-death.system';
 import { scoreApproach } from '../mappers/score-approach.system';
 import { scoreAttack } from '../mappers/score-attack.system';
+import { scoreLightPreference } from '../mappers/score-light-preference.system';
 import { scoreRandomMove } from '../mappers/score-random-move.system';
 import { getModifiedComponent } from '../operators/modifiered-entity-pipeline.operator';
 import { produceAttackOrders } from '../operators/produce-attack-orders.operator';
@@ -73,13 +74,17 @@ export function allAgentUpdateFlow(
                   map((msg) => scoreApproach({ ...msg, ...beforeOrders }, em)),
                   map((msg) => scoreRandomMove(msg, em, rand)),
                   map((msg) => scoreAttack(msg, em)),
+                  scoreLightPreference(em),
                   rxjsSpy.operators.tag('turnEnd.allAgentUpdate.orderScores'),
                   reduce(
                     (acc, curr) => {
+                      console.log(curr.score);
                       if (curr.score === null) {
                         return acc;
                       }
-                      return (!acc || curr.score > acc.score
+                      return (!acc ||
+                      acc.score === null ||
+                      curr.score > acc.score
                         ? curr
                         : acc) as typeof curr;
                     },
@@ -91,6 +96,10 @@ export function allAgentUpdateFlow(
                       agentId: null,
                     }
                   ),
+                  map((msg) => {
+                    console.log(`${JSON.stringify(msg, null, 2)}`);
+                    return msg;
+                  }),
                   rxjsSpy.operators.tag('turnEnd.allAgentUpdate.chosenOrder'),
                   map((msg) => {
                     let spatial: {
@@ -144,9 +153,10 @@ export function allAgentUpdateFlow(
                   orderMessages.push(order.orderDescription);
                 }
               }
+              const messages = msg.messages ?? [];
               return {
-                orders: msg,
-                messages: [...msg.messages, ...orderMessages],
+                ...radClone(msg),
+                messages: [...messages, ...orderMessages],
               };
             })
           )

@@ -1,10 +1,8 @@
-import { OperationStep } from '../operation-step.model';
-import { EntityManager, EntityId } from 'rad-ecs';
-import { radClone } from '../systems.utils';
 import { Id } from '@rad/rl-applib';
-import { DistanceMaps, AttackOrder, OrderScore } from '../systems.types';
-import { isValidId } from '@rad/rl-utils';
+import { EntityId, EntityManager } from 'rad-ecs';
 import { DamageData } from '../components/damage.model';
+import { OperationStep } from '../operation-step.model';
+import { radClone } from '../systems.utils';
 
 interface Args {
   attack: {

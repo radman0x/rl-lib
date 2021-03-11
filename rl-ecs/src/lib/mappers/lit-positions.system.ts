@@ -40,7 +40,7 @@ export function lightPositions(em: EntityManager) {
         let lighting = new ROT.Lighting(
           (x: number, y: number) => {
             const currPos = new GridPos({ x, y, z: msg.viewerPos.z });
-            return closedMap.has(currPos) && closedMap.get(currPos) ? 0 : 0.12;
+            return closedMap.get(currPos) ? 0 : 0.12;
           },
           { range: 7, passes: 2 }
         );

@@ -2,7 +2,6 @@ import { EntityId, EntityManager } from 'rad-ecs';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { filter, map, mergeMap, take } from 'rxjs/operators';
 import { Alignment } from '../components/alignment.model';
-import { Description } from '../components/description.model';
 import { WeaponSkill } from '../components/weapon-skill.model';
 import { acquireCombatTargetAtPosition } from '../mappers/acquire-combat-target-at-position.system';
 import { markForDeath } from '../mappers/mark-for-death.system';
@@ -78,6 +77,7 @@ export function produceAttackOrders<T extends Args>(
           orderDescription: enemyCombatString(attack, em),
         };
         return result;
-      })
+      }),
+      filter((msg) => msg.attack !== null)
     );
 }

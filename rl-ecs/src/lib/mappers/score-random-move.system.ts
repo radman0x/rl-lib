@@ -1,12 +1,10 @@
-import { OperationStep } from '../operation-step.model';
-import { EntityId, EntityManager } from 'rad-ecs';
-import { radClone } from '../systems.utils';
 import { Id } from '@rad/rl-applib';
-import { MoveOrder } from '../systems.types';
-
-import * as Chance from 'chance';
 import { isValidId } from '@rad/rl-utils';
+import { EntityId, EntityManager } from 'rad-ecs';
 import { RandomMove } from '../components/random-move.model';
+import { OperationStep } from '../operation-step.model';
+import { MoveOrder } from '../systems.types';
+import { radClone } from '../systems.utils';
 
 interface Args {
   score: number | null;
@@ -26,7 +24,11 @@ function scoreRandomMoveStep<T extends Args>(
   rand: Chance.Chance
 ): Id<T & Out> {
   let score = msg.score === null ? 0 : msg.score;
-  if (isValidId(msg.agentId) && em.hasComponent(msg.agentId, RandomMove)) {
+  if (
+    msg.move &&
+    isValidId(msg.agentId) &&
+    em.hasComponent(msg.agentId, RandomMove)
+  ) {
     const randomMove = em.getComponent(msg.agentId, RandomMove);
 
     if (rand.floating({ min: 0, max: 1 }) <= randomMove.chance) {
