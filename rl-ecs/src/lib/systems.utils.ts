@@ -14,10 +14,12 @@ import {
   TargetPos,
   Teleported,
   NewPosition,
+  AttackOrder,
 } from './systems.types';
 import { TransitionAreaOut } from './mappers/transition-area.system';
 import { Id } from '@rad/rl-applib';
-// import { positionBlocked } from './systems/position-blocked.system';
+import { Description } from './components/description.model';
+import { Attacks } from './components/attacks.model';
 
 type Rename<T, K extends keyof T, N extends string> = Pick<
   T,
@@ -254,3 +256,47 @@ export function noNewPosition<T>(a: T): a is T {
 }
 
 export type RadRxOperator<T, U> = (input: Observable<T>) => Observable<T & U>;
+
+export function playerCombatString(
+  msg: AttackOrder,
+  em: EntityManager
+): string | null {
+  if (msg && msg.combatTargetId) {
+    let targetDescription = em.getComponent(msg.combatTargetId, Description)
+      ?.short;
+    targetDescription = targetDescription ?? 'unnamed';
+    if (msg.reapedId) {
+      return `You kill the ${targetDescription}!`;
+    } else if (msg.woundSuccess && msg.strikeSuccess && !msg.armorSaveSuccess) {
+      return `You hit the ${targetDescription}!`;
+    } else if (msg.woundSuccess && msg.strikeSuccess && msg.armorSaveSuccess) {
+      return `You hit the ${targetDescription} but is blocked by its armor.`;
+    } else {
+      return `You miss the ${targetDescription}.`;
+    }
+  }
+  return null;
+}
+export function enemyCombatString(
+  msg: AttackOrder,
+  em: EntityManager
+): string | null {
+  if (msg && msg.combatTargetId) {
+    const aggressorDescription = em.hasComponent(msg.aggressorId, Description)
+      ? em.getComponent(msg.aggressorId, Description).short
+      : 'unnamed';
+    const aggressorAttack = em.hasComponent(msg.aggressorId, Attacks)
+      ? em.getComponent(msg.aggressorId, Attacks).description
+      : 'hits';
+    if (msg.reapedId) {
+      return `The ${aggressorDescription} kills you!`;
+    } else if (msg.woundSuccess && msg.strikeSuccess && !msg.armorSaveSuccess) {
+      return `The ${aggressorDescription}'s ${aggressorAttack}s!`;
+    } else if (msg.woundSuccess && msg.strikeSuccess && msg.armorSaveSuccess) {
+      return `The ${aggressorDescription}'s ${aggressorAttack} is blocked by your armour.`;
+    } else {
+      return `The ${aggressorDescription} misses.`;
+    }
+  }
+  return null;
+}

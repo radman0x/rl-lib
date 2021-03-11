@@ -294,3 +294,7 @@ export interface CostPaid {
 export interface EffectOrigin {
   effectOrigin: GridPosData | null;
 }
+
+export interface Messages {
+  messages: string[];
+}

@@ -1,7 +1,7 @@
 import { EntityId, EntityManager } from 'rad-ecs';
 import { merge, Observable, of } from 'rxjs';
 import * as rxjsSpy from 'rxjs-spy';
-import { filter, map, mergeMap, reduce, tap } from 'rxjs/operators';
+import { filter, map, mapTo, mergeMap, reduce } from 'rxjs/operators';
 import { spatial } from '../actioners/spatial.actioner';
 import { EndType } from '../components/end-state.model';
 import { Mental, MentalState } from '../components/mental.model';
@@ -18,7 +18,7 @@ import { scoreRandomMove } from '../mappers/score-random-move.system';
 import { getModifiedComponent } from '../operators/modifiered-entity-pipeline.operator';
 import { produceAttackOrders } from '../operators/produce-attack-orders.operator';
 import { produceMoveOrders } from '../operators/produce-move-orders.operator';
-import { Order } from '../systems.types';
+import { Messages, Order } from '../systems.types';
 import { addProperty, radClone } from '../systems.utils';
 import { AreaResolver } from '../utils/area-resolver.util';
 import { housekeepingFlowInstant } from './housekeeping.flow';
@@ -45,13 +45,13 @@ export function allAgentUpdateFlow(
   messageLog: (string) => void = null,
   ender: (endType: EndType) => void = null
 ) {
-  return <T>(input: Observable<T>) => {
+  return <T extends Partial<Messages>>(input: Observable<T>) => {
     return input.pipe(
-      mergeMap(() =>
-        of(null)
+      mergeMap((inputMsg) =>
+        of(inputMsg)
           .pipe(
             rxjsSpy.operators.tag('turnEnd.allAgentUpdate'),
-            map(() => addProperty({}, 'componentTypes', [MovingAgent])),
+            map((msg) => addProperty(msg, 'componentTypes', [MovingAgent])),
             mergeMap((msg) =>
               of(...entitiesWithComponents(msg, em, 'agentId'))
             ),
@@ -67,10 +67,6 @@ export function allAgentUpdateFlow(
               );
             }),
             gatherApproachInfo(em),
-            map((msg) => {
-              console.log(`${JSON.stringify(msg, null, 2)}`);
-              return msg;
-            }),
             mergeMap((beforeOrders) =>
               produceCandidateOrders(beforeOrders, em, rand)
                 .pipe(
@@ -124,27 +120,34 @@ export function allAgentUpdateFlow(
                   map((msg) => grimReaper(msg, em)),
                   mergeMap((msg) =>
                     housekeepingFlowInstant(em, areaResolver, ender).pipe(
-                      map(() => msg)
+                      mapTo(msg)
                     )
                   )
                 )
             ),
-            reduce((acc, curr) => {
-              if (curr.score !== null) {
-                acc.push(curr);
-              }
-              return acc;
-            }, [] as Order[])
+            reduce(
+              (acc, curr) => {
+                if (curr.score !== null) {
+                  acc.orders.push(curr);
+                }
+                return acc;
+              },
+              { ...inputMsg, orders: [] } as { orders: Order[] } & T
+            )
           )
           .pipe(
             rxjsSpy.operators.tag('turnEnd.allAgentUpdate.finalOrders'),
-            tap((orders) => {
-              if (messageLog) {
-                for (const order of orders) {
-                  order.orderDescription !== '' &&
-                    messageLog(order.orderDescription);
+            map((msg) => {
+              const orderMessages: string[] = [];
+              for (const order of msg.orders) {
+                if (order.orderDescription !== '') {
+                  orderMessages.push(order.orderDescription);
                 }
               }
+              return {
+                orders: msg,
+                messages: [...msg.messages, ...orderMessages],
+              };
             })
           )
       )

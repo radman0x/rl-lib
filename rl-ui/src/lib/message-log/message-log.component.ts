@@ -6,7 +6,7 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./message-log.component.css'],
 })
 export class MessageLogComponent implements OnInit {
-  messageBuffer: [string, string, string] = ['', '', ''];
+  messageBuffer: [string] = [''];
   constructor() {}
 
   ngOnInit(): void {}
@@ -22,10 +22,6 @@ export class MessageLogComponent implements OnInit {
   }
 
   addMessageToLog(message: string) {
-    this.messageBuffer = [message, ...this.messageBuffer.slice(0, -1)] as [
-      string,
-      string,
-      string
-    ];
+    this.messageBuffer = [message];
   }
 }

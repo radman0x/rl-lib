@@ -5,6 +5,7 @@ import { grimReaper } from '../mappers/grim-reaper.system';
 import { integrity } from '../mappers/integrity.system';
 import { markForDeath } from '../mappers/mark-for-death.system';
 import { AttackOrder, WorldStateChangeReport } from '../systems.types';
+import { attackMessage } from './attack-message.operator';
 
 export type ProcessAttackArgs = { attack: AttackOrder | null };
 export type ProcessAttackOut = WorldStateChangeReport;
@@ -12,9 +13,10 @@ export type ProcessAttackOut = WorldStateChangeReport;
 export function processAttack(em: EntityManager) {
   return <T extends ProcessAttackArgs>(input: Observable<T>) =>
     input.pipe(
-      map((msg) => ({ ...msg.attack })),
+      map((msg) => ({ ...msg, ...msg.attack })),
       map((msg) => integrity(msg, em)),
       map((msg) => markForDeath(msg, em)),
+      attackMessage(em),
       map((msg) => grimReaper(msg, em))
     );
 }

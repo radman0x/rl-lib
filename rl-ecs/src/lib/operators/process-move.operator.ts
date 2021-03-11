@@ -11,7 +11,7 @@ export type ProcessMoveOut = WorldStateChangeReport;
 export function processMove(em: EntityManager) {
   return <T extends ProcessMoveArgs>(input: Observable<T>) =>
     input.pipe(
-      map((msg) => ({ ...msg.move })),
+      map((msg) => ({ ...msg, ...msg.move })),
       map((msg) => spatial(msg, em)),
       tap((msg) => updateDistanceMap(msg, em))
     );

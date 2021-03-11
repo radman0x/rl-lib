@@ -78,6 +78,7 @@ export * from './lib/operators/gather-move-info.operator';
 export * from './lib/operators/gather-attack-info.operator';
 export * from './lib/operators/process-attack.operator';
 export * from './lib/operators/process-move.operator';
+export * from './lib/operators/attack-message.operator';
 
 export * from './lib/areas/area-spec.model';
 

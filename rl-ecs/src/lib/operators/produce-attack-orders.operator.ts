@@ -12,34 +12,10 @@ import { resolveMeleeAttackDamage } from '../mappers/resolve-melee-attack-damage
 import { resolveStrike } from '../mappers/resolve-strike.system';
 import { resolveWound } from '../mappers/resolve-wound.system';
 import { AttackOrder, Order } from '../systems.types';
-import { addProperty } from '../systems.utils';
+import { addProperty, enemyCombatString } from '../systems.utils';
 
 interface Args {
   agentId: EntityId;
-}
-
-function combatString(msg: AttackOrder, em: EntityManager): string | null {
-  if (msg && msg.combatTargetId) {
-    const aggressorDescription = em.hasComponent(msg.aggressorId, Description)
-      ? em.getComponent(msg.aggressorId, Description).short
-      : 'unnamed';
-    const targetDescription = em.hasComponent(msg.combatTargetId, Description)
-      ? em.getComponent(msg.combatTargetId, Description).short
-      : 'unnamed';
-    if (msg.reapedId) {
-      return `The ${aggressorDescription} kills ${targetDescription}!`;
-    }
-    if (msg.woundSuccess && msg.strikeSuccess && !msg.armorSaveSuccess) {
-      return `The ${aggressorDescription} wounds ${targetDescription}`;
-    } else if (msg.woundSuccess && msg.strikeSuccess && msg.armorSaveSuccess) {
-      return `The ${aggressorDescription}'s blow is deflected by ${targetDescription}'s armor!`;
-    } else if (msg.strikeSuccess) {
-      return `The ${aggressorDescription} hits ${targetDescription} but fails to cause any damage`;
-    } else {
-      return `The ${aggressorDescription} misses ${targetDescription}`;
-    }
-  }
-  return null;
 }
 
 export function produceAttackOrders<T extends Args>(
@@ -99,7 +75,7 @@ export function produceAttackOrders<T extends Args>(
           move: null,
           attack,
           score: null,
-          orderDescription: combatString(attack, em),
+          orderDescription: enemyCombatString(attack, em),
         };
         return result;
       })

@@ -59,9 +59,7 @@ export class DungeonLevelTemplate {
     const GROUND = DEPTH;
 
     const { width, height } = this.options;
-    let world = new ROT.Map.Uniform(width, height, {
-      roomDugPercentage: 0.9,
-    });
+    let world = new ROT.Map.Digger(width, height, {});
 
     const filled = new ValueMap<Pos2d, OpenType>();
     world.create((x: number, y: number, contents: number) => {

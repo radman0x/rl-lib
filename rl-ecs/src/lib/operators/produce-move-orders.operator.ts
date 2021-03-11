@@ -4,7 +4,6 @@ import { filter, map, mergeMap, take } from 'rxjs/operators';
 import { Mobile } from '../components/mobile.model';
 import { canOccupyPosition } from '../mappers/can-occupy-position.system';
 import { canStandAtPosition } from '../mappers/can-stand-at-position.system';
-import { knownDistanceMaps } from '../mappers/known-distance-maps.system';
 import { positionBlocked } from '../mappers/position-blocked.system';
 import { positionsAroundEntity } from '../mappers/positions-around-entity.system';
 import { resolveMove } from '../mappers/resolve-move.system';

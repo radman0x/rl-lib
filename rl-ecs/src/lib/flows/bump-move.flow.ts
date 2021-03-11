@@ -1,17 +1,16 @@
 import { EntityManager } from 'rad-ecs';
-import { Observable, of, NEVER } from 'rxjs';
+import { NEVER, Observable, of } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
 import { AcquireCombatTargetAtPositionArgs } from '../mappers/acquire-combat-target-at-position.system';
 import { CanOccupyPositionArgs } from '../mappers/can-occupy-position.system';
 import { CanStandAtArgs } from '../mappers/can-stand-at-position.system';
 import {
+  AggressorEntity,
+  AttackOrder,
+  Messages,
+  MoveOrder,
   MovingEntity,
   TargetPos,
-  AttackOrder,
-  MoveOrder,
-  AggressorEntity,
-  WorldStateChangeReport,
-  SpatialReport,
 } from '../systems.types';
 import { RadRxOperator } from '../systems.utils';
 
@@ -40,8 +39,8 @@ type AttemptMoveFlowArgs = {
   processMove: (
     em: EntityManager
   ) => RadRxOperator<{ move: MoveOrder | null }, any>;
-  afterMove: (em: EntityManager) => RadRxOperator<any, any>;
-  afterAttack: (em: EntityManager) => RadRxOperator<any, any>;
+  afterMove: (em: EntityManager) => RadRxOperator<Messages, any>;
+  afterAttack: (em: EntityManager) => RadRxOperator<Messages, any>;
   afterNeither?: () => RadRxOperator<any, any>;
 };
 
