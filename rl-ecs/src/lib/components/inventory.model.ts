@@ -1,5 +1,4 @@
-import { EntityId } from '../ecs.types';
-import { Component } from 'rad-ecs';
+import { Component, EntityId } from 'rad-ecs';
 
 export class Inventory extends Component {
   public readonly contents: EntityId[];

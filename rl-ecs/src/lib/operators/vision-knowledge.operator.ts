@@ -1,5 +1,4 @@
-import { EntityId } from '@rad/rl-ecs';
-import { EntityManager } from 'rad-ecs';
+import { EntityId, EntityManager } from 'rad-ecs';
 import { Observable, of } from 'rxjs';
 import { mapTo, mergeMap, tap } from 'rxjs/operators';
 import { addSeenToKnowledge } from '../actioners/add-seen-to-knowledge.actioner';

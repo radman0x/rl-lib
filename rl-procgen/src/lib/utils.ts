@@ -1,6 +1,6 @@
-import { GridPos } from '@rad/rl-ecs';
-import { randomElement, randomInt } from '@rad/rl-utils';
-import { EntityId, EntityManager } from 'rad-ecs';
+import { AreaTransitionSpec, GridPos } from '@rad/rl-ecs';
+import { randomElement, randomInt, ValueMap } from '@rad/rl-utils';
+import { Component, EntityId, EntityManager } from 'rad-ecs';
 import { Room } from 'rot-js/lib/map/features';
 
 export class Pos2d {
@@ -54,4 +54,83 @@ export function placeEntityInRandomRoom(
   const chosenPos = randomNotTakenRoomPos(rooms, z, isTaken);
   em.setComponent(id, new GridPos(chosenPos));
   markTaken(chosenPos, id);
+}
+
+export interface DungeonTemplate {
+  generate(
+    em: EntityManager,
+    transitions: AreaTransitionSpec,
+    depth: number,
+    placers: DungeonPlacer[]
+  ): void;
+  kind: 'DUNGEON';
+}
+
+export interface CaveTemplate {
+  generate(
+    em: EntityManager,
+    transitions: AreaTransitionSpec,
+    depth: number,
+    placers: CavePlacer[]
+  ): void;
+  kind: 'CAVE';
+}
+
+export interface DungeonPlacerState {
+  rooms: Room[];
+  takenMap: ValueMap<Pos2d, EntityId>;
+}
+
+export interface CavePlacerState {
+  openList: Pos2d[];
+  takenMap: ValueMap<Pos2d, EntityId>;
+}
+
+export class DungeonPlacer {
+  kind: 'DUNGEON' = 'DUNGEON';
+  constructor(
+    public place: (
+      em: EntityManager,
+      depth: number,
+      state: DungeonPlacerState
+    ) => void
+  ) {}
+}
+
+export class CavePlacer {
+  kind: 'CAVE' = 'CAVE';
+  constructor(
+    public place: (
+      em: EntityManager,
+      depth: number,
+      state: CavePlacerState
+    ) => void
+  ) {}
+}
+
+export type EntityCreator = (em: EntityManager, ...extras: Component[]) => void;
+
+export interface BaseGenOptions {
+  height: number;
+  width: number;
+  floor: EntityCreator;
+  fill: EntityCreator;
+  upTransitionTexture: string;
+  downTransitionTexture: string;
+}
+
+export interface DungeonGenOptions extends BaseGenOptions {
+  corridor: EntityCreator;
+  door: EntityCreator;
+  wall: EntityCreator;
+  placers: DungeonPlacer[];
+}
+
+export interface CaveGenOptions extends BaseGenOptions {
+  placers: CavePlacer[];
+}
+
+export enum ROTOpenType {
+  OPEN = 0,
+  BLOCKED = 1,
 }

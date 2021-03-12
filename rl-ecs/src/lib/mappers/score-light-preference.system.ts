@@ -1,11 +1,5 @@
-import {
-  EntityId,
-  GridPos,
-  LightLevel,
-  MoveOrder,
-  radClone,
-} from '@rad/rl-ecs';
-import { EntityManager } from 'rad-ecs';
+import { GridPos, LightLevel, MoveOrder, radClone } from '@rad/rl-ecs';
+import { EntityId, EntityManager } from 'rad-ecs';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { LightPreference } from '../components/light-preference.model';

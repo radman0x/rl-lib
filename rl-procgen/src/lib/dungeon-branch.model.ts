@@ -1,38 +1,36 @@
-import {
-  AreaTransitionSpec,
-  EgressDirection,
-  GridPos,
-  LightSource,
-  Renderable,
-} from '@rad/rl-ecs';
+import { AreaTransitionSpec, EgressDirection } from '@rad/rl-ecs';
 import { AreaResolver } from 'libs/rl-ecs/src/lib/utils/area-resolver.util';
 import { EntityManager } from 'rad-ecs';
-import { DungeonLevelTemplate, Placer } from './dungeon-level.model';
+import { DungeonPlacer } from '..';
+import { CaveLevelTemplate } from './cave-level.model';
+import { DungeonLevelTemplate } from './dungeon-level.model';
+import { CavePlacer } from './utils';
+
+type LevelTemplateUnion = DungeonLevelTemplate | CaveLevelTemplate;
+type LevelPlacerUnion = CavePlacer | DungeonPlacer;
 
 export class DungeonBranch {
   private levelPlacers: {
-    [levelNumber: string]: Placer[];
+    [levelNumber: string]: LevelPlacerUnion[];
   } = {};
   private levelMergeTransitionSpecs: {
     [levelNumber: string]: AreaTransitionSpec[];
   } = {};
 
-  constructor(
-    private levelTemplate: DungeonLevelTemplate,
-    private options: {
-      maxDepth: number;
-      minDepth: number;
-    }
-  ) {}
+  private levelTemplates: LevelTemplateUnion[];
+
+  constructor(levelTemplates: LevelTemplateUnion[]) {
+    this.levelTemplates = [null, ...levelTemplates];
+  }
 
   addBuilders(areaResolver: AreaResolver, entityManager: EntityManager) {
     for (
-      let depth = this.options.minDepth;
-      depth <= this.options.maxDepth;
-      ++depth
+      let levelNumber = 1;
+      levelNumber < this.levelTemplates.length;
+      ++levelNumber
     ) {
-      areaResolver.setBuilder(this.levelId(depth), () =>
-        this.level(entityManager, depth)
+      areaResolver.setBuilder(this.levelId(levelNumber), () =>
+        this.level(entityManager, levelNumber)
       );
     }
   }
@@ -43,7 +41,7 @@ export class DungeonBranch {
     this.levelMergeTransitionSpecs[levelNumber].push(transitions);
   }
 
-  addPlacerForLevel(levelNumber: number, placer: Placer) {
+  addPlacerForLevel(levelNumber: number, placer: DungeonPlacer | CavePlacer) {
     this.levelPlacers[levelNumber] = this.levelPlacers[levelNumber] || [];
     this.levelPlacers[levelNumber].push(placer);
   }
@@ -54,8 +52,9 @@ export class DungeonBranch {
       egressOnly: [],
       ingressEgress: [],
     };
-    const connectDownwards = (depth: number) => depth < this.options.maxDepth;
-    const connectUpwards = (depth: number) => depth > this.options.minDepth;
+    const connectDownwards = (lvlNum: number) =>
+      lvlNum < this.levelTemplates.length - 1;
+    const connectUpwards = (lvlNum: number) => lvlNum > 1;
 
     if (connectDownwards(levelNumber)) {
       transitions.ingressEgress.push({
@@ -85,20 +84,32 @@ export class DungeonBranch {
       mergedTransitions = transitions;
     }
 
-    return this.levelTemplate.generate(em, mergedTransitions, levelNumber, [
-      ...(this.levelPlacers[levelNumber] ?? []),
-      (em, depth, { rooms, takenMap }) => {
-        for (let room of rooms) {
-          const [x, y] = room.getCenter();
+    const levelTemplate = this.levelTemplates[levelNumber];
+    const placers = this.levelPlacers[levelNumber] ?? [];
+    console.log(levelTemplate.kind);
+    switch (levelTemplate.kind) {
+      case 'CAVE':
+        return levelTemplate.generate(
+          em,
+          mergedTransitions,
+          levelNumber,
+          placers.filter(
+            (placer): placer is CavePlacer => placer.kind === 'CAVE'
+          )
+        );
 
-          em.create(
-            new GridPos({ x, y, z: depth }),
-            new LightSource({ strength: [200, 200, 200] }),
-            new Renderable({ image: 'Decor0-65.png', zOrder: 0 })
-          ).id;
-        }
-      },
-    ]);
+      case 'DUNGEON':
+        return levelTemplate.generate(
+          em,
+          mergedTransitions,
+          levelNumber,
+          placers.filter(
+            (placer): placer is DungeonPlacer => placer.kind === 'DUNGEON'
+          )
+        );
+      default:
+        throw Error(`Unhandled type in switch!!!`);
+    }
   }
 
   private mergeTransitionSpecs(

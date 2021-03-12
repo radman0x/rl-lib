@@ -1,7 +1,6 @@
 import { Id } from '@rad/rl-applib';
-import { Entity, EntityManager } from 'rad-ecs';
+import { Entity, EntityId, EntityManager } from 'rad-ecs';
 import { GridPos } from '../components/position.model';
-import { EntityId } from '../ecs.types';
 import { TargetPos } from '../systems.types';
 import { addProperty, PropObject } from '../systems.utils';
 

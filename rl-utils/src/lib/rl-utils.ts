@@ -84,11 +84,23 @@ export function xyWithinBounds(
   return inside.length === candidates.length;
 }
 
-export function randomElement<T>(array: T[]): T {
+export function randomElement<T>(array: T[]): T | undefined {
+  if (array.length === 0) {
+    return undefined;
+  }
+  if (array.length === 1) {
+    return array[0];
+  }
   return array[randomInt(0, array.length - 1)];
 }
 
-export function popRandomElement<T>(array: T[]): T {
+export function popRandomElement<T>(array: T[]): T | undefined {
+  if (array.length === 0) {
+    return undefined;
+  }
+  if (array.length === 1) {
+    return array.splice(0, 1).pop();
+  }
   const index = randomInt(0, array.length - 1);
   const chosen = array[index];
   array.splice(index, 1);

@@ -18,7 +18,7 @@ export class GridPos extends Component implements GridPosData {
     return new GridPos({
       x: this.x + rhs.x,
       y: this.y + rhs.y,
-      z: this.z + rhs.z
+      z: this.z + rhs.z,
     });
   }
 
@@ -28,5 +28,14 @@ export class GridPos extends Component implements GridPosData {
 
   toString(): string {
     return `{${this.x}, ${this.y}, ${this.z}}`;
+  }
+
+  static hashRe = /([0-9]+),([0-9]+),([0-9]+)/;
+  static fromHash(hash: string) {
+    if (!GridPos.hashRe.test(hash)) {
+      throw Error(`Attempt to create GridPos from hash: ${hash}`);
+    }
+    const [, x, y, z] = GridPos.hashRe.exec(hash);
+    return new GridPos({ x: +x, y: +y, z: +z });
   }
 }

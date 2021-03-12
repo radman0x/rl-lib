@@ -1,9 +1,9 @@
 import { CompassDirection } from '@rad/rl-utils';
+import { EntityId } from 'rad-ecs';
 import { AreaTransitionData } from './components/area-transition.model';
 import { DamageData } from './components/damage.model';
 import { EndType } from './components/end-state.model';
 import { GridPosData } from './components/position.model';
-import { EntityId } from './ecs.types';
 
 export enum DamageType {
   FIRE,

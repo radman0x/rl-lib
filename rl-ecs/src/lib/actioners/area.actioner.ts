@@ -38,9 +38,9 @@ function areaStep<T extends Args>(
     let ingressFound = false;
     em.each((e: Entity, ai: AreaIngress) => {
       if (!ingressFound && ai.label === msg.areaTransition.ingressLabel) {
-        console.log(`Matched ingress label`);
+        // console.log(`Matched ingress label`);
         const playerAt = radClone(e.component(GridPos));
-        console.log(`Player placed at: ${playerAt} in new area`);
+        // console.log(`Player placed at: ${playerAt} in new area`);
         em.setComponent(targetEntity.id, playerAt);
         ingressFound = true;
       }

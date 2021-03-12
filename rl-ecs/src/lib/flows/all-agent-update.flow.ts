@@ -78,7 +78,6 @@ export function allAgentUpdateFlow(
                   rxjsSpy.operators.tag('turnEnd.allAgentUpdate.orderScores'),
                   reduce(
                     (acc, curr) => {
-                      console.log(curr.score);
                       if (curr.score === null) {
                         return acc;
                       }
@@ -96,10 +95,6 @@ export function allAgentUpdateFlow(
                       agentId: null,
                     }
                   ),
-                  map((msg) => {
-                    console.log(`${JSON.stringify(msg, null, 2)}`);
-                    return msg;
-                  }),
                   rxjsSpy.operators.tag('turnEnd.allAgentUpdate.chosenOrder'),
                   map((msg) => {
                     let spatial: {

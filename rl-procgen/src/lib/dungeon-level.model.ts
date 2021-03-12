@@ -2,30 +2,17 @@ import { AreaTransitionSpec, GridPos } from '@rad/rl-ecs';
 import { ValueMap } from '@rad/rl-utils';
 import { staircasePrefab } from 'libs/rl-ecs/src/lib/component-utils.model';
 import { AreaIngress } from 'libs/rl-ecs/src/lib/components/area-ingress.model';
-import { Component, EntityId, EntityManager } from 'rad-ecs';
+import { EntityId, EntityManager } from 'rad-ecs';
 import * as ROT from 'rot-js';
-import { Room } from 'rot-js/lib/map/features';
-import { Pos2d, randomMiddleRoomPos } from './utils';
+import {
+  DungeonGenOptions,
+  DungeonPlacer,
+  DungeonTemplate,
+  Pos2d,
+  randomMiddleRoomPos,
+  ROTOpenType,
+} from './utils';
 
-export type EntityCreator = (em: EntityManager, ...extras: Component[]) => void;
-
-export interface LevelGenOptions {
-  height: number;
-  width: number;
-  wall: EntityCreator;
-  floor: EntityCreator;
-  corridor: EntityCreator;
-  door: EntityCreator;
-  fill: EntityCreator;
-  upStairTexture: string;
-  downStairTexture: string;
-  placers: Placer[];
-}
-
-enum OpenType {
-  OPEN = 0,
-  BLOCKED = 1,
-}
 enum RoomTileType {
   OPEN = 0,
   WALL = 1,
@@ -34,25 +21,16 @@ enum RoomTileType {
   CORRIDOR = 4,
 }
 
-export interface PlacerState {
-  rooms: Room[];
-  takenMap: ValueMap<Pos2d, EntityId>;
-}
+export class DungeonLevelTemplate implements DungeonTemplate {
+  kind: 'DUNGEON' = 'DUNGEON';
 
-export type Placer = (
-  em: EntityManager,
-  depth: number,
-  state: PlacerState
-) => void;
-
-export class DungeonLevelTemplate {
-  constructor(private options: LevelGenOptions) {}
+  constructor(private options: DungeonGenOptions) {}
 
   generate(
     em: EntityManager,
     transitions: AreaTransitionSpec,
     depth: number,
-    placers: Placer[]
+    placers: DungeonPlacer[]
   ) {
     const DEPTH = depth * 3;
     const BASEMENT = DEPTH - 1;
@@ -61,12 +39,12 @@ export class DungeonLevelTemplate {
     const { width, height } = this.options;
     let world = new ROT.Map.Digger(width, height, {});
 
-    const filled = new ValueMap<Pos2d, OpenType>();
+    const filled = new ValueMap<Pos2d, ROTOpenType>();
     world.create((x: number, y: number, contents: number) => {
       if (contents === 1) {
-        filled.set(new Pos2d(x, y), OpenType.BLOCKED);
+        filled.set(new Pos2d(x, y), ROTOpenType.BLOCKED);
       } else {
-        filled.set(new Pos2d(x, y), OpenType.OPEN);
+        filled.set(new Pos2d(x, y), ROTOpenType.OPEN);
       }
     });
 
@@ -75,7 +53,7 @@ export class DungeonLevelTemplate {
       room.create((x, y, type) => {
         if (
           type === RoomTileType.WALL &&
-          filled.get(new Pos2d(x, y)) === OpenType.OPEN
+          filled.get(new Pos2d(x, y)) === ROTOpenType.OPEN
         ) {
           return;
         }
@@ -87,7 +65,7 @@ export class DungeonLevelTemplate {
       corridor.create((x, y) => {
         if (
           tileTypeMap.get(new Pos2d(x, y)) === undefined &&
-          filled.get(new Pos2d(x, y)) === OpenType.OPEN
+          filled.get(new Pos2d(x, y)) === ROTOpenType.OPEN
         ) {
           tileTypeMap.set(new Pos2d(x, y), RoomTileType.CORRIDOR);
         }
@@ -95,7 +73,10 @@ export class DungeonLevelTemplate {
     }
 
     for (let [pos, openType] of filled) {
-      if (openType === OpenType.BLOCKED && tileTypeMap.get(pos) === undefined) {
+      if (
+        openType === ROTOpenType.BLOCKED &&
+        tileTypeMap.get(pos) === undefined
+      ) {
         tileTypeMap.set(pos, RoomTileType.FILL);
       }
     }
@@ -120,7 +101,10 @@ export class DungeonLevelTemplate {
       }
     }
 
-    const { downStairTexture, upStairTexture } = this.options;
+    const {
+      downTransitionTexture: downStairTexture,
+      upTransitionTexture: upStairTexture,
+    } = this.options;
     for (const ingressEgress of transitions.ingressEgress) {
       const egressPos = randomMiddleRoomPos(world.getRooms(), DEPTH);
       console.log(`Egress placed at: ${egressPos}`);
@@ -149,7 +133,7 @@ export class DungeonLevelTemplate {
 
     const takenMap = new ValueMap<Pos2d, EntityId>();
     for (const placer of [...placers, ...this.options.placers]) {
-      placer(em, DEPTH, { rooms: world.getRooms(), takenMap });
+      placer.place(em, DEPTH, { rooms: world.getRooms(), takenMap });
     }
   }
 }

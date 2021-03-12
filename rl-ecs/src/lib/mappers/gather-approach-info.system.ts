@@ -1,14 +1,8 @@
-import {
-  ApproachTarget,
-  EntityId,
-  GridPos,
-  Knowledge,
-  radClone,
-} from '@rad/rl-ecs';
+import { ApproachTarget, GridPos, Knowledge, radClone } from '@rad/rl-ecs';
 import { ValueMap } from '@rad/rl-utils';
-import { EntityManager } from 'rad-ecs';
+import { EntityId, EntityManager } from 'rad-ecs';
 import { Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { DistanceMap } from '../components/distance-map.model';
 
 export interface GatherApproachInfoArgs {

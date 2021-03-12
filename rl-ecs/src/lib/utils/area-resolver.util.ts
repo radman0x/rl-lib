@@ -11,7 +11,7 @@ export class AreaResolver {
   private loadedAreas: string[] = [];
   constructor(private areaBuilders: Builders = {}) {}
 
-  load(areaId: string, em: EntityManager) {
+  load(areaId: string, em: EntityManager): boolean {
     if (!(areaId in this.areaBuilders)) {
       throw Error(`Area requested: ${areaId} doesn't exist!`);
     }
@@ -20,7 +20,9 @@ export class AreaResolver {
       console.log(`Building new area: ${areaId}`);
       this.areaBuilders[areaId](em);
       this.loadedAreas.push(areaId);
+      return true;
     }
+    return false;
   }
 
   setBuilder(areaId: string, builder: AreaBuilder) {

@@ -1,12 +1,10 @@
 import { Id } from '@rad/rl-applib';
-import * as deepEqual from 'fast-deep-equal';
 import { EntityManager } from 'rad-ecs';
 import { Physical, Size } from '../components/physical.model';
-import { GridPos, GridPosData } from '../components/position.model';
-import { EntityId } from '../ecs.types';
+import { GridPos } from '../components/position.model';
 import { OperationStep } from '../operation-step.model';
-import { addProperty } from '../systems.utils';
 import { TargetPos } from '../systems.types';
+import { addProperty } from '../systems.utils';
 
 export type CanStandAtArgs = TargetPos;
 
