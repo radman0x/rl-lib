@@ -4,9 +4,13 @@ import { EntityManager } from 'rad-ecs';
 import { DungeonPlacer } from '..';
 import { CaveLevelTemplate } from './cave-level.model';
 import { DungeonLevelTemplate } from './dungeon-level.model';
+import { FinalLevelTemplate } from './final-level.model';
 import { CavePlacer } from './utils';
 
-type LevelTemplateUnion = DungeonLevelTemplate | CaveLevelTemplate;
+type LevelTemplateUnion =
+  | DungeonLevelTemplate
+  | CaveLevelTemplate
+  | FinalLevelTemplate;
 type LevelPlacerUnion = CavePlacer | DungeonPlacer;
 
 export class DungeonBranch {
