@@ -103,7 +103,7 @@ export class StatsDisplayComponent implements OnInit {
   public woundText() {
     const woundPercent = this.wounds.current / this.wounds.max;
     let color = `#FFFFFF`;
-    if (woundPercent >= 0.6) {
+    if (woundPercent >= 0.6 && woundPercent < 0.8) {
       color = `#888888`;
     }
 
