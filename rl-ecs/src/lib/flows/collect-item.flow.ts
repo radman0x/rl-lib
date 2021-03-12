@@ -18,14 +18,16 @@ import { addProperty } from '../systems.utils';
 
 import * as rxjsSpy from 'rxjs-spy';
 import { logName } from '@rad/rl-applib';
+import { Description } from '@rad/rl-ecs';
 
 export type CollectItemFlowOut = {
   collectorId: EntityId | null;
   itemsCollected: EntityId[];
   itemsIgnored: EntityId[];
+  messages: string[];
 };
 
-type Args = { collectorId: EntityId };
+type Args = { collectorId: EntityId; messages: [] };
 
 export function collectItemFlow<T extends Args>(
   em: EntityManager,
@@ -77,10 +79,20 @@ export function collectItemFlow<T extends Args>(
         itemsCollected: [],
         itemsIgnored: [],
         collectorId: null,
-      } as CollectItemFlowOut
-    )
+        messages: [],
+      }
+    ),
+    map((msg) => {
+      msg.messages = [
+        ...msg.messages,
+        msg.itemsCollected
+          .map((id) => em.getComponent(id, Description)?.short ?? 'unnamed')
+          .map((desc) => `Pick up a ${desc}.`)
+          .join(` `),
+      ];
+      return msg;
+    })
   );
-  finish$.subscribe();
 
   return { start$, itemsCollected$, noItemsCollected$, finish$ };
 }
