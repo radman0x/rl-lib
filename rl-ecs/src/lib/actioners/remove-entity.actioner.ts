@@ -7,6 +7,9 @@ import { EffectReport, EntityRemoval } from '../systems.types';
 
 import * as _ from 'lodash';
 import { radClone } from '../systems.utils';
+import { Effects } from '../components/effects.model';
+import { Inventory } from '../components/inventory.model';
+import { StatusEffects } from '../components/status-effects.model';
 
 type Args = Partial<EffectReport> & EntityRemoval;
 export type RemoveEntityArgs = Args;
@@ -33,6 +36,16 @@ function removeEntityStep<T extends Args>(
       parentComponent[memberOf.property].splice(removeIndex, 1);
       em.setComponent(memberOf.id, parentComponent);
     }
+
+    for (const component of [Effects, Inventory, StatusEffects]) {
+      em.getComponent(removeId, component)?.contents.forEach((id) => {
+        removeEntityStep(
+          { entityRemoval: { doRemove: true, removeId: id } },
+          em
+        );
+      });
+    }
+
     em.remove(removeId);
     _.set(
       out,

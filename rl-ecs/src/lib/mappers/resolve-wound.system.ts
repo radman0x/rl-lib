@@ -42,7 +42,7 @@ function resolveWoundStep<T extends Args>(
   } else {
     woundSuccess = woundRoll >= actualToWound;
   }
-  console.log(`Wound resolved as a ${woundSuccess}`);
+  // console.log(`Wound resolved as a ${woundSuccess}`);
   return { ...radClone(msg), woundSuccess };
 }
 

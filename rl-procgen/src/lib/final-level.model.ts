@@ -10,10 +10,13 @@ import { staircasePrefab } from 'libs/rl-ecs/src/lib/component-utils.model';
 import { AreaIngress } from 'libs/rl-ecs/src/lib/components/area-ingress.model';
 import { EntityId, EntityManager } from 'rad-ecs';
 import * as ROT from 'rot-js';
+import { LevelBase } from './level-base.model';
 
-export class FinalLevelTemplate implements CaveTemplate {
+export class FinalLevelTemplate extends LevelBase implements CaveTemplate {
   kind: 'CAVE' = 'CAVE';
-  constructor(private options: CaveGenOptions) {}
+  constructor(private options: CaveGenOptions) {
+    super(options);
+  }
 
   generate(
     em: EntityManager,

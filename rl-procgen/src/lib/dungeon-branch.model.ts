@@ -27,6 +27,14 @@ export class DungeonBranch {
     this.levelTemplates = [null, ...levelTemplates];
   }
 
+  getLevelTemplate(depth: number) {
+    const LEVEL_NUM = depth / 3;
+    if (LEVEL_NUM > this.levelTemplates.length) {
+      throw Error(`Request for level: ${LEVEL_NUM} that doesn't exist`);
+    }
+    return this.levelTemplates[LEVEL_NUM];
+  }
+
   addBuilders(areaResolver: AreaResolver, entityManager: EntityManager) {
     for (
       let levelNumber = 1;

@@ -63,6 +63,9 @@ export interface DungeonTemplate {
     depth: number,
     placers: DungeonPlacer[]
   ): void;
+
+  generateEnemies(spawnable: GridPos[]): number;
+
   kind: 'DUNGEON';
 }
 
@@ -73,6 +76,9 @@ export interface CaveTemplate {
     depth: number,
     placers: CavePlacer[]
   ): void;
+
+  generateEnemies(spawnable: GridPos[]): number;
+
   kind: 'CAVE';
 }
 
@@ -117,6 +123,8 @@ export interface BaseGenOptions {
   fill: EntityCreator;
   upTransitionTexture: string;
   downTransitionTexture: string;
+  enemyChance: number;
+  enemyGenerator: (pos: GridPos) => EntityId;
 }
 
 export interface DungeonGenOptions extends BaseGenOptions {

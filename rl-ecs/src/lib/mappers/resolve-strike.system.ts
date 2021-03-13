@@ -51,7 +51,7 @@ function resolveStrikeStep<T extends Args>(
   } else {
     strikeSuccess = hitRoll >= actualToHit;
   }
-  console.log(`Strike resolved as a: ${strikeSuccess ? 'hit!' : 'miss'}`);
+  // console.log(`Strike resolved as a: ${strikeSuccess ? 'hit!' : 'miss'}`);
   return { ...radClone(msg), strikeSuccess };
 }
 

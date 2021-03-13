@@ -45,7 +45,7 @@ function resolveArmorSaveStep<T extends Args>(
   } else {
     armorSaveSuccess = saveRoll >= actualToSave;
   }
-  console.log(`Wound resolved as a ${armorSaveSuccess}`);
+  // console.log(`Armor save resolved as a ${armorSaveSuccess}`);
   return { ...radClone(msg), armorSaveSuccess };
 }
 

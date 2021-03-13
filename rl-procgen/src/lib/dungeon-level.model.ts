@@ -1,9 +1,10 @@
 import { AreaTransitionSpec, GridPos } from '@rad/rl-ecs';
-import { ValueMap } from '@rad/rl-utils';
+import { randomInt, ValueMap } from '@rad/rl-utils';
 import { staircasePrefab } from 'libs/rl-ecs/src/lib/component-utils.model';
 import { AreaIngress } from 'libs/rl-ecs/src/lib/components/area-ingress.model';
 import { EntityId, EntityManager } from 'rad-ecs';
 import * as ROT from 'rot-js';
+import { LevelBase } from './level-base.model';
 import {
   DungeonGenOptions,
   DungeonPlacer,
@@ -21,10 +22,12 @@ enum RoomTileType {
   CORRIDOR = 4,
 }
 
-export class DungeonLevelTemplate implements DungeonTemplate {
+export class DungeonLevelTemplate extends LevelBase implements DungeonTemplate {
   kind: 'DUNGEON' = 'DUNGEON';
 
-  constructor(private options: DungeonGenOptions) {}
+  constructor(private options: DungeonGenOptions) {
+    super(options);
+  }
 
   generate(
     em: EntityManager,

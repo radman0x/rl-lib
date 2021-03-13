@@ -1,5 +1,6 @@
 import { Id } from '@rad/rl-applib';
 import { EntityManager } from 'rad-ecs';
+import { removeEntity } from '../actioners/remove-entity.actioner';
 import { OperationStep } from '../operation-step.model';
 import { ReapedEntity } from '../systems.types';
 
@@ -14,7 +15,10 @@ function grimReaperStep<T extends Args>(
   em: EntityManager
 ): Id<T> & Out {
   if (msg.reapedId !== null || msg.reapedId !== undefined) {
-    em.remove(msg.reapedId);
+    removeEntity(
+      { entityRemoval: { doRemove: true, removeId: msg.reapedId } },
+      em
+    );
   }
   return msg;
 }

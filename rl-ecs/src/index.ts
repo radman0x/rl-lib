@@ -61,6 +61,7 @@ export * from './lib/systems.types';
 export * from './lib/ecs.helpers';
 
 export * from './lib/actioners/update-distance-map.actioner';
+export * from './lib/actioners/remove-entity.actioner';
 
 export * from './lib/flows/all-agent-update.flow';
 export * from './lib/flows/housekeeping.flow';
