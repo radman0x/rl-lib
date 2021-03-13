@@ -1,5 +1,6 @@
 import { ComponentConstructor, Entity, EntityId, EntityManager } from 'rad-ecs';
 import { merge, Observable } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 import { Abilities } from '../components/abilities.model';
 import { Effects } from '../components/effects.model';
 import { Inventory } from '../components/inventory.model';
@@ -49,5 +50,5 @@ export function recursiveObserveEntity(
   if (em.hasComponent(id, StatusEffects)) {
     entityObservables.push(...observeContents(id, em, StatusEffects));
   }
-  return merge(...entityObservables);
+  return merge(...entityObservables).pipe(debounceTime(50));
 }

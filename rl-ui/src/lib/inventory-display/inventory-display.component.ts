@@ -9,13 +9,24 @@ import {
   Description,
   Inventory,
   recursiveObserveEntity,
+  Renderable,
   Wearable,
   Wieldable,
 } from '@rad/rl-ecs';
 import { Equipped } from 'libs/rl-ecs/src/lib/components/equipped.model';
-import { MenuItem } from 'primeng/api';
-import { Entity, EntityId, EntityManager } from 'rad-ecs';
+import { EntityId, EntityManager } from 'rad-ecs';
 import { Subject } from 'rxjs';
+
+interface Entry {
+  desc: string;
+  count: number;
+  image: string;
+  ids: EntityId[];
+}
+
+interface Entries {
+  [id: string]: Entry;
+}
 
 @Component({
   selector: 'rad-inventory-display',
@@ -32,7 +43,10 @@ export class InventoryDisplayComponent implements OnInit {
     label: 'something',
   };
 
-  public inventoryEntries: MenuItem[] = [];
+  public sections: {
+    label: string;
+    entries: Entries;
+  }[];
 
   constructor(private changeDetector: ChangeDetectorRef) {}
 
@@ -45,43 +59,78 @@ export class InventoryDisplayComponent implements OnInit {
         `Inventory entity with id: ${this.inventoryId} doesn't exist`
       );
     }
-    this.inventoryEntries = [{ label: 'Inventory', items: [], expanded: true }];
+    this.sections = [
+      {
+        label: 'Inventory',
+        entries: {
+          test: { count: 5, desc: 'something', ids: [1], image: 'aoeueao' },
+        },
+      },
+    ];
     this.update();
     recursiveObserveEntity(this.inventoryId, this.em).subscribe(() =>
       this.update()
     );
   }
 
+  public items() {
+    return Object.values(this.sections[0].entries);
+  }
+
   private update() {
     if (this.em.hasComponent(this.inventoryId, Inventory)) {
+      const entries: {
+        desc: string;
+        typeId?: string;
+        image: string;
+        id: EntityId;
+      }[] = [];
       for (let id of this.em.getComponent(this.inventoryId, Inventory)
         .contents) {
-        const entry = this.inventoryItemEntry(id);
-        const existing = this.inventoryEntries[0].items.find(
-          (entry) => entry.id === id.toString()
-        );
-        if (existing) {
-          Object.assign(existing, entry);
+        entries.push(this.inventoryItemEntry(id));
+      }
+      const contents: {
+        [id: string]: Entry;
+      } = {};
+      for (const entry of entries) {
+        if (entry.typeId) {
+          if (contents[entry.typeId]) {
+            ++contents[entry.typeId].count;
+            contents[entry.typeId].ids.push(entry.id);
+          } else {
+            contents[entry.typeId] = {
+              desc: entry.desc,
+              image: entry.image,
+              ids: [entry.id],
+              count: 1,
+            };
+          }
         } else {
-          this.inventoryEntries[0].items.push(entry);
+          contents[entry.id] = {
+            desc: entry.desc,
+            image: entry.image,
+            ids: [entry.id],
+            count: 1,
+          };
         }
       }
+      this.sections[0].entries = contents;
+      console.log(JSON.stringify(this.sections[0].entries, null, 2));
     }
+
     this.changeDetector.detectChanges();
   }
 
-  private inventoryItemEntry(itemId: EntityId): MenuItem | null {
-    const desc = this.em.getComponent(itemId, Description);
-    const equipped = this.em.hasComponent(itemId, Equipped)
-      ? ` - EQUIPPED`
-      : ``;
+  private inventoryItemEntry(itemId: EntityId) {
+    const desc = this.em.getComponent(itemId, Description)?.short;
+    const typeId = this.em.getComponent(itemId, Description)?.typeId;
+    const equipped = this.em.hasComponent(itemId, Equipped);
+    const image = this.em.getComponent(itemId, Renderable)?.uiImage;
     if (desc) {
       let actions = null;
       if (this.em.hasComponent(itemId, Wieldable)) {
         actions = actions || [];
-        const label = this.em.hasComponent(itemId, Equipped)
-          ? 'Stop Wielding'
-          : 'Wield';
+        const label = equipped ? 'Stop Wielding' : 'Wield';
         actions.push({
           label,
           command: () => this.wield.next(itemId),
@@ -89,18 +138,17 @@ export class InventoryDisplayComponent implements OnInit {
       }
       if (this.em.hasComponent(itemId, Wearable)) {
         actions = actions || [];
-        const label = this.em.hasComponent(itemId, Equipped)
-          ? 'Take off'
-          : 'Wear';
+        const label = equipped ? 'Take off' : 'Wear';
         actions.push({
           label,
           command: () => this.wear.next(itemId),
         });
       }
       return {
-        label: `${desc.short}${equipped}`,
-        items: actions,
-        id: itemId.toString(),
+        desc: `${desc}${equipped ? ` - EQUIPPED` : ``}`,
+        typeId,
+        image,
+        id: itemId,
       };
     } else {
       return null;

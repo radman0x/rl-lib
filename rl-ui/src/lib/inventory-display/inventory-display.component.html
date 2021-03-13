@@ -1,1 +1,25 @@
-<p-panelMenu [model]="inventoryEntries"></p-panelMenu>
+<div class="d-flex flex-column p-2 bg-dark h-100 w-100">
+  <div class="w-100 text-center">
+    <h1 class="text-light">Inventory</h1>
+  </div>
+  <div
+    *ngFor="let item of items(); let i = index"
+    class="w-100 d-flex flex-row bg-light mb-1"
+  >
+    <img
+      [src]="item.image"
+      width="50px"
+      height="50px"
+      style="image-rendering: pixelated"
+    />
+    <div class="h-100 d-flex flex-column justify-content-center">
+      <span>{{ item.desc }}</span>
+    </div>
+    <div
+      *ngIf="item.count > 1"
+      class="h-100 d-flex flex-column justify-content-center ml-2"
+    >
+      <span>X {{ item.count }}</span>
+    </div>
+  </div>
+</div>
