@@ -1,8 +1,11 @@
-import { GridPos, LightLevel, MoveOrder, radClone } from '@rad/rl-ecs';
 import { EntityId, EntityManager } from 'rad-ecs';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { LightLevel } from '../components/light-level.model';
 import { LightPreference } from '../components/light-preference.model';
+import { GridPos } from '../components/position.model';
+import { MoveOrder } from '../systems.types';
+import { radClone } from '../systems.utils';
 
 export interface ScoreLightAvoidantArgs {
   score: number | null;

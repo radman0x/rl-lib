@@ -8,7 +8,7 @@ import { resolveStrike } from '../mappers/resolve-strike.system';
 import { resolveWound } from '../mappers/resolve-wound.system';
 import { AggressorEntity, AttackOrder, TargetPos } from '../systems.types';
 import * as _ from 'lodash';
-import { radClone } from '@rad/rl-ecs';
+import { radClone } from '../systems.utils';
 
 export type GatherAttackInfoArgs = AggressorEntity & TargetPos;
 export type AttackInfo = { attack: AttackOrder | null };

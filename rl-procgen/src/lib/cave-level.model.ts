@@ -57,7 +57,7 @@ export class CaveLevelTemplate extends LevelBase implements CaveTemplate {
         },
         downStairTexture,
         upStairTexture
-      ).id;
+      );
       takenMap.set(new Pos2d(egressPos.x, egressPos.y), stairId);
     }
 

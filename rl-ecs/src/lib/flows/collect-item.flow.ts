@@ -18,7 +18,7 @@ import { addProperty } from '../systems.utils';
 
 import * as rxjsSpy from 'rxjs-spy';
 import { logName } from '@rad/rl-applib';
-import { Description } from '@rad/rl-ecs';
+import { Description } from '../components/description.model';
 
 export type CollectItemFlowOut = {
   collectorId: EntityId | null;

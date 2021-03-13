@@ -1,4 +1,3 @@
-import * as deepEqual from 'fast-deep-equal';
 import { EntityManager } from 'rad-ecs';
 import { Physical, Size } from '../components/physical.model';
 import { GridPos } from '../components/position.model';
@@ -6,7 +5,7 @@ import { OperationStep } from '../operation-step.model';
 import { TargetPos } from '../systems.types';
 import { Id } from '@rad/rl-applib';
 import { radClone } from '../systems.utils';
-import { Mobile } from '@rad/rl-ecs';
+import { Mobile } from '../components/mobile.model';
 
 type Args = TargetPos;
 export type CanOccupyPositionArgs = Args;

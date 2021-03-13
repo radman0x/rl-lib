@@ -1,9 +1,12 @@
-import { ApproachTarget, GridPos, Knowledge, radClone } from '@rad/rl-ecs';
 import { ValueMap } from '@rad/rl-utils';
 import { EntityId, EntityManager } from 'rad-ecs';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { ApproachTarget } from '../components/approach-target.model';
 import { DistanceMap } from '../components/distance-map.model';
+import { Knowledge } from '../components/knowledge.model';
+import { GridPos } from '../components/position.model';
+import { radClone } from '../systems.utils';
 
 export interface GatherApproachInfoArgs {
   agentId: EntityId;

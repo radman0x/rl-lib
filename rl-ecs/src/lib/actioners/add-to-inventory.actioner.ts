@@ -1,6 +1,6 @@
-import { MemberOf } from '@rad/rl-ecs';
 import { EntityId, EntityManager } from 'rad-ecs';
 import { Inventory } from '../components/inventory.model';
+import { MemberOf } from '../components/member-of.model';
 import { GridPos } from '../components/position.model';
 import { OperationStep } from '../operation-step.model';
 import { Collected } from '../systems.types';
