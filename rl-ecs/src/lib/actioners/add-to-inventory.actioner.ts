@@ -1,3 +1,4 @@
+import { MemberOf } from '@rad/rl-ecs';
 import { EntityId, EntityManager } from 'rad-ecs';
 import { Inventory } from '../components/inventory.model';
 import { GridPos } from '../components/position.model';
@@ -22,6 +23,14 @@ function addToInventoryStep<T extends Args>(
   em.setComponent(
     msg.collectorId,
     new Inventory({ contents: [...currContents, msg.collectibleId] })
+  );
+  em.setComponent(
+    msg.collectibleId,
+    new MemberOf({
+      id: msg.collectorId,
+      component: Inventory,
+      property: 'contents',
+    })
   );
   return { ...msg, collectedId: msg.collectibleId };
 }

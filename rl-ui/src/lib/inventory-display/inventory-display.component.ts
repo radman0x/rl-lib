@@ -36,6 +36,8 @@ interface Entries {
 export class InventoryDisplayComponent implements OnInit {
   @Input() em: EntityManager;
   @Input() inventoryId: EntityId;
+  @Input() disableInteraction: boolean;
+  @Output() use = new Subject<EntityId>();
   @Output() wield = new Subject<EntityId>();
   @Output() wear = new Subject<EntityId>();
 
@@ -77,6 +79,12 @@ export class InventoryDisplayComponent implements OnInit {
     return Object.values(this.sections[0].entries);
   }
 
+  useItem(itemId: EntityId) {
+    if (!this.disableInteraction) {
+      this.use.next(itemId);
+    }
+  }
+
   private update() {
     if (this.em.hasComponent(this.inventoryId, Inventory)) {
       const entries: {
@@ -115,7 +123,6 @@ export class InventoryDisplayComponent implements OnInit {
         }
       }
       this.sections[0].entries = contents;
-      console.log(JSON.stringify(this.sections[0].entries, null, 2));
     }
 
     this.changeDetector.detectChanges();

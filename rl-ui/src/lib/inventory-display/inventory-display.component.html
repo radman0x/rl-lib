@@ -4,7 +4,9 @@
   </div>
   <div
     *ngFor="let item of items(); let i = index"
-    class="w-100 d-flex flex-row bg-light mb-1"
+    class="w-100 d-flex flex-row mb-1"
+    [ngClass]="disableInteraction ? 'disabledItem' : 'bg-light'"
+    (click)="useItem(item.ids[0])"
   >
     <img
       [src]="item.image"

@@ -59,21 +59,28 @@ describe('Rad ecs utils', () => {
       em = new EntityManager();
     });
 
-    it('should observe a change to a single entity', () => {
+    it('should observe a change to a single entity', async (done) => {
       const id = em.create(new GridPos({ x: 1, y: 1, z: 1 })).id;
-      let updated = false;
-      recursiveObserveEntity(id, em).subscribe(() => (updated = true));
+      let updated = jest.fn();
+      recursiveObserveEntity(id, em).subscribe(() => {
+        updated();
+        done();
+      });
       em.setComponent(id, new GridPos({ x: 0, y: 0, z: 0 }));
-      expect(updated).toBe(true);
+      expect(updated).toHaveBeenCalled();
     });
 
-    it('should observe a change in a child effect entity', () => {
+    it('should observe a change in a child effect entity', async (done) => {
       const effectId = em.create(new Targeted({ range: 5 })).id;
       const id = em.create(new Effects({ contents: [effectId] })).id;
-      let updated = false;
-      recursiveObserveEntity(id, em).subscribe(() => (updated = true));
+
+      let updated = jest.fn();
+      recursiveObserveEntity(id, em).subscribe(() => {
+        updated();
+        done();
+      });
       em.setComponent(effectId, new Targeted({ range: 7 }));
-      expect(updated).toBe(true);
+      expect(updated).toHaveBeenCalled();
     });
   });
 });

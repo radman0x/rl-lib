@@ -14,6 +14,7 @@ import {
 } from '../systems.utils';
 
 import * as rxjsSpy from 'rxjs-spy';
+import { fovPositions } from '../mappers/fov-positions.system';
 
 type Args = ActiveEffect;
 export function targetingPipeline<T extends Args>(
@@ -35,9 +36,11 @@ export function targetingPipeline<T extends Args>(
       let effectRange: number = null;
       if (em.hasComponent(msg.effectId, Targeted)) {
         effectRange = em.getComponent(msg.effectId, Targeted).range;
-        selectablePositions = positionsWithinRadius2d(
-          msg.effectOrigin,
-          effectRange
+        selectablePositions = fovPositions(
+          em,
+          msg.effectId,
+          effectRange,
+          msg.effectOrigin
         );
       }
       return radClone({
@@ -66,7 +69,7 @@ export function targetingPipeline<T extends Args>(
     mergeMap((msg) => {
       if (msg.selectablePositions && msg.selectablePositions.length !== 0) {
         return tileSelected$.pipe(
-          rxjsSpy.operators.tag('useEffect.tileSelected'),
+          // rxjsSpy.operators.tag('useEffect.tileSelected'),
           filter((pos) => {
             if (msg.selectablePositions) {
               return (
