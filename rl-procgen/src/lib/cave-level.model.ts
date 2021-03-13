@@ -38,6 +38,7 @@ export class CaveLevelTemplate extends LevelBase implements CaveTemplate {
       }
     }, 0);
 
+    const takenMap = new ValueMap<Pos2d, EntityId>();
     const {
       downTransitionTexture: downStairTexture,
       upTransitionTexture: upStairTexture,
@@ -45,7 +46,7 @@ export class CaveLevelTemplate extends LevelBase implements CaveTemplate {
     for (const ingressEgress of transitions.ingressEgress) {
       const egressPos = { ...randomElement(openList), z: GROUND };
       console.log(`Egress placed at: ${egressPos}`);
-      staircasePrefab(
+      const stairId = staircasePrefab(
         em,
         { ...randomElement(openList), z: GROUND },
         { label: ingressEgress.ingressLabel },
@@ -56,19 +57,20 @@ export class CaveLevelTemplate extends LevelBase implements CaveTemplate {
         },
         downStairTexture,
         upStairTexture
-      );
+      ).id;
+      takenMap.set(new Pos2d(egressPos.x, egressPos.y), stairId);
     }
 
     for (const ingressLabel of transitions.ingressOnly) {
       const ingressPos = randomElement(openList);
       console.log(`Ingress Only placed at: ${ingressPos}`);
-      em.create(
+      const ingressId = em.create(
         new GridPos({ ...ingressPos, z: GROUND }),
         new AreaIngress({ label: ingressLabel })
-      );
+      ).id;
+      takenMap.set(new Pos2d(ingressPos.x, ingressPos.y), ingressId);
     }
 
-    const takenMap = new ValueMap<Pos2d, EntityId>();
     for (const placer of [...placers, ...this.options.placers]) {
       placer.place(em, DEPTH, { takenMap, openList });
     }

@@ -81,7 +81,7 @@ export function staircasePrefab(
     direction === EgressDirection.DOWN ? 'down' : 'up';
   const stairActionName = (direction: EgressDirection) =>
     direction === EgressDirection.DOWN ? 'descend' : 'ascend';
-  em.create(
+  return em.create(
     new GridPos(position),
     new Renderable({
       image: stairImage(egress.egressDirection),
@@ -107,5 +107,5 @@ export function staircasePrefab(
         ).id,
       ],
     })
-  );
+  ).id;
 }

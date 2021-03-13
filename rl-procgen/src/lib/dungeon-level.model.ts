@@ -1,5 +1,5 @@
 import { AreaTransitionSpec, GridPos } from '@rad/rl-ecs';
-import { randomInt, ValueMap } from '@rad/rl-utils';
+import { popRandomElement, randomInt, ValueMap } from '@rad/rl-utils';
 import { staircasePrefab } from 'libs/rl-ecs/src/lib/component-utils.model';
 import { AreaIngress } from 'libs/rl-ecs/src/lib/components/area-ingress.model';
 import { EntityId, EntityManager } from 'rad-ecs';
@@ -51,15 +51,18 @@ export class DungeonLevelTemplate extends LevelBase implements DungeonTemplate {
       }
     });
 
+    const openRoomTiles: Pos2d[] = [];
     const tileTypeMap = new ValueMap<Pos2d, RoomTileType>();
     for (let room of world.getRooms()) {
       room.create((x, y, type) => {
-        if (
-          type === RoomTileType.WALL &&
-          filled.get(new Pos2d(x, y)) === ROTOpenType.OPEN
-        ) {
+        const open = filled.get(new Pos2d(x, y)) === ROTOpenType.OPEN;
+        if (type === RoomTileType.WALL && open) {
           return;
         }
+        if (open) {
+          openRoomTiles.push(new Pos2d(x, y));
+        }
+
         tileTypeMap.set(new Pos2d(x, y), type);
       });
     }
@@ -104,16 +107,17 @@ export class DungeonLevelTemplate extends LevelBase implements DungeonTemplate {
       }
     }
 
+    const takenMap = new ValueMap<Pos2d, EntityId>();
     const {
       downTransitionTexture: downStairTexture,
       upTransitionTexture: upStairTexture,
     } = this.options;
     for (const ingressEgress of transitions.ingressEgress) {
-      const egressPos = randomMiddleRoomPos(world.getRooms(), DEPTH);
+      const egressPos = popRandomElement(openRoomTiles);
       console.log(`Egress placed at: ${egressPos}`);
-      staircasePrefab(
+      const stairId = staircasePrefab(
         em,
-        randomMiddleRoomPos(world.getRooms(), DEPTH),
+        new GridPos({ ...egressPos, z: GROUND }),
         { label: ingressEgress.ingressLabel },
         {
           egressArea: ingressEgress.egressArea,
@@ -123,18 +127,19 @@ export class DungeonLevelTemplate extends LevelBase implements DungeonTemplate {
         downStairTexture,
         upStairTexture
       );
+      takenMap.set(new Pos2d(egressPos.x, egressPos.y), stairId);
     }
 
     for (const ingressLabel of transitions.ingressOnly) {
-      const ingressPos = randomMiddleRoomPos(world.getRooms(), DEPTH);
+      const ingressPos = popRandomElement(openRoomTiles);
       console.log(`Ingress Only placed at: ${ingressPos}`);
-      em.create(
-        new GridPos(ingressPos),
+      const ingressId = em.create(
+        new GridPos({ ...ingressPos, z: GROUND }),
         new AreaIngress({ label: ingressLabel })
-      );
+      ).id;
+      takenMap.set(new Pos2d(ingressPos.x, ingressPos.y), ingressId);
     }
 
-    const takenMap = new ValueMap<Pos2d, EntityId>();
     for (const placer of [...placers, ...this.options.placers]) {
       placer.place(em, DEPTH, { rooms: world.getRooms(), takenMap });
     }
