@@ -2,16 +2,18 @@ import { OperationStep } from '../operation-step.model';
 import { EntityManager } from 'rad-ecs';
 import { radClone } from '../systems.utils';
 import { Id } from '@rad/rl-applib';
-import { DamageTargetEntity, ReapedEntity } from '../systems.types';
+import { DamageTargetEntity, Messages, ReapedEntity } from '../systems.types';
 import { Wounds } from '../components/wounds.model';
 import { RemoveEntityArgs } from '../actioners/remove-entity.actioner';
+import { Description } from '../components/description.model';
 
 type Args = DamageTargetEntity &
   Partial<ReapedEntity> &
-  Partial<RemoveEntityArgs>;
+  Partial<RemoveEntityArgs> &
+  Partial<Messages>;
 export type MarkForDeathArgs = Args;
 
-type Out = ReapedEntity & RemoveEntityArgs;
+type Out = ReapedEntity & RemoveEntityArgs & Messages;
 export type MarkForDeathOut = Out;
 
 function markForDeathStep<T extends Args>(
@@ -22,6 +24,7 @@ function markForDeathStep<T extends Args>(
     ...msg,
     reapedId: msg.reapedId ?? null,
     entityRemoval: msg.entityRemoval ?? null,
+    messages: msg.messages ?? null,
   });
   if (!msg.damageTargetId) {
     return out;
@@ -31,6 +34,11 @@ function markForDeathStep<T extends Args>(
   }
   const targetIntegrity = em.get(msg.damageTargetId).component(Wounds);
   if (targetIntegrity.current <= 0) {
+    const targetDesc = em.getComponent(msg.damageTargetId, Description);
+    out.messages = [
+      ...(out.messages ?? []),
+      `The ${targetDesc ? targetDesc.short : 'unnamed'} is killed!`,
+    ];
     out.reapedId = em.get(msg.damageTargetId).id;
     out.entityRemoval = { doRemove: true, removeId: msg.damageTargetId };
   }

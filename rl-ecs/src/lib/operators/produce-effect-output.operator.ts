@@ -3,6 +3,7 @@ import { of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { endGame } from '../mappers/end-game.system';
 import { flagRemoveEntity } from '../mappers/flag-remove-entity.mapper';
+import { flame } from '../mappers/flame.system';
 import { force } from '../mappers/force.system';
 import { heal } from '../mappers/heal.system';
 import { push } from '../mappers/push.system';
@@ -22,15 +23,16 @@ import {
 export function produceEffectOutput<
   T extends ActiveEffect & EffectTarget & EffectOrigin & Partial<TargetPos>
 >(msg: T, em: EntityManager) {
-  return of(msg).pipe(
-    map((msg) => teleport(msg, em)),
-    map((msg) => toggleLock(msg, em)),
-    map((msg) => transitionArea(msg, em)),
-    map((msg) => stun(msg, em)),
-    map((msg) => push(msg, em)),
-    map((msg) => force(msg, em)),
-    map((msg) => endGame(msg, em)),
-    map((msg) => flagRemoveEntity(msg, em)),
-    heal(em)
-  );
+  return of(msg)
+    .pipe(
+      map((msg) => teleport(msg, em)),
+      map((msg) => toggleLock(msg, em)),
+      map((msg) => transitionArea(msg, em)),
+      map((msg) => stun(msg, em)),
+      map((msg) => push(msg, em)),
+      map((msg) => force(msg, em)),
+      map((msg) => endGame(msg, em)),
+      map((msg) => flagRemoveEntity(msg, em))
+    )
+    .pipe(flame(em), heal(em));
 }

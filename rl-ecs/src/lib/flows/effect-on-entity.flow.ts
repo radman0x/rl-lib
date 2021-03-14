@@ -1,6 +1,6 @@
 import { EntityManager } from 'rad-ecs';
 import { of, ReplaySubject } from 'rxjs';
-import { mergeMap, shareReplay, take } from 'rxjs/operators';
+import { map, mergeMap, shareReplay, take } from 'rxjs/operators';
 import { effectPipeline } from '../operators/effect-pipeline.operator';
 import {
   ActiveEffect,
@@ -25,14 +25,8 @@ export function effectOnEntityFlow(
     start$,
     finish$: start$.pipe(
       take(1),
-      mergeMap((msg) =>
-        effectPipeline(
-          radClone({ ...msg, effectOrigin: null }),
-          em,
-          areaResolver,
-          ender
-        )
-      ),
+      map((msg) => radClone({ ...msg, effectOrigin: null })),
+      effectPipeline(em, areaResolver, ender),
       shareReplay()
     ),
   };

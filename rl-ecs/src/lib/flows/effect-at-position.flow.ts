@@ -3,7 +3,15 @@ import { isValidId } from '@rad/rl-utils';
 import { EntityManager } from 'rad-ecs';
 import { BehaviorSubject, merge, Observable, of, ReplaySubject } from 'rxjs';
 import * as rxjsSpy from 'rxjs-spy';
-import { expand, map, mergeMap, reduce, share, take } from 'rxjs/operators';
+import {
+  expand,
+  map,
+  mergeMap,
+  reduce,
+  share,
+  take,
+  tap,
+} from 'rxjs/operators';
 import { Animation } from '../components/animation.model';
 import { EndType } from '../components/end-state.model';
 import { GridPosData } from '../components/position.model';
@@ -46,28 +54,19 @@ export function effectAtPositionFlow<T extends Args>(
       of(...msg.filter((elem) => isValidId(elem.effectTargetId)))
     ),
     share(),
-    mergeMap((msg) =>
-      effectPipeline(msg, em, areaResolver, ender).pipe(
-        expand((msg) => {
-          if (msg.effectReport) {
-            const temp: SpawnedEffect[] = [].concat(
-              Object.values(msg.effectReport)
-                .filter((report) => report.spawnedEffects)
-                .flatMap((report) => report.spawnedEffects)
-            );
+    effectPipeline(em, areaResolver, ender),
+    expand((msg) => {
+      if (msg.effectReport) {
+        const temp: SpawnedEffect[] = [].concat(
+          Object.values(msg.effectReport)
+            .filter((report) => report.spawnedEffects)
+            .flatMap((report) => report.spawnedEffects)
+        );
 
-            return merge(
-              ...temp.map((se) =>
-                effectPipeline({ ...se }, em, areaResolver, ender)
-              )
-            );
-          }
-          return of();
-        }),
-        rxjsSpy.operators.tag('useEffect.effectAtPosition')
-      )
-    ),
-    share()
+        return of(...temp).pipe(effectPipeline(em, areaResolver, ender));
+      }
+      return of();
+    })
   );
 
   return {

@@ -15,6 +15,7 @@ import {
 
 import * as rxjsSpy from 'rxjs-spy';
 import { fovPositions } from '../mappers/fov-positions.system';
+import { Physical, Size } from '../components/physical.model';
 
 type Args = ActiveEffect;
 export function targetingPipeline<T extends Args>(
@@ -55,6 +56,18 @@ export function targetingPipeline<T extends Args>(
       if (em.hasComponent(msg.effectId, Directed)) {
         selectablePositions = positionsWithinRadius2d(msg.effectOrigin, 1);
       }
+      return radClone({ ...msg, selectablePositions });
+    }),
+    map((msg) => {
+      let selectablePositions: GridPosData[] = msg.selectablePositions ?? [];
+      selectablePositions = selectablePositions.filter(
+        (pos) =>
+          em
+            .matchingIndex(new GridPos(pos))
+            .filter(
+              (e) => e.has(Physical) && e.component(Physical).size === Size.FILL
+            ).length === 0
+      );
       return radClone({ ...msg, selectablePositions });
     }),
     map((msg) => {

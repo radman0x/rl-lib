@@ -237,7 +237,6 @@ export interface EntityRemoval {
 }
 
 export interface StunDetails {
-  strength: number;
   duration: number;
 }
 
