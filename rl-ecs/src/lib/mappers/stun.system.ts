@@ -25,7 +25,7 @@ function stunStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
   let effectReport: ChangeReport = msg.effectReport || null;
   if (isValidId(msg.effectId) && em.hasComponent(msg.effectId, Bang)) {
     const bang = em.getComponent(msg.effectId, Bang);
-    stun = { duration: bang.duration };
+    stun = { duration: bang.strength };
     const activeEffectDescription = em.hasComponent(msg.effectId, Description)
       ? em.getComponent(msg.effectId, Description).short
       : 'Some effect';

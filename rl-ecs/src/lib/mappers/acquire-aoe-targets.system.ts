@@ -5,7 +5,11 @@ import { AreaOfEffect } from '../components/area-of-effect.model';
 import { GridPos, GridPosData } from '../components/position.model';
 import { OperationStep } from '../operation-step.model';
 import { ActiveEffect } from '../systems.types';
-import { positionsWithinRadius3d, radClone } from '../systems.utils';
+import {
+  positionsWithinRadius2d,
+  positionsWithinRadius3d,
+  radClone,
+} from '../systems.utils';
 
 type Args = {
   selectedPos: GridPosData | null;
@@ -30,7 +34,7 @@ function acquireAoePositionsStep<T extends Args>(
     em.hasComponent(msg.effectId, AreaOfEffect)
   ) {
     const aoe = em.getComponent(msg.effectId, AreaOfEffect);
-    const positions = positionsWithinRadius3d(
+    const positions = positionsWithinRadius2d(
       new GridPos(msg.selectedPos),
       aoe.radius
     );

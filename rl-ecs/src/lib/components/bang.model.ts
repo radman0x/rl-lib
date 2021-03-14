@@ -1,9 +1,9 @@
 import { Component } from 'rad-ecs';
 export interface BangData {
-  duration: number;
+  strength: number;
 }
 export class Bang extends Component implements BangData {
-  public readonly duration: number;
+  public readonly strength: number;
   constructor(data: BangData) {
     super();
     Object.assign(this, data);
