@@ -16,6 +16,10 @@ export class LevelBase {
     return count;
   }
 
+  get maxEnemies() {
+    return this.baseOptions.maxEnemyCount;
+  }
+
   placeInitialEnemies(spawnable: GridPos[]) {
     for (let i = 0; i < this.baseOptions.initialEnemyCount; ++i) {
       this.baseOptions.enemyGenerator(popRandomElement(spawnable));

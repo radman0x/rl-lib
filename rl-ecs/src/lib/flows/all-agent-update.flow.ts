@@ -1,12 +1,13 @@
 import { EntityId, EntityManager } from 'rad-ecs';
 import { merge, Observable, of } from 'rxjs';
 import * as rxjsSpy from 'rxjs-spy';
-import { filter, map, mapTo, mergeMap, reduce } from 'rxjs/operators';
+import { filter, map, mapTo, mergeMap, reduce, tap } from 'rxjs/operators';
 import { spatial } from '../actioners/spatial.actioner';
 import { EndType } from '../components/end-state.model';
 import { Mental, MentalState } from '../components/mental.model';
 import { MovingAgent } from '../components/moving-agent.model';
-import { GridPosData } from '../components/position.model';
+import { GridPos, GridPosData } from '../components/position.model';
+import { Speed } from '../components/speed.model';
 import { entitiesWithComponents } from '../mappers/entities-with-component.system';
 import { gatherApproachInfo } from '../mappers/gather-approach-info.system';
 import { grimReaper } from '../mappers/grim-reaper.system';
@@ -44,19 +45,26 @@ export function allAgentUpdateFlow(
   em: EntityManager,
   areaResolver: AreaResolver,
   rand: Chance.Chance,
-  messageLog: (string) => void = null,
   ender: (endType: EndType) => void = null
 ) {
-  return <T extends Partial<Messages>>(input: Observable<T>) => {
+  return <T extends Partial<Messages> & { playerPos: GridPos }>(
+    input: Observable<T>
+  ) => {
     return input.pipe(
       mergeMap((inputMsg) =>
         of(inputMsg)
           .pipe(
             rxjsSpy.operators.tag('turnEnd.allAgentUpdate'),
-            map((msg) => addProperty(msg, 'componentTypes', [MovingAgent])),
-            mergeMap((msg) =>
-              of(...entitiesWithComponents(msg, em, 'agentId'))
+            map((msg) =>
+              addProperty(msg, 'componentTypes', [MovingAgent, GridPos])
             ),
+            mergeMap((msg) => {
+              const agents = entitiesWithComponents(msg, em, 'agentId').filter(
+                (msg) =>
+                  em.getComponent(msg.agentId, GridPos).z === msg.playerPos.z
+              );
+              return of(...agents);
+            }),
             filter((msg) => em.exists(msg.agentId)), // in case agent got reaped due to other agent actions
             filter((msg) => {
               const modifiedMental = getModifiedComponent(
@@ -68,6 +76,40 @@ export function allAgentUpdateFlow(
                 modifiedMental && modifiedMental.state === MentalState.STUNNED
               );
             }),
+            mergeMap((beforeSpeed) =>
+              em.hasComponent(beforeSpeed.agentId, Speed)
+                ? of(beforeSpeed).pipe(
+                    tap((msg) => {
+                      const orig = em.getComponent(msg.agentId, Speed);
+                      em.setComponent(
+                        msg.agentId,
+                        new Speed({
+                          ...orig,
+                          currActionPoints:
+                            orig.currActionPoints + orig.recoupAmount,
+                        })
+                      );
+                    }),
+                    filter((msg) => {
+                      const speed = em.getComponent(msg.agentId, Speed);
+                      return speed.currActionPoints >= speed.actionCost;
+                    }),
+                    tap((msg) => {
+                      const orig = em.getComponent(msg.agentId, Speed);
+                      em.setComponent(
+                        msg.agentId,
+                        new Speed({
+                          ...orig,
+                          currActionPoints:
+                            orig.currActionPoints - orig.actionCost,
+                        })
+                      );
+                    })
+                  )
+                : of(beforeSpeed)
+            )
+          )
+          .pipe(
             gatherApproachInfo(em),
             mergeMap((beforeOrders) =>
               produceCandidateOrders(beforeOrders, em, rand)

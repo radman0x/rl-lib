@@ -19,8 +19,8 @@ export class InputHandler {
     this.keyInput$
       .pipe(
         filter((key) => key === '.' || key === '5'),
-        rxjsSpy.operators.tag('inputHandler.rest'),
-        tap((key) => console.log(`Resting: ${key}`))
+        rxjsSpy.operators.tag('inputHandler.rest')
+        // tap((key) => console.log(`Resting: ${key}`))
       )
       .subscribe(this.rest$);
 
@@ -56,7 +56,7 @@ export class InputHandler {
 
     this.keyInput$
       .pipe(
-        filter((key) => key === ','),
+        filter((key) => key === ',' || key === ' '),
         rxjsSpy.operators.tag('inputHandler.collect')
       )
       .subscribe(this.collect$);

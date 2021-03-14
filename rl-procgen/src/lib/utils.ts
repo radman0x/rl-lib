@@ -127,6 +127,7 @@ export interface BaseGenOptions {
   enemyGenerator: (pos: GridPos) => EntityId;
   itemGenerator: (pos: GridPos) => EntityId;
   initialEnemyCount: number;
+  maxEnemyCount: number;
   initialItemRange: { min: number; max: number };
 }
 
