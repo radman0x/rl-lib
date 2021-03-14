@@ -39,7 +39,7 @@ type AttemptMoveFlowArgs = {
   processMove: (
     em: EntityManager
   ) => RadRxOperator<{ move: MoveOrder | null }, any>;
-  afterMove: (em: EntityManager) => RadRxOperator<Messages, any>;
+  afterMove: (em: EntityManager) => RadRxOperator<Messages & MoveOrder, any>;
   afterAttack: (em: EntityManager) => RadRxOperator<Messages, any>;
   afterNeither?: () => RadRxOperator<any, any>;
 };
