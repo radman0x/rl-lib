@@ -26,9 +26,9 @@ function scoreAttackStep<T extends Args>(
   msg: T,
   em: EntityManager
 ): Id<T & Out> {
-  let score = msg.score;
+  let score = msg.score ?? null;
   if (msg.attack && msg.attack.combatTargetId) {
-    score = 10000;
+    score = 2;
   }
 
   return { ...radClone(msg), score };

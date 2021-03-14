@@ -23,7 +23,7 @@ function scoreRandomMoveStep<T extends Args>(
   em: EntityManager,
   rand: Chance.Chance
 ): Id<T & Out> {
-  let score = msg.score === null ? 0 : msg.score;
+  let score = msg.score ?? null;
   if (
     msg.move &&
     isValidId(msg.agentId) &&
@@ -32,6 +32,7 @@ function scoreRandomMoveStep<T extends Args>(
     const randomMove = em.getComponent(msg.agentId, RandomMove);
 
     if (rand.floating({ min: 0, max: 1 }) <= randomMove.chance) {
+      score = score ?? 0;
       score += randomMove.scoreAdjust;
     }
   }

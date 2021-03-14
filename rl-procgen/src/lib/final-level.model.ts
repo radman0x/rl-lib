@@ -95,5 +95,9 @@ export class FinalLevelTemplate extends LevelBase implements CaveTemplate {
     for (const placer of [...placers, ...this.options.placers]) {
       placer.place(em, DEPTH, { takenMap, openList });
     }
+
+    this.placeInitialEnemies(
+      openList.map((pos2d) => new GridPos({ ...pos2d, z: DEPTH }))
+    );
   }
 }

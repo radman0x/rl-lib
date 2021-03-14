@@ -15,6 +15,7 @@ import { markForDeath } from '../mappers/mark-for-death.system';
 import { scoreApproach } from '../mappers/score-approach.system';
 import { scoreAttack } from '../mappers/score-attack.system';
 import { scoreLightPreference } from '../mappers/score-light-preference.system';
+import { scoreMove } from '../mappers/score-move.system';
 import { scoreRandomMove } from '../mappers/score-random-move.system';
 import { getModifiedComponent } from '../operators/modifiered-entity-pipeline.operator';
 import { produceAttackOrders } from '../operators/produce-attack-orders.operator';
@@ -71,19 +72,37 @@ export function allAgentUpdateFlow(
             mergeMap((beforeOrders) =>
               produceCandidateOrders(beforeOrders, em, rand)
                 .pipe(
+                  scoreMove(em),
                   map((msg) => scoreApproach({ ...msg, ...beforeOrders }, em)),
                   map((msg) => scoreRandomMove(msg, em, rand)),
                   map((msg) => scoreAttack(msg, em)),
                   scoreLightPreference(em),
-                  rxjsSpy.operators.tag('turnEnd.allAgentUpdate.orderScores'),
+                  map((msg) => {
+                    // round the score
+                    if (msg.score === null) {
+                      return msg;
+                    }
+                    const score =
+                      Math.round((msg.score + Number.EPSILON) * 100) / 100;
+                    return { ...radClone(msg), score };
+                  }),
+                  rxjsSpy.operators.tag('turnEnd.allAgentUpdate.orderScores')
+                )
+                .pipe(
                   reduce(
                     (acc, curr) => {
-                      if (curr.score === null) {
-                        return acc;
+                      if (acc.score === null) {
+                        return curr;
                       }
-                      return (!acc ||
-                      acc.score === null ||
-                      curr.score > acc.score
+                      if (curr.score === null) {
+                        return acc as typeof curr;
+                      }
+                      if (acc.score === curr.score) {
+                        return (Math.random() > 0.5
+                          ? acc
+                          : curr) as typeof curr;
+                      }
+                      return (curr.score > acc.score
                         ? curr
                         : acc) as typeof curr;
                     },
@@ -95,6 +114,12 @@ export function allAgentUpdateFlow(
                       agentId: null,
                     }
                   ),
+                  // map((msg) => {
+                  //   console.log(
+                  //     `CHOSEN ORDER: ${JSON.stringify(msg, null, 2)}`
+                  //   );
+                  //   return msg;
+                  // }),
                   rxjsSpy.operators.tag('turnEnd.allAgentUpdate.chosenOrder'),
                   map((msg) => {
                     let spatial: {

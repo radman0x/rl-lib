@@ -17,7 +17,7 @@ export function scoreLightPreference(em: EntityManager) {
   return <T extends ScoreLightAvoidantArgs>(input: Observable<T>) => {
     return input.pipe(
       map((msg) => {
-        let score = msg.score === null ? 0 : msg.score;
+        let score = msg.score ?? null;
         if (msg.move) {
           const agentPreference = em.getComponent(msg.agentId, LightPreference);
           if (agentPreference) {
@@ -26,6 +26,7 @@ export function scoreLightPreference(em: EntityManager) {
               .find((e) => e.has(LightLevel))
               ?.component(LightLevel);
             if (lightLevel && lightLevel.level >= agentPreference.threshold) {
+              score = score ?? 0;
               const multiplyTimes =
                 lightLevel.level - agentPreference.threshold;
               let strength = agentPreference.strength;

@@ -27,12 +27,13 @@ function scoreApproachStep<T extends Args>(
   msg: T,
   em: EntityManager
 ): Id<T & Out> {
-  let score = msg.score === null ? 0 : msg.score;
+  let score = msg.score ?? null;
   if (msg.approachInfo && msg.move) {
     const distance = em
       .getComponent(msg.approachInfo.approachTargetId, DistanceMap)
       ?.map.get(new GridPos(msg.move.newPosition));
     if (msg.approachInfo.canSee) {
+      score = score ?? 0;
       score += distance === 0 ? 1 : 1 / distance;
     }
   }

@@ -53,6 +53,7 @@ export class DungeonLevelTemplate extends LevelBase implements DungeonTemplate {
 
     const openRoomTiles: Pos2d[] = [];
     const tileTypeMap = new ValueMap<Pos2d, RoomTileType>();
+    const allOpenTiles: Pos2d[] = [];
     for (let room of world.getRooms()) {
       room.create((x, y, type) => {
         const open = filled.get(new Pos2d(x, y)) === ROTOpenType.OPEN;
@@ -61,6 +62,7 @@ export class DungeonLevelTemplate extends LevelBase implements DungeonTemplate {
         }
         if (open) {
           openRoomTiles.push(new Pos2d(x, y));
+          allOpenTiles.push(new Pos2d(x, y));
         }
 
         tileTypeMap.set(new Pos2d(x, y), type);
@@ -74,6 +76,7 @@ export class DungeonLevelTemplate extends LevelBase implements DungeonTemplate {
           filled.get(new Pos2d(x, y)) === ROTOpenType.OPEN
         ) {
           tileTypeMap.set(new Pos2d(x, y), RoomTileType.CORRIDOR);
+          openRoomTiles.push(new Pos2d(x, y));
         }
       });
     }
@@ -143,5 +146,9 @@ export class DungeonLevelTemplate extends LevelBase implements DungeonTemplate {
     for (const placer of [...placers, ...this.options.placers]) {
       placer.place(em, DEPTH, { rooms: world.getRooms(), takenMap });
     }
+
+    this.placeInitialEnemies(
+      allOpenTiles.map((pos2d) => new GridPos({ ...pos2d, z: DEPTH }))
+    );
   }
 }
