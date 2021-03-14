@@ -125,7 +125,9 @@ export interface BaseGenOptions {
   downTransitionTexture: string;
   enemyChance: number;
   enemyGenerator: (pos: GridPos) => EntityId;
+  itemGenerator: (pos: GridPos) => EntityId;
   initialEnemyCount: number;
+  initialItemRange: { min: number; max: number };
 }
 
 export interface DungeonGenOptions extends BaseGenOptions {

@@ -1,5 +1,5 @@
 import { GridPos } from '@rad/rl-ecs';
-import { popRandomElement } from '@rad/rl-utils';
+import { popRandomElement, randomInt } from '@rad/rl-utils';
 import { BaseGenOptions } from '..';
 
 export class LevelBase {
@@ -19,6 +19,14 @@ export class LevelBase {
   placeInitialEnemies(spawnable: GridPos[]) {
     for (let i = 0; i < this.baseOptions.initialEnemyCount; ++i) {
       this.baseOptions.enemyGenerator(popRandomElement(spawnable));
+    }
+  }
+
+  placeInitialItems(spawnable: GridPos[]) {
+    const { min, max } = this.baseOptions.initialItemRange;
+    const numItems = randomInt(min, max);
+    for (let i = 0; i < numItems; ++i) {
+      this.baseOptions.itemGenerator(popRandomElement(spawnable));
     }
   }
 }

@@ -76,7 +76,7 @@ export class DungeonLevelTemplate extends LevelBase implements DungeonTemplate {
           filled.get(new Pos2d(x, y)) === ROTOpenType.OPEN
         ) {
           tileTypeMap.set(new Pos2d(x, y), RoomTileType.CORRIDOR);
-          openRoomTiles.push(new Pos2d(x, y));
+          allOpenTiles.push(new Pos2d(x, y));
         }
       });
     }
@@ -148,6 +148,10 @@ export class DungeonLevelTemplate extends LevelBase implements DungeonTemplate {
     }
 
     this.placeInitialEnemies(
+      allOpenTiles.map((pos2d) => new GridPos({ ...pos2d, z: DEPTH }))
+    );
+
+    this.placeInitialItems(
       allOpenTiles.map((pos2d) => new GridPos({ ...pos2d, z: DEPTH }))
     );
   }
