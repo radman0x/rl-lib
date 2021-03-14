@@ -1,6 +1,5 @@
 import { Id } from '@rad/rl-applib';
 import { isValidId } from '@rad/rl-utils';
-import * as Chance from 'chance';
 import { EntityId, EntityManager } from 'rad-ecs';
 import { Strength } from '../components/strength.model';
 import { Toughness } from '../components/toughness.model';

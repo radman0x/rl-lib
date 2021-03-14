@@ -61,6 +61,7 @@ export function allAgentUpdateFlow(
             mergeMap((msg) => {
               const agents = entitiesWithComponents(msg, em, 'agentId').filter(
                 (msg) =>
+                  msg.agentId &&
                   em.getComponent(msg.agentId, GridPos).z === msg.playerPos.z
               );
               return of(...agents);

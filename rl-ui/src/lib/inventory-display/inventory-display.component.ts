@@ -7,9 +7,11 @@ import {
 } from '@angular/core';
 import {
   Description,
+  Effects,
   Inventory,
   recursiveObserveEntity,
   Renderable,
+  Usable,
   Wearable,
   Wieldable,
 } from '@rad/rl-ecs';
@@ -22,6 +24,7 @@ interface Entry {
   count: number;
   image: string;
   ids: EntityId[];
+  action: () => void;
 }
 
 interface Entries {
@@ -40,6 +43,7 @@ export class InventoryDisplayComponent implements OnInit {
   @Output() use = new Subject<EntityId>();
   @Output() wield = new Subject<EntityId>();
   @Output() wear = new Subject<EntityId>();
+  @Output() drop = new Subject<EntityId>();
 
   contextItems = {
     label: 'something',
@@ -48,7 +52,7 @@ export class InventoryDisplayComponent implements OnInit {
   public sections: {
     label: string;
     entries: Entries;
-  }[];
+  }[] = [];
 
   constructor(private changeDetector: ChangeDetectorRef) {}
 
@@ -64,11 +68,10 @@ export class InventoryDisplayComponent implements OnInit {
     this.sections = [
       {
         label: 'Inventory',
-        entries: {
-          test: { count: 5, desc: 'something', ids: [1], image: 'aoeueao' },
-        },
+        entries: {},
       },
     ];
+
     this.update();
     recursiveObserveEntity(this.inventoryId, this.em).subscribe(() =>
       this.update()
@@ -85,18 +88,26 @@ export class InventoryDisplayComponent implements OnInit {
     }
   }
 
+  dropItem(itemId: EntityId) {
+    this.drop.next(itemId);
+    return false;
+  }
+
   private update() {
     if (this.em.hasComponent(this.inventoryId, Inventory)) {
-      const entries: {
+      let entries: {
         desc: string;
         typeId?: string;
         image: string;
         id: EntityId;
+        action: () => void;
+        equippable: number;
       }[] = [];
       for (let id of this.em.getComponent(this.inventoryId, Inventory)
         .contents) {
         entries.push(this.inventoryItemEntry(id));
       }
+
       const contents: {
         [id: string]: Entry;
       } = {};
@@ -111,6 +122,7 @@ export class InventoryDisplayComponent implements OnInit {
               image: entry.image,
               ids: [entry.id],
               count: 1,
+              action: entry.action,
             };
           }
         } else {
@@ -119,6 +131,7 @@ export class InventoryDisplayComponent implements OnInit {
             image: entry.image,
             ids: [entry.id],
             count: 1,
+            action: entry.action,
           };
         }
       }
@@ -133,29 +146,29 @@ export class InventoryDisplayComponent implements OnInit {
     const typeId = this.em.getComponent(itemId, Description)?.typeId;
     const equipped = this.em.hasComponent(itemId, Equipped);
     const image = this.em.getComponent(itemId, Renderable)?.uiImage;
+    const effects = this.em.getComponent(itemId, Effects);
     if (desc) {
-      let actions = null;
+      let action: () => void = () => null;
+      let equippable = 100;
       if (this.em.hasComponent(itemId, Wieldable)) {
-        actions = actions || [];
-        const label = equipped ? 'Stop Wielding' : 'Wield';
-        actions.push({
-          label,
-          command: () => this.wield.next(itemId),
-        });
+        action = () => this.wield.next(itemId);
+        equippable = 20;
+      } else if (this.em.hasComponent(itemId, Wearable)) {
+        action = () => this.wear.next(itemId);
+        equippable = 30;
+      } else if (
+        effects.contents.filter((id) => this.em.hasComponent(id, Usable)).length
+      ) {
+        action = () => this.useItem(itemId);
       }
-      if (this.em.hasComponent(itemId, Wearable)) {
-        actions = actions || [];
-        const label = equipped ? 'Take off' : 'Wear';
-        actions.push({
-          label,
-          command: () => this.wear.next(itemId),
-        });
-      }
+
       return {
         desc: `${desc}${equipped ? ` - EQUIPPED` : ``}`,
         typeId,
         image,
         id: itemId,
+        action,
+        equippable,
       };
     } else {
       return null;

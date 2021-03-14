@@ -266,7 +266,7 @@ export function playerCombatString(
       ?.short;
     targetDescription = targetDescription ?? 'unnamed';
     if (msg.reapedId) {
-      return `You kill the ${targetDescription}!`;
+      // return `You kill the ${targetDescription}!`;
     } else if (msg.woundSuccess && msg.strikeSuccess && !msg.armorSaveSuccess) {
       return `You hit the ${targetDescription}!`;
     } else if (msg.woundSuccess && msg.strikeSuccess && msg.armorSaveSuccess) {

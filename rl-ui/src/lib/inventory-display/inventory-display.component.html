@@ -6,7 +6,8 @@
     *ngFor="let item of items(); let i = index"
     class="w-100 d-flex flex-row mb-1"
     [ngClass]="disableInteraction ? 'disabledItem' : 'bg-light'"
-    (click)="useItem(item.ids[0])"
+    (click)="item.action()"
+    (contextmenu)="dropItem(item.ids[0])"
   >
     <img
       [src]="item.image"

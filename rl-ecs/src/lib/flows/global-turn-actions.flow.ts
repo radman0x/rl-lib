@@ -40,10 +40,6 @@ export function globalTurnActionsFlow(
           effectId: msg.timerId,
           effectTargetId: null,
         })),
-        map((msg) => {
-          console.log(`${JSON.stringify(msg, null, 2)}`);
-          return msg;
-        }),
         mergeMap(
           (msg) =>
             effectOnEntityFlowInstant(em, areaResolver, msg, ender).finish$
