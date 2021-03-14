@@ -10,6 +10,7 @@ import { radClone } from '../systems.utils';
 import { Effects } from '../components/effects.model';
 import { Inventory } from '../components/inventory.model';
 import { StatusEffects } from '../components/status-effects.model';
+import { GridPos } from '../components/position.model';
 
 type Args = Partial<EffectReport> & EntityRemoval;
 export type RemoveEntityArgs = Args;
@@ -38,6 +39,13 @@ function removeEntityStep<T extends Args>(
     }
 
     for (const component of [Effects, Inventory, StatusEffects]) {
+      if (component === Inventory && em.hasComponent(removeId, GridPos)) {
+        em.getComponent(removeId, component)?.contents.forEach((id) => {
+          em.removeComponent(id, MemberOf);
+          em.setComponent(id, em.getComponent(removeId, GridPos));
+        });
+        continue;
+      }
       em.getComponent(removeId, component)?.contents.forEach((id) => {
         removeEntityStep(
           { entityRemoval: { doRemove: true, removeId: id } },

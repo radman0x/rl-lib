@@ -51,7 +51,7 @@ export function targetingPipeline<T extends Args>(
       });
     }),
     map((msg) => {
-      let selectablePositions: GridPosData[] = msg.selectablePositions || null;
+      let selectablePositions: GridPosData[] = msg.selectablePositions ?? [];
       if (em.hasComponent(msg.effectId, Directed)) {
         selectablePositions = positionsWithinRadius2d(msg.effectOrigin, 1);
       }

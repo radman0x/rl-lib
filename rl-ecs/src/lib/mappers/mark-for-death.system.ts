@@ -4,31 +4,35 @@ import { radClone } from '../systems.utils';
 import { Id } from '@rad/rl-applib';
 import { DamageTargetEntity, ReapedEntity } from '../systems.types';
 import { Wounds } from '../components/wounds.model';
+import { RemoveEntityArgs } from '../actioners/remove-entity.actioner';
 
 type Args = DamageTargetEntity;
 export type MarkForDeathArgs = Args;
 
-type Out = ReapedEntity;
+type Out = ReapedEntity & RemoveEntityArgs;
 export type MarkForDeathOut = Out;
 
 function markForDeathStep<T extends Args>(
   msg: T,
   em: EntityManager
 ): Id<T & Out> {
-  const defaultRet = radClone({ ...msg, reapedId: null });
-  if (msg.damageTargetId === null) {
-    return defaultRet;
+  const out: T & Out = radClone({
+    ...msg,
+    reapedId: null,
+    entityRemoval: null,
+  });
+  if (!msg.damageTargetId) {
+    return out;
   }
   if (!em.hasComponent(msg.damageTargetId, Wounds)) {
-    return defaultRet;
+    return out;
   }
   const targetIntegrity = em.get(msg.damageTargetId).component(Wounds);
   if (targetIntegrity.current <= 0) {
-    const reapedId = em.get(msg.damageTargetId).id;
-    console.log(`DEATH-MARK: Entity reaped: ${msg.damageTargetId}`);
-    return { ...radClone(msg), reapedId };
+    out.reapedId = em.get(msg.damageTargetId).id;
+    out.entityRemoval = { doRemove: true, removeId: msg.damageTargetId };
   }
-  return defaultRet;
+  return out;
 }
 
 type StepFunc = OperationStep<Args, Out>;

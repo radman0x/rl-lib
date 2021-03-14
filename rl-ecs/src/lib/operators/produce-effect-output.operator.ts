@@ -4,6 +4,7 @@ import { map } from 'rxjs/operators';
 import { endGame } from '../mappers/end-game.system';
 import { flagRemoveEntity } from '../mappers/flag-remove-entity.mapper';
 import { force } from '../mappers/force.system';
+import { heal } from '../mappers/heal.system';
 import { push } from '../mappers/push.system';
 import { stun } from '../mappers/stun.system';
 import { teleport } from '../mappers/teleport.system';
@@ -29,6 +30,7 @@ export function produceEffectOutput<
     map((msg) => push(msg, em)),
     map((msg) => force(msg, em)),
     map((msg) => endGame(msg, em)),
-    map((msg) => flagRemoveEntity(msg, em))
+    map((msg) => flagRemoveEntity(msg, em)),
+    heal(em)
   );
 }

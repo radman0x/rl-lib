@@ -10,6 +10,7 @@ export enum DamageType {
   SLEEP,
   COLD,
   PHYSICAL,
+  MAGICAL,
 }
 
 export interface ProtagonistEntity {

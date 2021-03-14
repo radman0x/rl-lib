@@ -1,12 +1,11 @@
 import { EntityManager } from 'rad-ecs';
-import { merge, of, ReplaySubject } from 'rxjs';
-import { mergeMap, reduce, share, shareReplay, take } from 'rxjs/operators';
+import { of, ReplaySubject } from 'rxjs';
+import { mergeMap, shareReplay, take } from 'rxjs/operators';
 import { effectPipeline } from '../operators/effect-pipeline.operator';
 import {
   ActiveEffect,
   ActiveEffectDescription,
   EffectTarget,
-  SpawnedEffect,
   WorldStateChangeDescription,
 } from '../systems.types';
 import { radClone } from '../systems.utils';
