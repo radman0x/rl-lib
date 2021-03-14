@@ -78,5 +78,9 @@ export class CaveLevelTemplate extends LevelBase implements CaveTemplate {
     this.placeInitialEnemies(
       openList.map((pos2d) => new GridPos({ ...pos2d, z: DEPTH }))
     );
+
+    this.placeInitialItems(
+      openList.map((pos2d) => new GridPos({ ...pos2d, z: DEPTH }))
+    );
   }
 }

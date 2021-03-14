@@ -200,8 +200,8 @@ export class GridRendererComponent implements OnInit {
     // this.maxTileX += 1 * TILE_SIZE;
     // this.maxTileY += 1 * TILE_SIZE;
 
-    this.maxTileX = this.desiredDisplayWidthPx - TILE_SIZE * 0.5;
-    this.maxTileY = this.desiredDisplayHeightPx - TILE_SIZE * 0.5;
+    this.maxTileX = this.desiredDisplayWidthPx - TILE_SIZE;
+    this.maxTileY = this.desiredDisplayHeightPx - TILE_SIZE;
 
     if (this.viewerId !== undefined && this.em.exists(this.viewerId)) {
       const viewerZPos = this.em.getComponent(this.viewerId, GridPos).z;
@@ -222,7 +222,7 @@ export class GridRendererComponent implements OnInit {
         historicalKnowledge,
         viewerZPos,
         stage,
-        0x666666
+        0xaaaaaa
       );
       this.renderFromKnowledge(currentKnowledge, viewerZPos, stage, 0x000000);
 

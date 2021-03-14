@@ -1,11 +1,12 @@
+import { Id } from '@rad/rl-applib';
 import { EntityManager } from 'rad-ecs';
+import { MovingAgent } from '../components/moving-agent.model';
 import { Physical, Size } from '../components/physical.model';
+import { PlayerAgent } from '../components/player-agent.model';
 import { GridPos } from '../components/position.model';
 import { OperationStep } from '../operation-step.model';
 import { TargetPos } from '../systems.types';
-import { Id } from '@rad/rl-applib';
 import { radClone } from '../systems.utils';
-import { Mobile } from '../components/mobile.model';
 
 type Args = TargetPos;
 export type CanOccupyPositionArgs = Args;
@@ -27,7 +28,7 @@ function canOccupyPositionStep<T extends Args>(
     if (entity.has(Physical) && entity.component(Physical).size === Size.FILL) {
       canOccupy = false;
     }
-    if (entity.has(Mobile)) {
+    if (entity.has(MovingAgent) || entity.has(PlayerAgent)) {
       canOccupy = false;
     }
   });
