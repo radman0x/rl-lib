@@ -6,17 +6,23 @@ import { DamageTargetEntity, ReapedEntity } from '../systems.types';
 import { Wounds } from '../components/wounds.model';
 import { RemoveEntityArgs } from '../actioners/remove-entity.actioner';
 
-type Args = DamageTargetEntity;
+type Args = DamageTargetEntity &
+  Partial<ReapedEntity> &
+  Partial<RemoveEntityArgs>;
 export type MarkForDeathArgs = Args;
 
-type Out = Partial<ReapedEntity> & Partial<RemoveEntityArgs>;
+type Out = ReapedEntity & RemoveEntityArgs;
 export type MarkForDeathOut = Out;
 
 function markForDeathStep<T extends Args>(
   msg: T,
   em: EntityManager
 ): Id<T & Out> {
-  const out: T & Out = radClone({ ...msg });
+  const out: T & Out = radClone({
+    ...msg,
+    reapedId: msg.reapedId ?? null,
+    entityRemoval: msg.entityRemoval ?? null,
+  });
   if (!msg.damageTargetId) {
     return out;
   }
