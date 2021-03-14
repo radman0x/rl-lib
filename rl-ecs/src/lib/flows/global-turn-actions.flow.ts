@@ -1,24 +1,15 @@
 import { isValidId } from '@rad/rl-utils';
 import { EntityManager } from 'rad-ecs';
 import { BehaviorSubject, merge, of, ReplaySubject } from 'rxjs';
-import {
-  filter,
-  map,
-  mapTo,
-  mergeMap,
-  reduce,
-  take,
-  tap,
-} from 'rxjs/operators';
+import * as rxjsSpy from 'rxjs-spy';
+import { filter, map, mergeMap, reduce, take, tap } from 'rxjs/operators';
+import { Cooldown } from '../components/cooldown.model';
 import { CountdownTimer } from '../components/coundown-timer.model';
 import { EndType } from '../components/end-state.model';
 import { entitiesWithComponents } from '../mappers/entities-with-component.system';
 import { radClone } from '../systems.utils';
 import { AreaResolver } from '../utils/area-resolver.util';
 import { effectOnEntityFlowInstant } from './effect-on-entity.flow';
-
-import * as rxjsSpy from 'rxjs-spy';
-import { Cooldown } from '../components/cooldown.model';
 
 export function globalTurnActionsFlow(
   em: EntityManager,
@@ -49,6 +40,10 @@ export function globalTurnActionsFlow(
           effectId: msg.timerId,
           effectTargetId: null,
         })),
+        map((msg) => {
+          console.log(`${JSON.stringify(msg, null, 2)}`);
+          return msg;
+        }),
         mergeMap(
           (msg) =>
             effectOnEntityFlowInstant(em, areaResolver, msg, ender).finish$

@@ -29,7 +29,7 @@ describe('Global turn actions', () => {
     expect(complete).toBe(true);
   });
 
-  it('should action a trigger and perform an effect correctly', () => {
+  it.only('should action a trigger and perform an effect correctly', () => {
     const timerId = em.create(
       new CountdownTimer({ current: 1, max: 1 }),
       new RemoveSelf({})

@@ -9,18 +9,14 @@ import { RemoveEntityArgs } from '../actioners/remove-entity.actioner';
 type Args = DamageTargetEntity;
 export type MarkForDeathArgs = Args;
 
-type Out = ReapedEntity & RemoveEntityArgs;
+type Out = Partial<ReapedEntity> & Partial<RemoveEntityArgs>;
 export type MarkForDeathOut = Out;
 
 function markForDeathStep<T extends Args>(
   msg: T,
   em: EntityManager
 ): Id<T & Out> {
-  const out: T & Out = radClone({
-    ...msg,
-    reapedId: null,
-    entityRemoval: null,
-  });
+  const out: T & Out = radClone({ ...msg });
   if (!msg.damageTargetId) {
     return out;
   }
