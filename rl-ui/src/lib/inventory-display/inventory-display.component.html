@@ -2,7 +2,7 @@
   <div class="w-100 text-center">
     <h1 class="text-light">Inventory</h1>
   </div>
-  <div
+  <button
     *ngFor="let item of items(); let i = index"
     class="w-100 d-flex flex-row mb-1"
     [ngClass]="disableInteraction ? 'disabledItem' : 'bg-light'"
@@ -23,5 +23,5 @@
     >
       <span>X {{ item.count }}</span>
     </div>
-  </div>
+  </button>
 </div>
