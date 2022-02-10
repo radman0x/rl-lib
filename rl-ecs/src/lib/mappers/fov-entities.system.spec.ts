@@ -15,8 +15,6 @@ describe('FOV entity collection', () => {
     sightedId = em.create(new Sighted({ range: 5 }), new GridPos(viewerPos)).id;
     msg = {
       sightedId,
-      viewerPos: new GridPos(viewerPos),
-      sighted: em.getComponent(sightedId, Sighted)
     };
   });
 
@@ -33,11 +31,11 @@ describe('FOV entity collection', () => {
     JSON.stringify(seen, null, 2);
     expect(seen).toContainEqual({
       ...msg,
-      viewed: { entityId: sightedId, atPos: new GridPos(viewerPos) }
+      viewed: { entityId: sightedId, atPos: new GridPos(viewerPos) },
     });
     expect(seen).toContainEqual({
       ...msg,
-      viewed: { entityId: seenId, atPos: new GridPos({ ...viewerPos, x: 0 }) }
+      viewed: { entityId: seenId, atPos: new GridPos({ ...viewerPos, x: 0 }) },
     });
   });
 });

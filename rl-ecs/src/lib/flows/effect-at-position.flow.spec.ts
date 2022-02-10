@@ -32,13 +32,7 @@ describe('Effect at position flow', () => {
     error: boolean | string;
   };
   const newFlow = (em: EntityManager) => {
-    const flow = effectAtPositionFlow(
-      em,
-      areaResolver,
-      jest.fn(),
-      jest.fn(),
-      {} as any
-    );
+    const flow = effectAtPositionFlow(em, areaResolver, jest.fn(), jest.fn(), {} as any);
     flow.finish$.subscribe({
       next: (msg) => {
         results.outcome = msg;
@@ -89,6 +83,7 @@ describe('Effect at position flow', () => {
       [effectTargetId]: {},
     });
   });
+
   it('should update the state of a locked entity when a toggle lock effect is applied at its position', () => {
     const effectId = em.create(new ToggleLock({ lockId: 'A' })).id;
     effectTargetId = standardLock(em, targetPos).id;
@@ -101,8 +96,6 @@ describe('Effect at position flow', () => {
     expect(em.getComponent(effectTargetId, Lock)).toMatchObject({
       state: LockState.UNLOCKED,
     });
-    expect(em.getComponent(effectTargetId, Renderable).image).toEqual(
-      'Door0-5.png'
-    );
+    expect(em.getComponent(effectTargetId, Renderable).image).toEqual('Door0-5.png');
   });
 });

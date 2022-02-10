@@ -1,7 +1,6 @@
-import { EntityManager } from 'rad-ecs';
+import { EntityId, EntityManager } from 'rad-ecs';
 import { OperationStep } from '../operation-step.model';
 import { GridPos, GridPosData } from '../components/position.model';
-import { EntityId } from '../ecs.types';
 import { radClone } from '../systems.utils';
 
 interface Args {
@@ -14,10 +13,7 @@ interface Out {
 }
 export type AcquireEntityPositionOut = Out;
 
-function acquireEntityPositionStep<T extends Args>(
-  msg: T,
-  em: EntityManager
-): T & Out {
+function acquireEntityPositionStep<T extends Args>(msg: T, em: EntityManager): T & Out {
   let targetPos: GridPosData | null = null;
   const p = em.getComponent(msg.protagId, GridPos);
   if (p) {

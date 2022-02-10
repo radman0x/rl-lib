@@ -35,10 +35,9 @@ function produceCandidateOrders<T extends Args>(
   em: EntityManager,
   rand: Chance.Chance
 ): Observable<Order> {
-  return merge(
-    produceMoveOrders<T>(msg, em),
-    produceAttackOrders<T>(msg, em, rand)
-  ).pipe(rxjsSpy.operators.tag('produceCandidateOrders'));
+  return merge(produceMoveOrders<T>(msg, em), produceAttackOrders<T>(msg, em, rand)).pipe(
+    rxjsSpy.operators.tag('produceCandidateOrders')
+  );
 }
 
 export function allAgentUpdateFlow(
@@ -47,35 +46,24 @@ export function allAgentUpdateFlow(
   rand: Chance.Chance,
   ender: (endType: EndType) => void = null
 ) {
-  return <T extends Partial<Messages> & { playerPos: GridPos }>(
-    input: Observable<T>
-  ) => {
+  return <T extends Partial<Messages> & { playerZLevel: number }>(input: Observable<T>) => {
     return input.pipe(
       mergeMap((inputMsg) =>
         of(inputMsg)
           .pipe(
             rxjsSpy.operators.tag('turnEnd.allAgentUpdate'),
-            map((msg) =>
-              addProperty(msg, 'componentTypes', [MovingAgent, GridPos])
-            ),
+            map((msg) => addProperty(msg, 'componentTypes', [MovingAgent, GridPos])),
             mergeMap((msg) => {
+              // All agents that can move AND are on the same level as the player
               const agents = entitiesWithComponents(msg, em, 'agentId').filter(
-                (msg) =>
-                  msg.agentId &&
-                  em.getComponent(msg.agentId, GridPos).z === msg.playerPos.z
+                (msg) => msg.agentId && em.getComponent(msg.agentId, GridPos).z === msg.playerZLevel
               );
               return of(...agents);
             }),
             filter((msg) => em.exists(msg.agentId)), // in case agent got reaped due to other agent actions
             filter((msg) => {
-              const modifiedMental = getModifiedComponent(
-                msg.agentId,
-                Mental,
-                em
-              );
-              return !(
-                modifiedMental && modifiedMental.state === MentalState.STUNNED
-              );
+              const modifiedMental = getModifiedComponent(msg.agentId, Mental, em);
+              return !(modifiedMental && modifiedMental.state === MentalState.STUNNED);
             }),
             mergeMap((beforeSpeed) =>
               em.hasComponent(beforeSpeed.agentId, Speed)
@@ -86,8 +74,7 @@ export function allAgentUpdateFlow(
                         msg.agentId,
                         new Speed({
                           ...orig,
-                          currActionPoints:
-                            orig.currActionPoints + orig.recoupAmount,
+                          currActionPoints: orig.currActionPoints + orig.recoupAmount,
                         })
                       );
                     }),
@@ -101,8 +88,7 @@ export function allAgentUpdateFlow(
                         msg.agentId,
                         new Speed({
                           ...orig,
-                          currActionPoints:
-                            orig.currActionPoints - orig.actionCost,
+                          currActionPoints: orig.currActionPoints - orig.actionCost,
                         })
                       );
                     })
@@ -125,8 +111,7 @@ export function allAgentUpdateFlow(
                     if (msg.score === null) {
                       return msg;
                     }
-                    const score =
-                      Math.round((msg.score + Number.EPSILON) * 100) / 100;
+                    const score = Math.round((msg.score + Number.EPSILON) * 100) / 100;
                     return { ...radClone(msg), score };
                   }),
                   rxjsSpy.operators.tag('turnEnd.allAgentUpdate.orderScores')
@@ -141,13 +126,9 @@ export function allAgentUpdateFlow(
                         return acc as typeof curr;
                       }
                       if (acc.score === curr.score) {
-                        return (Math.random() > 0.5
-                          ? acc
-                          : curr) as typeof curr;
+                        return (Math.random() > 0.5 ? acc : curr) as typeof curr;
                       }
-                      return (curr.score > acc.score
-                        ? curr
-                        : acc) as typeof curr;
+                      return (curr.score > acc.score ? curr : acc) as typeof curr;
                     },
                     {
                       score: null,
@@ -191,9 +172,7 @@ export function allAgentUpdateFlow(
                   map((msg) => markForDeath(msg, em)),
                   map((msg) => grimReaper(msg, em)),
                   mergeMap((msg) =>
-                    housekeepingFlowInstant(em, areaResolver, ender).pipe(
-                      mapTo(msg)
-                    )
+                    housekeepingFlowInstant(em, areaResolver, ender).pipe(mapTo(msg))
                   )
                 )
             ),

@@ -23,7 +23,7 @@ describe('Acquire positions in radius', () => {
     expect(result.acquiredPositions.length).toEqual(0);
   });
 
-  it('should return 27 positions for a radius of 1', () => {
+  it('should return 9 positions for a radius of 1', () => {
     em.setComponent(effectId, new AreaOfEffect({ radius: 1 }));
     let result = acquireAoePositions(
       {
@@ -33,6 +33,6 @@ describe('Acquire positions in radius', () => {
       em
     );
     expect(result.acquiredPositions).not.toEqual(null);
-    expect(result.acquiredPositions.length).toEqual(27);
+    expect(result.acquiredPositions.length).toEqual(9);
   });
 });

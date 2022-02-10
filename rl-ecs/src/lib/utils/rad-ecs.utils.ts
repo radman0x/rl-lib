@@ -7,9 +7,11 @@ import { Inventory } from '../components/inventory.model';
 import { MemberOf } from '../components/member-of.model';
 import { StatusEffects } from '../components/status-effects.model';
 
-export function findComponentInEntityChain<
-  T_Component extends ComponentConstructor
->(em: EntityManager, id: EntityId, c: T_Component): EntityId | null {
+export function findComponentInEntityChain<T_Component extends ComponentConstructor>(
+  em: EntityManager,
+  id: EntityId,
+  c: T_Component
+): EntityId | null {
   if (em.hasComponent(id, c)) {
     return id;
   } else if (em.hasComponent(id, MemberOf)) {
@@ -20,21 +22,14 @@ export function findComponentInEntityChain<
 }
 
 function observeContents<
-  T extends
-    | typeof Inventory
-    | typeof Effects
-    | typeof Abilities
-    | typeof StatusEffects
+  T extends typeof Inventory | typeof Effects | typeof Abilities | typeof StatusEffects
 >(id: EntityId, em: EntityManager, componentType: T) {
   return em
     .getComponent(id, componentType)
     .contents.map((effectId) => recursiveObserveEntity(effectId, em));
 }
 
-export function recursiveObserveEntity(
-  id: EntityId,
-  em: EntityManager
-): Observable<Entity | null> {
+export function recursiveObserveEntity(id: EntityId, em: EntityManager): Observable<Entity | null> {
   const base = em.observeEntity$(id);
   const entityObservables: Observable<Entity | null>[] = [base];
 
@@ -50,5 +45,5 @@ export function recursiveObserveEntity(
   if (em.hasComponent(id, StatusEffects)) {
     entityObservables.push(...observeContents(id, em, StatusEffects));
   }
-  return merge(...entityObservables).pipe(debounceTime(50));
+  return merge(...entityObservables);
 }

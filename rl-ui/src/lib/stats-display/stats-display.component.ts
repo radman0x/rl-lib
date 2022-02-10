@@ -1,15 +1,10 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
-import {
-  Armor,
-  Attacks,
-  getModifiedComponent,
-  recursiveObserveEntity,
-  Wounds,
-} from '@rad/rl-ecs';
+import { Armor, Attacks, getModifiedComponent, recursiveObserveEntity, Wounds } from '@rad/rl-ecs';
 import { Strength } from 'libs/rl-ecs/src/lib/components/strength.model';
 import { Toughness } from 'libs/rl-ecs/src/lib/components/toughness.model';
 import { WeaponSkill } from 'libs/rl-ecs/src/lib/components/weapon-skill.model';
 import { EntityId, EntityManager } from 'rad-ecs';
+import { debounceTime } from 'rxjs/operators';
 
 enum PercentColors {
   VERY_HIGH = `#11970E`,
@@ -55,16 +50,14 @@ export class StatsDisplayComponent implements OnInit {
       throw Error(`EntityManager provided to stats display was empty!!`);
     }
     if (!this.em.exists(this.statsEntityId)) {
-      throw Error(
-        `Inventory entity with id: ${this.statsEntityId} doesn't exist`
-      );
+      throw Error(`Inventory entity with id: ${this.statsEntityId} doesn't exist`);
     }
 
     this.updateValues();
 
-    recursiveObserveEntity(this.statsEntityId, this.em).subscribe(() =>
-      this.updateValues()
-    );
+    recursiveObserveEntity(this.statsEntityId, this.em)
+      .pipe(debounceTime(50))
+      .subscribe(() => this.updateValues());
   }
 
   updateValues() {
@@ -117,22 +110,9 @@ export class StatsDisplayComponent implements OnInit {
   }
 
   private updateValue<
-    T extends
-      | typeof Strength
-      | typeof Toughness
-      | typeof Attacks
-      | typeof Wounds
-      | typeof Armor
-  >(
-    componentType: T,
-    index: number,
-    extractor: (c: InstanceType<T>) => string
-  ) {
-    const value = getModifiedComponent(
-      this.statsEntityId,
-      componentType,
-      this.em
-    );
+    T extends typeof Strength | typeof Toughness | typeof Attacks | typeof Wounds | typeof Armor
+  >(componentType: T, index: number, extractor: (c: InstanceType<T>) => string) {
+    const value = getModifiedComponent(this.statsEntityId, componentType, this.em);
     if (value) {
       this.stats[index].value = extractor(value);
     }

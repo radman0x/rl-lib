@@ -35,16 +35,14 @@ describe('All agent update', () => {
   let spatialReport: SpatialReport;
   let process: ReturnType<typeof allAgentUpdateFlow>;
   let error: (any) => void;
+
   beforeEach(() => {
     em = new EntityManager();
     em.indexBy(GridPos);
     process = allAgentUpdateFlow(em, areaResolver, new Chance());
     for (let x = 1; x < 2; ++x) {
       for (let y = 1; y < 6; ++y) {
-        em.create(
-          new GridPos({ x, y, z: 0 }),
-          new Physical({ size: Size.FILL })
-        );
+        em.create(new GridPos({ x, y, z: 0 }), new Physical({ size: Size.FILL }));
       }
     }
     spatialId = em.create(
@@ -79,7 +77,7 @@ describe('All agent update', () => {
 
   it('should process and move one agent', () => {
     const moveTarget = { x: 1, y: 2, z: 1 };
-    of({ messages: [] })
+    of({ messages: [], playerZLevel: 1 })
       .pipe(process)
       .subscribe({
         next: (msg) => {
@@ -108,7 +106,7 @@ describe('All agent update', () => {
     em.setComponent(agentId, new Toughness({ count: 3 }));
     em.setComponent(agentId, new WeaponSkill({ count: 3 }));
 
-    of({})
+    of({ playerZLevel: 1 })
       .pipe(process)
       .subscribe({
         next: (msg) => {
@@ -124,10 +122,7 @@ describe('All agent update', () => {
   });
 
   it('should get an order summary for two agents', () => {
-    em.create(
-      new GridPos({ x: 1, y: 2, z: 0 }),
-      new Physical({ size: Size.FILL })
-    ).id;
+    em.create(new GridPos({ x: 1, y: 2, z: 0 }), new Physical({ size: Size.FILL })).id;
     const agent2Id = em.create(
       new GridPos({ x: 2, y: 1, z: 1 }),
       new MovingAgent({}),
@@ -148,7 +143,7 @@ describe('All agent update', () => {
       )
       .subscribe();
 
-    of({})
+    of({ playerZLevel: 1 })
       .pipe(process)
       .subscribe({
         next: (msg) => {
@@ -169,10 +164,7 @@ describe('All agent update', () => {
   });
 
   it('should only get a movement from one AI if the other moves first and blocks it', () => {
-    em.create(
-      new GridPos({ x: 1, y: 2, z: 0 }),
-      new Physical({ size: Size.FILL })
-    ).id;
+    em.create(new GridPos({ x: 1, y: 2, z: 0 }), new Physical({ size: Size.FILL })).id;
     // em.setComponent(agentId, new Physical({ size: Size.FILL }));
     em.create(
       new GridPos({ x: 1, y: 1, z: 1 }),
@@ -182,7 +174,7 @@ describe('All agent update', () => {
       new ApproachTarget({ targetId: spatialId })
     ).id;
 
-    of({})
+    of({ playerZLevel: 1 })
       .pipe(process)
       .subscribe({
         next: (msg) => {

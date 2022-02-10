@@ -1,14 +1,6 @@
 import { EntityId, EntityManager } from 'rad-ecs';
 import { of, Subject } from 'rxjs';
-import {
-  filter,
-  map,
-  mergeMap,
-  reduce,
-  shareReplay,
-  take,
-  toArray,
-} from 'rxjs/operators';
+import { filter, map, mergeMap, reduce, shareReplay, take, toArray } from 'rxjs/operators';
 import { addToInventory } from '../actioners/add-to-inventory.actioner';
 import { GridPos } from '../components/position.model';
 import { entitiesAtPosition } from '../mappers/entities-at-position.system';
@@ -19,6 +11,7 @@ import { addProperty } from '../systems.utils';
 import * as rxjsSpy from 'rxjs-spy';
 import { logName } from '@rad/rl-applib';
 import { Description } from '../components/description.model';
+import { Messages } from '@rad/rl-ecs';
 
 export type CollectItemFlowOut = {
   collectorId: EntityId | null;
@@ -27,20 +20,15 @@ export type CollectItemFlowOut = {
   messages: string[];
 };
 
-type Args = { collectorId: EntityId; messages: [] };
+type Args = Partial<Messages> & { collectorId: EntityId };
 
-export function collectItemFlow<T extends Args>(
-  em: EntityManager,
-  tagBase: string
-) {
+export function collectItemFlow<T extends Args>(em: EntityManager, tagBase: string) {
   tagBase = logName(tagBase, 'collectItemFlow');
   const start$ = new Subject<T>();
 
   const collectAssessed$ = start$.pipe(
     take(1),
-    map((msg) =>
-      addProperty(msg, 'targetPos', em.getComponent(msg.collectorId, GridPos))
-    ),
+    map((msg) => addProperty(msg, 'targetPos', em.getComponent(msg.collectorId, GridPos))),
     mergeMap((msg) => of(...entitiesAtPosition(msg, em, 'collectibleId'))),
     filter((msg) => msg.collectibleId !== msg.collectorId),
     map((msg) => suitableForCollection(msg, em)),
@@ -48,9 +36,7 @@ export function collectItemFlow<T extends Args>(
     rxjsSpy.operators.tag(logName(tagBase, 'collectAssessed'))
   );
 
-  const noItemsCollected$ = collectAssessed$.pipe(
-    noneOf((msg) => msg.suitableCollectId !== null)
-  );
+  const noItemsCollected$ = collectAssessed$.pipe(noneOf((msg) => msg.suitableCollectId !== null));
   noItemsCollected$.subscribe();
 
   const itemsCollected$ = collectAssessed$.pipe(
@@ -97,11 +83,7 @@ export function collectItemFlow<T extends Args>(
   return { start$, itemsCollected$, noItemsCollected$, finish$ };
 }
 
-export function collectItemFlowInstant<T extends Args>(
-  msg: T,
-  em: EntityManager,
-  tagBase: string
-) {
+export function collectItemFlowInstant<T extends Args>(msg: T, em: EntityManager, tagBase: string) {
   const flow = collectItemFlow(em, tagBase);
   of(msg).subscribe(flow.start$);
   return flow;

@@ -1,10 +1,4 @@
-import {
-  ChangeDetectorRef,
-  Component,
-  Input,
-  OnInit,
-  Output,
-} from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit, Output } from '@angular/core';
 import {
   Description,
   Effects,
@@ -18,6 +12,7 @@ import {
 import { Equipped } from 'libs/rl-ecs/src/lib/components/equipped.model';
 import { EntityId, EntityManager } from 'rad-ecs';
 import { Subject } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 
 interface Entry {
   desc: string;
@@ -61,9 +56,7 @@ export class InventoryDisplayComponent implements OnInit {
       throw Error(`EntityManager provided to inventory display was empty!!`);
     }
     if (!this.em.exists(this.inventoryId)) {
-      throw Error(
-        `Inventory entity with id: ${this.inventoryId} doesn't exist`
-      );
+      throw Error(`Inventory entity with id: ${this.inventoryId} doesn't exist`);
     }
     this.sections = [
       {
@@ -73,9 +66,9 @@ export class InventoryDisplayComponent implements OnInit {
     ];
 
     this.update();
-    recursiveObserveEntity(this.inventoryId, this.em).subscribe(() =>
-      this.update()
-    );
+    recursiveObserveEntity(this.inventoryId, this.em)
+      .pipe(debounceTime(50))
+      .subscribe(() => this.update());
   }
 
   public items() {
@@ -103,8 +96,7 @@ export class InventoryDisplayComponent implements OnInit {
         action: () => void;
         equippable: number;
       }[] = [];
-      for (let id of this.em.getComponent(this.inventoryId, Inventory)
-        .contents) {
+      for (let id of this.em.getComponent(this.inventoryId, Inventory).contents) {
         entries.push(this.inventoryItemEntry(id));
       }
 
@@ -156,9 +148,7 @@ export class InventoryDisplayComponent implements OnInit {
       } else if (this.em.hasComponent(itemId, Wearable)) {
         action = () => this.wear.next(itemId);
         equippable = 30;
-      } else if (
-        effects.contents.filter((id) => this.em.hasComponent(id, Usable)).length
-      ) {
+      } else if (effects.contents.filter((id) => this.em.hasComponent(id, Usable)).length) {
         action = () => this.useItem(itemId);
       }
 

@@ -3,15 +3,7 @@ import { isValidId } from '@rad/rl-utils';
 import { EntityManager } from 'rad-ecs';
 import { BehaviorSubject, merge, Observable, of, ReplaySubject } from 'rxjs';
 import * as rxjsSpy from 'rxjs-spy';
-import {
-  expand,
-  map,
-  mergeMap,
-  reduce,
-  share,
-  take,
-  tap,
-} from 'rxjs/operators';
+import { expand, map, mergeMap, reduce, share, take, tap } from 'rxjs/operators';
 import { Animation } from '../components/animation.model';
 import { EndType } from '../components/end-state.model';
 import { GridPosData } from '../components/position.model';
@@ -48,13 +40,10 @@ export function effectAtPositionFlow<T extends Args>(
         return of(msg);
       }
     }),
-
     map((msg) => entitiesAtPosition(msg, em, 'effectTargetId')),
-    mergeMap((msg) =>
-      of(...msg.filter((elem) => isValidId(elem.effectTargetId)))
-    ),
-    share(),
+    mergeMap((msg) => of(...msg.filter((elem) => isValidId(elem.effectTargetId)))),
     effectPipeline(em, areaResolver, ender),
+    share(),
     expand((msg) => {
       if (msg.effectReport) {
         const temp: SpawnedEffect[] = [].concat(
@@ -74,11 +63,7 @@ export function effectAtPositionFlow<T extends Args>(
     stateChangeSummaries$: processed.pipe(
       reduce((acc, report) => {
         if (report.effectReport) {
-          selSuggestToArray(
-            acc,
-            `${report.effectTargetId}`,
-            report.effectReport
-          );
+          selSuggestToArray(acc, `${report.effectTargetId}`, report.effectReport);
         }
         return acc;
       }, {} as Summaries),

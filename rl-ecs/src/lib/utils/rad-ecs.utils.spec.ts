@@ -3,10 +3,7 @@ import { Effects } from '../components/effects.model';
 import { MemberOf } from '../components/member-of.model';
 import { GridPos } from '../components/position.model';
 import { Targeted } from '../components/targeted.model';
-import {
-  findComponentInEntityChain,
-  recursiveObserveEntity,
-} from './rad-ecs.utils';
+import { findComponentInEntityChain, recursiveObserveEntity } from './rad-ecs.utils';
 
 describe('Rad ecs utils', () => {
   describe('Find parent in entity chain with component', () => {
@@ -80,6 +77,7 @@ describe('Rad ecs utils', () => {
         done();
       });
       em.setComponent(effectId, new Targeted({ range: 7 }));
+      await new Promise(process.nextTick);
       expect(updated).toHaveBeenCalled();
     });
   });
