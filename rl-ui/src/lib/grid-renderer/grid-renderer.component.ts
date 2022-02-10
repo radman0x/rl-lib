@@ -1,32 +1,15 @@
-import {
-  Component,
-  ElementRef,
-  Input,
-  OnInit,
-  Output,
-  ViewChild,
-} from '@angular/core';
+import { Component, ElementRef, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { PointXY, Renderer } from '@rad/rad-pixi';
+import { AlwaysRendered, Knowledge, KnowledgeMap, StatusEffects } from '@rad/rl-ecs';
+import { rotColorToNumber } from '@rad/rl-utils';
 import * as deepEqual from 'fast-deep-equal';
+import { LightLevel } from 'libs/rl-ecs/src/lib/components/light-level.model';
 import { GridPos } from 'libs/rl-ecs/src/lib/components/position.model';
 import { Renderable } from 'libs/rl-ecs/src/lib/components/renderable.model';
 import * as PIXI from 'pixi.js-legacy';
-import { Entity, EntityManager, EntityId } from 'rad-ecs';
+import { Entity, EntityId, EntityManager } from 'rad-ecs';
 import { Observable, ReplaySubject, Subject } from 'rxjs';
 import { distinctUntilChanged, filter, map } from 'rxjs/operators';
-import {
-  KnowledgeMap,
-  Knowledge,
-  AlwaysRendered,
-  StatusEffects,
-} from '@rad/rl-ecs';
-import {
-  LEVEL_INDEX,
-  Lighting,
-  LightLevel,
-} from 'libs/rl-ecs/src/lib/components/light-level.model';
-import * as ROT from 'rot-js';
-import { rotColorToNumber } from '@rad/rl-utils';
 
 export interface RendererSettings {
   tileSize: number;
@@ -74,10 +57,8 @@ export class GridRendererComponent implements OnInit {
     if (!this.em) {
       throw Error(`No entity manager provided to grid renderer`);
     }
-    this.desiredDisplayWidthPx =
-      this.settings.tileSize * this.settings.displayWidthInTiles;
-    this.desiredDisplayHeightPx =
-      this.settings.tileSize * this.settings.displayHeightInTiles;
+    this.desiredDisplayWidthPx = this.settings.tileSize * this.settings.displayWidthInTiles;
+    this.desiredDisplayHeightPx = this.settings.tileSize * this.settings.displayHeightInTiles;
   }
 
   ngAfterViewInit(): void {
@@ -115,12 +96,7 @@ export class GridRendererComponent implements OnInit {
     });
   }
 
-  playAnimation(
-    name: string,
-    pos: PointXY,
-    speed: number,
-    scale?: number
-  ): Observable<void> {
+  playAnimation(name: string, pos: PointXY, speed: number, scale?: number): Observable<void> {
     const anim = this.renderer.animatedSprite(name, speed);
     const animId = this.animationCounter++;
     this.animations.set(animId, anim);
@@ -218,12 +194,7 @@ export class GridRendererComponent implements OnInit {
       }
       this.sprites.clear();
 
-      this.renderFromKnowledge(
-        historicalKnowledge,
-        viewerZPos,
-        stage,
-        0xaaaaaa
-      );
+      this.renderFromKnowledge(historicalKnowledge, viewerZPos, stage, 0xaaaaaa);
       this.renderFromKnowledge(currentKnowledge, viewerZPos, stage, 0x000000);
 
       this.em.each(
@@ -243,10 +214,8 @@ export class GridRendererComponent implements OnInit {
         stage.addChild(sprite);
       }
 
-      const widthLimit =
-        this.renderer.pixiApp.renderer.width / this.desiredDisplayWidthPx;
-      const heightLimit =
-        this.renderer.pixiApp.renderer.height / this.desiredDisplayHeightPx;
+      const widthLimit = this.renderer.pixiApp.renderer.width / this.desiredDisplayWidthPx;
+      const heightLimit = this.renderer.pixiApp.renderer.height / this.desiredDisplayHeightPx;
       stage.scale.set(Math.min(widthLimit, heightLimit));
     }
   }
@@ -259,16 +228,11 @@ export class GridRendererComponent implements OnInit {
     if (this.maxTileX === undefined || this.maxTileY === undefined) {
       return null;
     }
-    if (
-      pos.x > this.maxTileX + this.tileSize ||
-      pos.y > this.maxTileY + this.tileSize
-    ) {
+    if (pos.x > this.maxTileX + this.tileSize || pos.y > this.maxTileY + this.tileSize) {
       return null;
     }
     const tileX = Math.floor(pos.x / this.tileSize);
-    const tileY = Math.floor(
-      (this.maxTileY + this.tileSize - pos.y) / this.tileSize
-    );
+    const tileY = Math.floor((this.maxTileY + this.tileSize - pos.y) / this.tileSize);
     return { x: tileX, y: tileY };
   }
 
@@ -290,13 +254,9 @@ export class GridRendererComponent implements OnInit {
         ?.component(LightLevel).raw;
       const finalTint = posRawLight
         ? Math.max(rotColorToNumber(posRawLight) - tintModifier, 0x444444)
-        : 0x444444;
+        : 0xffffff;
       const sortedIds = [...ids]
-        .filter(
-          (id) =>
-            this.em.exists(id) &&
-            this.em.getComponent(id, Renderable) !== undefined
-        )
+        .filter((id) => this.em.exists(id) && this.em.getComponent(id, Renderable) !== undefined)
         .sort((lhs, rhs) => {
           return zValueCalc(this.em.get(lhs)) - zValueCalc(this.em.get(rhs));
         });
@@ -306,12 +266,7 @@ export class GridRendererComponent implements OnInit {
     }
   }
 
-  private renderEntity(
-    id: EntityId,
-    stage: PIXI.Container,
-    tint: number,
-    pos: GridPos
-  ) {
+  private renderEntity(id: EntityId, stage: PIXI.Container, tint: number, pos: GridPos) {
     let sprite = this.sprites.get(id);
     const renderable = this.em.getComponent(id, Renderable);
     // const renderable: Renderable | AlternateRenderable =
@@ -340,8 +295,7 @@ export class GridRendererComponent implements OnInit {
     }
 
     if (this.em.hasComponent(id, StatusEffects)) {
-      for (let statusEffectId of this.em.getComponent(id, StatusEffects)
-        .contents) {
+      for (let statusEffectId of this.em.getComponent(id, StatusEffects).contents) {
         this.renderEntity(statusEffectId, stage, tint, pos);
       }
     }
