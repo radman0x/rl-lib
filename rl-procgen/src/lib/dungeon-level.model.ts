@@ -1,18 +1,11 @@
 import { AreaTransitionSpec, GridPos } from '@rad/rl-ecs';
-import { popRandomElement, randomInt, ValueMap } from '@rad/rl-utils';
+import { popRandomElement, ValueMap } from '@rad/rl-utils';
 import { staircasePrefab } from 'libs/rl-ecs/src/lib/component-utils.model';
 import { AreaIngress } from 'libs/rl-ecs/src/lib/components/area-ingress.model';
 import { EntityId, EntityManager } from 'rad-ecs';
 import * as ROT from 'rot-js';
 import { LevelBase } from './level-base.model';
-import {
-  DungeonGenOptions,
-  DungeonPlacer,
-  DungeonTemplate,
-  Pos2d,
-  randomMiddleRoomPos,
-  ROTOpenType,
-} from './utils';
+import { DungeonGenOptions, DungeonPlacer, DungeonTemplate, Pos2d, ROTOpenType } from './utils';
 
 enum RoomTileType {
   OPEN = 0,
@@ -82,10 +75,7 @@ export class DungeonLevelTemplate extends LevelBase implements DungeonTemplate {
     }
 
     for (let [pos, openType] of filled) {
-      if (
-        openType === ROTOpenType.BLOCKED &&
-        tileTypeMap.get(pos) === undefined
-      ) {
+      if (openType === ROTOpenType.BLOCKED && tileTypeMap.get(pos) === undefined) {
         tileTypeMap.set(pos, RoomTileType.FILL);
       }
     }
@@ -147,12 +137,8 @@ export class DungeonLevelTemplate extends LevelBase implements DungeonTemplate {
       placer.place(em, DEPTH, { rooms: world.getRooms(), takenMap });
     }
 
-    this.placeInitialEnemies(
-      allOpenTiles.map((pos2d) => new GridPos({ ...pos2d, z: DEPTH }))
-    );
+    this.placeInitialEnemies(allOpenTiles.map((pos2d) => new GridPos({ ...pos2d, z: DEPTH })));
 
-    this.placeInitialItems(
-      allOpenTiles.map((pos2d) => new GridPos({ ...pos2d, z: DEPTH }))
-    );
+    this.placeInitialItems(allOpenTiles.map((pos2d) => new GridPos({ ...pos2d, z: DEPTH })));
   }
 }
