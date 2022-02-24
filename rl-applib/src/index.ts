@@ -9,3 +9,4 @@ export * from './tenebris/create-final-level-template';
 export * from './tenebris/entity-prefabs';
 export * from './tenebris/equippable-prefabs';
 export * from './tenebris/grenade-prefabs';
+export * from './tenebris/wand-prefabs';

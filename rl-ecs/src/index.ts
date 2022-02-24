@@ -73,6 +73,7 @@ export * from './lib/flows/collect-item.flow';
 export * from './lib/flows/global-turn-actions.flow';
 
 export * from './lib/operators/cost-pipeline.operator';
+export * from './lib/operators/can-afford-cost.operator';
 export * from './lib/operators/consequence-pipeline.operator';
 export * from './lib/operators/targeting-pipeline.operator';
 export * from './lib/operators/modifiered-entity-pipeline.operator';

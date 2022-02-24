@@ -1,6 +1,6 @@
 import { EntityManager } from 'rad-ecs';
 import { NEVER, Observable, of } from 'rxjs';
-import { mergeMap } from 'rxjs/operators';
+import { filter, map, mergeMap } from 'rxjs/operators';
 import { AcquireCombatTargetAtPositionArgs } from '../mappers/acquire-combat-target-at-position.system';
 import { CanOccupyPositionArgs } from '../mappers/can-occupy-position.system';
 import { CanStandAtArgs } from '../mappers/can-stand-at-position.system';
@@ -14,9 +14,7 @@ import {
 } from '../systems.types';
 import { RadRxOperator } from '../systems.utils';
 
-type MoveAssessment = CanOccupyPositionArgs &
-  CanStandAtArgs &
-  AcquireCombatTargetAtPositionArgs;
+type MoveAssessment = CanOccupyPositionArgs & CanStandAtArgs & AcquireCombatTargetAtPositionArgs;
 
 type Args = MovingEntity & TargetPos & AggressorEntity;
 
@@ -26,19 +24,10 @@ type AttemptMoveFlowArgs = {
   gatherAttack: (
     em: EntityManager,
     rand: Chance.Chance
-  ) => RadRxOperator<
-    TargetPos & AggressorEntity,
-    { attack: AttackOrder | null }
-  >;
-  gatherMove: (
-    em: EntityManager
-  ) => RadRxOperator<MoveAssessment, { move: MoveOrder | null }>;
-  processAttack: (
-    em: EntityManager
-  ) => RadRxOperator<{ attack: AttackOrder | null }, any>;
-  processMove: (
-    em: EntityManager
-  ) => RadRxOperator<{ move: MoveOrder | null }, any>;
+  ) => RadRxOperator<TargetPos & AggressorEntity, { attack: AttackOrder | null }>;
+  gatherMove: (em: EntityManager) => RadRxOperator<MoveAssessment, { move: MoveOrder | null }>;
+  processAttack: (em: EntityManager) => RadRxOperator<{ attack: AttackOrder | null }, any>;
+  processMove: (em: EntityManager) => RadRxOperator<{ move: MoveOrder | null }, any>;
   afterMove: (em: EntityManager) => RadRxOperator<Messages & MoveOrder, any>;
   afterAttack: (em: EntityManager) => RadRxOperator<Messages, any>;
   afterNeither?: () => RadRxOperator<any, any>;

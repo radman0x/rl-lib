@@ -29,6 +29,7 @@ import {
   createShortSword,
   createTwoHandedSword,
 } from './equippable-prefabs';
+import { createSmallFlameWand } from './wand-prefabs';
 
 export function createDungeon(
   em: EntityManager,
@@ -41,15 +42,7 @@ export function createDungeon(
   const dungeon = createDungeonTemplate(width, height, playerId, em);
   const cave = createCaveTemplate(width, height, playerId, em);
   const final = createFinalLevelTemplate(width, height, playerId, em);
-  const dungeonBranch = new DungeonBranch([
-    final,
-    cave,
-    cave,
-    cave,
-    dungeon,
-    dungeon,
-    dungeon,
-  ]);
+  const dungeonBranch = new DungeonBranch([final, cave, cave, cave, dungeon, dungeon, dungeon]);
 
   dungeonBranch.addPlacerForLevel(
     1,
@@ -68,12 +61,7 @@ export function createDungeon(
         new Physical({ size: Size.MEDIUM }),
         new Fixed({}),
         new Effects({
-          contents: [
-            em.create(
-              new Climbable(),
-              new EndState({ endType: EndType.VICTORY })
-            ).id,
-          ],
+          contents: [em.create(new Climbable(), new EndState({ endType: EndType.VICTORY })).id],
         })
       ).id;
     })
@@ -90,9 +78,7 @@ export function createDungeon(
         chosenPos = openList[chosen];
       } while (takenMap.has(chosenPos));
 
-      const sword = em.create(
-        ...createTwoHandedSword(new GridPos({ ...chosenPos, z: depth }))
-      ).id;
+      const sword = em.create(...createTwoHandedSword(new GridPos({ ...chosenPos, z: depth }))).id;
       takenMap.set(chosenPos, sword);
 
       do {
@@ -145,7 +131,7 @@ export function createDungeon(
   dungeonBranch.addPlacerForLevel(
     startingLevel,
     new DungeonPlacer((em, depth, { rooms, takenMap }) => {
-      placeEntityInRandomRoom(
+      const playerPos = placeEntityInRandomRoom(
         playerId,
         em,
         rooms,
@@ -153,6 +139,7 @@ export function createDungeon(
         (pos) => takenMap.has(new Pos2d(pos.x, pos.y)),
         (pos, id) => takenMap.set(new Pos2d(pos.x, pos.y), id)
       );
+      createSmallFlameWand(em, new GridPos({ ...playerPos, x: playerPos.x - 1, z: depth }));
     })
   );
 

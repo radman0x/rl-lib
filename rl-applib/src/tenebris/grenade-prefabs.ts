@@ -28,12 +28,8 @@ export interface GrenadeOptions {
   effectComponents: Component[];
 }
 
-export function createGrenade(
-  em: EntityManager,
-  options: GrenadeOptions,
-  pos?: GridPos
-): EntityId {
-  const stun = em.create(
+export function createGrenade(em: EntityManager, options: GrenadeOptions, pos?: GridPos): EntityId {
+  const effect = em.create(
     new Targeted({ range: 4 }),
     new Animation({ name: options.animation, speed: 0.25, scale: 0.5 }),
     new Usable({ useName: 'throw' }),
@@ -42,9 +38,9 @@ export function createGrenade(
     ...options.effectComponents
   ).id;
   if (options.radius === 0) {
-    em.setComponent(stun, new SingleTarget({}));
+    em.setComponent(effect, new SingleTarget({}));
   } else {
-    em.setComponent(stun, new AreaOfEffect({ radius: options.radius }));
+    em.setComponent(effect, new AreaOfEffect({ radius: options.radius }));
   }
 
   const grenade = em.create(
@@ -59,24 +55,18 @@ export function createGrenade(
     }),
     new Physical({ size: Size.SMALL }),
     new Consumable({ uses: 1 }),
-    new Effects({ contents: [stun] })
+    new Effects({ contents: [effect] })
   ).id;
   if (pos) {
     em.setComponent(grenade, pos);
   }
 
-  em.setComponent(
-    stun,
-    new MemberOf({ id: grenade, component: Effects, property: 'contents' })
-  );
+  em.setComponent(effect, new MemberOf({ id: grenade, component: Effects, property: 'contents' }));
 
   return grenade;
 }
 
-export function createSmallFlameGrenade(
-  em: EntityManager,
-  pos?: GridPos
-): EntityId {
+export function createSmallFlameGrenade(em: EntityManager, pos?: GridPos): EntityId {
   return createGrenade(
     em,
     {
@@ -92,10 +82,7 @@ export function createSmallFlameGrenade(
   );
 }
 
-export function createBigBoyFlameGrenade(
-  em: EntityManager,
-  pos?: GridPos
-): EntityId {
+export function createBigBoyFlameGrenade(em: EntityManager, pos?: GridPos): EntityId {
   return createGrenade(
     em,
     {
@@ -111,10 +98,7 @@ export function createBigBoyFlameGrenade(
   );
 }
 
-export function createSmallStunGrenade(
-  em: EntityManager,
-  pos?: GridPos
-): EntityId {
+export function createSmallStunGrenade(em: EntityManager, pos?: GridPos): EntityId {
   return createGrenade(
     em,
     {
@@ -130,10 +114,7 @@ export function createSmallStunGrenade(
   );
 }
 
-export function createBigBoyStunGrenade(
-  em: EntityManager,
-  pos?: GridPos
-): EntityId {
+export function createBigBoyStunGrenade(em: EntityManager, pos?: GridPos): EntityId {
   return createGrenade(
     em,
     {

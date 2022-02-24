@@ -14,11 +14,7 @@ export class Pos2d {
 export type TakenCb = ({ x, y, z }) => boolean;
 export type MarkTakenCb = ({ x, y, z }, id: EntityId) => void;
 
-export function randomNotTakenRoomPos(
-  rooms: Room[],
-  z: number,
-  taken: TakenCb
-) {
+export function randomNotTakenRoomPos(rooms: Room[], z: number, taken: TakenCb) {
   let pos: { x: number; y: number; z: number };
   do {
     pos = randomRoomPos(rooms, z);
@@ -54,6 +50,7 @@ export function placeEntityInRandomRoom(
   const chosenPos = randomNotTakenRoomPos(rooms, z, isTaken);
   em.setComponent(id, new GridPos(chosenPos));
   markTaken(chosenPos, id);
+  return new GridPos(chosenPos);
 }
 
 export interface DungeonTemplate {
@@ -95,23 +92,13 @@ export interface CavePlacerState {
 export class DungeonPlacer {
   kind: 'DUNGEON' = 'DUNGEON';
   constructor(
-    public place: (
-      em: EntityManager,
-      depth: number,
-      state: DungeonPlacerState
-    ) => void
+    public place: (em: EntityManager, depth: number, state: DungeonPlacerState) => void
   ) {}
 }
 
 export class CavePlacer {
   kind: 'CAVE' = 'CAVE';
-  constructor(
-    public place: (
-      em: EntityManager,
-      depth: number,
-      state: CavePlacerState
-    ) => void
-  ) {}
+  constructor(public place: (em: EntityManager, depth: number, state: CavePlacerState) => void) {}
 }
 
 export type EntityCreator = (em: EntityManager, ...extras: Component[]) => void;

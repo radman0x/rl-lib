@@ -40,6 +40,10 @@ function produceCandidateOrders<T extends Args>(
   );
 }
 
+/** Update all agents
+ *
+ * Produces a single message no matter what that contains a record of messages from agent actions
+ */
 export function allAgentUpdateFlow(
   em: EntityManager,
   areaResolver: AreaResolver,
