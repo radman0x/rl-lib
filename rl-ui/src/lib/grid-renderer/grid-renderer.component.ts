@@ -254,7 +254,7 @@ export class GridRendererComponent implements OnInit {
         ?.component(LightLevel).raw;
       const finalTint = posRawLight
         ? Math.max(rotColorToNumber(posRawLight) - tintModifier, 0x444444)
-        : 0xffffff;
+        : 0x444444;
       const sortedIds = [...ids]
         .filter((id) => this.em.exists(id) && this.em.getComponent(id, Renderable) !== undefined)
         .sort((lhs, rhs) => {
