@@ -128,21 +128,6 @@ export function createDungeon(
     })
   );
 
-  dungeonBranch.addPlacerForLevel(
-    startingLevel,
-    new DungeonPlacer((em, depth, { rooms, takenMap }) => {
-      const playerPos = placeEntityInRandomRoom(
-        playerId,
-        em,
-        rooms,
-        depth,
-        (pos) => takenMap.has(new Pos2d(pos.x, pos.y)),
-        (pos, id) => takenMap.set(new Pos2d(pos.x, pos.y), id)
-      );
-      createSmallFlameWand(em, new GridPos({ ...playerPos, x: playerPos.x - 1, z: depth }));
-    })
-  );
-
   dungeonBranch.addBuilders(areaResolver, em);
 
   return dungeonBranch;
