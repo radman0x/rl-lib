@@ -1,7 +1,7 @@
 import { AreaTransitionSpec, EgressDirection } from '@rad/rl-ecs';
 import { AreaResolver } from 'libs/rl-ecs/src/lib/utils/area-resolver.util';
 import { EntityManager } from 'rad-ecs';
-import { DungeonPlacer } from '..';
+import { DungeonPlacer, StaticLevelTemplate } from '..';
 import { CaveLevelTemplate } from './cave-level.model';
 import { DungeonLevelTemplate } from './dungeon-level.model';
 import { FinalLevelTemplate } from './final-level.model';
@@ -10,7 +10,8 @@ import { CavePlacer } from './utils';
 type LevelTemplateUnion =
   | DungeonLevelTemplate
   | CaveLevelTemplate
-  | FinalLevelTemplate;
+  | FinalLevelTemplate
+  | StaticLevelTemplate;
 type LevelPlacerUnion = CavePlacer | DungeonPlacer;
 
 export class DungeonBranch {
@@ -36,11 +37,7 @@ export class DungeonBranch {
   }
 
   addBuilders(areaResolver: AreaResolver, entityManager: EntityManager) {
-    for (
-      let levelNumber = 1;
-      levelNumber < this.levelTemplates.length;
-      ++levelNumber
-    ) {
+    for (let levelNumber = 1; levelNumber < this.levelTemplates.length; ++levelNumber) {
       areaResolver.setBuilder(this.levelId(levelNumber), () =>
         this.level(entityManager, levelNumber)
       );
@@ -48,8 +45,7 @@ export class DungeonBranch {
   }
 
   addTransitionsToLevel(levelNumber: number, transitions: AreaTransitionSpec) {
-    this.levelMergeTransitionSpecs[levelNumber] =
-      this.levelMergeTransitionSpecs[levelNumber] || [];
+    this.levelMergeTransitionSpecs[levelNumber] = this.levelMergeTransitionSpecs[levelNumber] || [];
     this.levelMergeTransitionSpecs[levelNumber].push(transitions);
   }
 
@@ -64,8 +60,7 @@ export class DungeonBranch {
       egressOnly: [],
       ingressEgress: [],
     };
-    const connectDownwards = (lvlNum: number) =>
-      lvlNum < this.levelTemplates.length - 1;
+    const connectDownwards = (lvlNum: number) => lvlNum < this.levelTemplates.length - 1;
     const connectUpwards = (lvlNum: number) => lvlNum > 1;
 
     if (connectDownwards(levelNumber)) {
@@ -105,19 +100,16 @@ export class DungeonBranch {
           em,
           mergedTransitions,
           levelNumber,
-          placers.filter(
-            (placer): placer is CavePlacer => placer.kind === 'CAVE'
-          )
+          placers.filter((placer): placer is CavePlacer => placer.kind === 'CAVE')
         );
 
       case 'DUNGEON':
+      case 'STATIC':
         return levelTemplate.generate(
           em,
           mergedTransitions,
           levelNumber,
-          placers.filter(
-            (placer): placer is DungeonPlacer => placer.kind === 'DUNGEON'
-          )
+          placers.filter((placer): placer is DungeonPlacer => placer.kind === 'DUNGEON')
         );
       default:
         throw Error(`Unhandled type in switch!!!`);

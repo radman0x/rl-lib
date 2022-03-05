@@ -87,7 +87,7 @@ export function createDungeonTemplate(
     placers: [
       new DungeonPlacer((em, depth, { rooms, takenMap }) => {
         for (let room of rooms) {
-          let [x, y] = room.getCenter();
+          let { x, y } = room.getCenter();
           let lightPos = new Pos2d(x, y);
           while (takenMap.has(lightPos)) {
             ++x;

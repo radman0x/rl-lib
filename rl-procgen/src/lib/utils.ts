@@ -1,7 +1,18 @@
 import { AreaTransitionSpec, GridPos } from '@rad/rl-ecs';
 import { randomElement, randomInt, ValueMap } from '@rad/rl-utils';
 import { Component, EntityId, EntityManager } from 'rad-ecs';
-import { Room } from 'rot-js/lib/map/features';
+
+export class Room {
+  constructor(public x1: number, public x2: number, public y1: number, public y2: number) {}
+
+  getCenter(): Pos2d {
+    return new Pos2d(this.middleOf(this.x1, this.x2), this.middleOf(this.y1, this.y2));
+  }
+
+  private middleOf(min: number, max: number) {
+    return Math.floor((max - min) / 2);
+  }
+}
 
 export class Pos2d {
   constructor(public x: number, public y: number) {}
@@ -25,16 +36,16 @@ export function randomNotTakenRoomPos(rooms: Room[], z: number, taken: TakenCb) 
 
 export function randomRoomPos(rooms: Room[], z: number) {
   let room = randomElement(rooms);
-  let x = randomInt(room._x1, room._x2);
-  let y = randomInt(room._y1, room._y2);
+  let x = randomInt(room.x1, room.x2);
+  let y = randomInt(room.y1, room.y2);
   return { x, y, z };
 }
 
 export const randomMiddleRoomPos = (rooms: Room[], z: number) => {
   let room = randomElement(rooms);
   return {
-    x: room.getCenter()[0],
-    y: room.getCenter()[1],
+    x: room.getCenter().x,
+    y: room.getCenter().y,
     z,
   };
 };
@@ -77,6 +88,19 @@ export interface CaveTemplate {
   generateEnemies(spawnable: GridPos[]): number;
 
   kind: 'CAVE';
+}
+
+export interface StaticTemplate {
+  generate(
+    em: EntityManager,
+    transitions: AreaTransitionSpec,
+    depth: number,
+    placers: DungeonPlacer[]
+  ): void;
+
+  generateEnemies(spawnable: GridPos[]): number;
+
+  kind: 'STATIC';
 }
 
 export interface DungeonPlacerState {

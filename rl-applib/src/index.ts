@@ -10,3 +10,7 @@ export * from './tenebris/entity-prefabs';
 export * from './tenebris/equippable-prefabs';
 export * from './tenebris/grenade-prefabs';
 export * from './tenebris/wand-prefabs';
+export * from './khaz-elgrad/create-dwarf-stronghold';
+export * from './khaz-elgrad/create-khaz-elgrad';
+export * from './khaz-elgrad/create-lower-mine-template';
+export * from './khaz-elgrad/create-upper-mine-template';
