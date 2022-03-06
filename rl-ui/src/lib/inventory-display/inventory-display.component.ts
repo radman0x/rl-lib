@@ -148,7 +148,7 @@ export class InventoryDisplayComponent implements OnInit {
       } else if (this.em.hasComponent(itemId, Wearable)) {
         action = () => this.wear.next(itemId);
         equippable = 30;
-      } else if (effects.contents.filter((id) => this.em.hasComponent(id, Usable)).length) {
+      } else if (effects?.contents.filter((id) => this.em.hasComponent(id, Usable)).length) {
         action = () => this.useItem(itemId);
       }
 

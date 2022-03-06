@@ -27,6 +27,8 @@ export * from './lib/components/status-effects.model';
 export * from './lib/components/modifier.model';
 export * from './lib/components/target-origin.model';
 export * from './lib/components/interactable.model';
+export * from './lib/components/complex-cost.model';
+export * from './lib/components/leverage.model';
 export * from './lib/components/target-positions.model';
 export * from './lib/components/always-rendered.model';
 export * from './lib/components/charges.model';

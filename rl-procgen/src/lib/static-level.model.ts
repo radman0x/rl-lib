@@ -1,6 +1,7 @@
 import {
   AreaTransitionSpec,
   Climbable,
+  ComplexCost,
   Description,
   Effects,
   GridPos,
@@ -129,17 +130,27 @@ export class StaticLevelTemplate extends LevelBase implements StaticTemplate {
     const createBridgeEffect = em.create(
       new SpawnEntity({ entities: [spawnId], replaceExisting: true }),
       new TargetPositions({ positions: [bridgePos, { ...bridgePos, x: bridgePos.x + 1 }] }),
-      new SingleTarget()
+      new SingleTarget(),
+      new Description({
+        short: `lowers a bridge`,
+      })
     ).id;
     const switchPos = new Pos2d(CHASM_START - 1, Math.floor(ROOM_MAX_Y / 2));
     em.create(
       new GridPos({ ...switchPos, z: GROUND }),
       new Renderable({ image: 'Tool-8.png', zOrder: 2 }),
       new Description({
-        short: `a mighty lever with a broken handle`,
+        short: `mighty crank`,
       }),
       new Effects({ contents: [createBridgeEffect] }),
-      new Interactable()
+      new Interactable(),
+      new ComplexCost({
+        Leverage: {
+          property: 'power',
+          count: 5,
+          failureDesc: 'a lever to make the crank turn!',
+        },
+      })
     );
 
     for (const placer of [...placers, ...this.options.placers]) {
