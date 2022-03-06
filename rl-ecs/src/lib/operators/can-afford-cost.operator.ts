@@ -38,6 +38,7 @@ export function canAffordCost({ em, canAfford, cannotAfford }: CreateArgs) {
     return input.pipe(
       map((msg) => ({ payerId: msg.effectId, ...msg })),
       map((msg) => energyDelta(msg, em)),
+      // No energy cost found
       mergeMap((msg) =>
         msg.energyDelta === null
           ? of(msg).pipe(

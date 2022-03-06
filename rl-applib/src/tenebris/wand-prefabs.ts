@@ -1,23 +1,23 @@
 import {
+  Animation,
+  AreaOfEffect,
+  Bang,
+  Charges,
+  Description,
+  Effects,
+  EnergyCost,
   GridPos,
+  MemberOf,
+  Physical,
+  Renderable,
+  Size,
   Targeted,
   Usable,
-  EnergyCost,
-  Description,
-  AreaOfEffect,
-  Renderable,
-  Physical,
-  Size,
-  Consumable,
-  Effects,
-  MemberOf,
-  Bang,
-  Animation,
-  Charges,
 } from '@rad/rl-ecs';
 import { Flame } from 'libs/rl-ecs/src/lib/components/flame.model';
 import { SingleTarget } from 'libs/rl-ecs/src/lib/components/single-target.model';
-import { EntityManager, EntityId, Component } from 'rad-ecs';
+import { SpawnEntity } from 'libs/rl-ecs/src/lib/components/spawn-entity';
+import { Component, EntityId, EntityManager } from 'rad-ecs';
 
 export interface WandOptions {
   strength: number;

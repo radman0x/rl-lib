@@ -48,6 +48,7 @@ export function createDungeonTemplate(
         new Physical({ size: Size.FILL }),
         ...extras
       ).id,
+    chasm: (em, ...extras) => -1, // not implemented
     width,
     height,
     upTransitionTexture: 'Tile-12.png',

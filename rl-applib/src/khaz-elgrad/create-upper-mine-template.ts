@@ -39,6 +39,12 @@ export function createUpperMineTemplate(
         new Physical({ size: Size.FILL }),
         ...extras
       ).id,
+    chasm: (em, ...extras) =>
+      em.create(
+        new Renderable({ image: 'Pit-18.png', zOrder: 1 }),
+        new Physical({ size: Size.FILL }),
+        ...extras
+      ).id,
     width,
     height,
     upTransitionTexture: 'Tile-12.png',

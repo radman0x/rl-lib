@@ -19,16 +19,9 @@ interface Out {
 }
 export type AcquireSingleTargetOut = Out;
 
-function acquireSingleTargetStep<T extends Args>(
-  msg: T,
-  em: EntityManager
-): Id<T & Out> {
+function acquireSingleTargetStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
   let acquiredPositions: GridPosData[] = msg.acquiredPositions || null;
-  if (
-    isValidId(msg.effectId) &&
-    msg.selectedPos &&
-    em.hasComponent(msg.effectId, SingleTarget)
-  ) {
+  if (isValidId(msg.effectId) && msg.selectedPos && em.hasComponent(msg.effectId, SingleTarget)) {
     acquiredPositions = acquiredPositions
       ? [...acquiredPositions, msg.selectedPos]
       : [msg.selectedPos];

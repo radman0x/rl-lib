@@ -1,28 +1,23 @@
+import { TargetPos } from '@rad/rl-ecs';
 import { EntityManager } from 'rad-ecs';
 import { of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { area, AreaArgs } from '../actioners/area.actioner';
+import { createEntity } from '../actioners/create-entity.actioner';
 import { endState, EndStateArgs } from '../actioners/end-state.actioner';
 import { lock, LockArgs } from '../actioners/lock.actioner';
 import { physics } from '../actioners/physics.actioner';
-import {
-  removeEntity,
-  RemoveEntityArgs,
-} from '../actioners/remove-entity.actioner';
+import { removeEntity, RemoveEntityArgs } from '../actioners/remove-entity.actioner';
 import { sensate } from '../actioners/sensate.actioner';
 import { spatial, SpatialArgs } from '../actioners/spatial.actioner';
 import { integrity } from '../mappers/integrity.system';
 import { markForDeath } from '../mappers/mark-for-death.system';
-import {
-  ActiveEffect,
-  Damaged,
-  DamageTargetEntity,
-  EffectTarget,
-} from '../systems.types';
+import { ActiveEffect, Damaged, DamageTargetEntity, EffectTarget } from '../systems.types';
 import { AreaResolver } from '../utils/area-resolver.util';
 
-type Args = EffectTarget &
+type Args = Partial<EffectTarget> &
   ActiveEffect &
+  Partial<TargetPos> &
   SpatialArgs &
   LockArgs &
   AreaArgs &
@@ -39,15 +34,17 @@ export function actionEffectOutput<T extends Args>(
   areaResolver: AreaResolver,
   ender: (EndType) => void
 ) {
-  return of(msg).pipe(
-    map((msg) => spatial(msg, em)),
-    map((msg) => lock(msg, em)),
-    map((msg) => area(msg, em, areaResolver)),
-    map((msg) => integrity(msg, em)),
-    map((msg) => sensate(msg, em)),
-    map((msg) => physics(msg, em)),
-    map((msg) => endState(msg, em, ender)),
-    map((msg) => markForDeath(msg, em)),
-    map((msg) => removeEntity(msg, em))
-  );
+  return of(msg)
+    .pipe(
+      map((msg) => spatial(msg, em)),
+      map((msg) => lock(msg, em)),
+      map((msg) => area(msg, em, areaResolver)),
+      map((msg) => integrity(msg, em)),
+      map((msg) => sensate(msg, em)),
+      map((msg) => physics(msg, em)),
+      map((msg) => endState(msg, em, ender)),
+      map((msg) => markForDeath(msg, em)),
+      map((msg) => removeEntity(msg, em))
+    )
+    .pipe(createEntity(em));
 }

@@ -17,7 +17,7 @@ describe('Magic resistance', () => {
 
   it('should be a noop if there is no effect target', () => {
     const teleport: Teleported = {
-      teleport: { targetLocation: pos }
+      teleport: { targetLocation: pos },
     };
     effectTargetId = null;
     const out = magicResistance(_.merge({ effectTargetId }, teleport), em);
@@ -26,7 +26,7 @@ describe('Magic resistance', () => {
 
   it('should remove a teleport effect', () => {
     const teleport: Teleported = {
-      teleport: { targetLocation: pos }
+      teleport: { targetLocation: pos },
     };
     const out = magicResistance(_.merge({ effectTargetId }, teleport), em);
     expect(out).toEqual({ effectTargetId, teleport: null });

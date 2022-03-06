@@ -86,8 +86,7 @@ export interface ActiveEffectDescription {
   activeEffectDescription: string | null;
 }
 
-export type WorldStateChangeReport = WorldStateChangeDescription &
-  WorldStateChanged;
+export type WorldStateChangeReport = WorldStateChangeDescription & WorldStateChanged;
 
 export interface WorldStateChangeDescription {
   worldStateChangeDescription: string | null;
@@ -293,6 +292,11 @@ export interface CostPaid {
 
 export interface EffectOrigin {
   effectOrigin: GridPosData | null;
+}
+
+export interface CreateEntity {
+  entities: EntityId[];
+  replaceExisting: boolean;
 }
 
 export interface Messages {

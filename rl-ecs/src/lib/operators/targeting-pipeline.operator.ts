@@ -1,3 +1,4 @@
+import { TargetPositions } from '@rad/rl-ecs';
 import { equalsVec3 } from '@rad/rl-utils';
 import { EntityId, EntityManager } from 'rad-ecs';
 import { merge, Observable, of } from 'rxjs';
@@ -28,6 +29,7 @@ export function targetingPipeline<T extends Args>(
   usingEntityId: EntityId,
   spriteAdder: (name: string, pos: GridPosData) => number,
   spriteRemover: (id: number) => void,
+  selectionStart: () => void,
   tileSelected$: Observable<GridPosData>,
   cancelTargeting$: Observable<void>,
   logger: (message: string) => void
@@ -92,8 +94,12 @@ export function targetingPipeline<T extends Args>(
       }
       return addProperty(msg, 'overlayIds', overlayIds);
     }),
+    map((msg) => {
+      return radClone({ ...msg, selectedPos: [] });
+    }),
     mergeMap((msg) => {
       if (msg.selectablePositions && msg.selectablePositions.length !== 0) {
+        selectionStart();
         const cancelOrTarget$ = merge(
           tileSelected$.pipe(materialize()),
           cancelTargeting$.pipe(
@@ -123,17 +129,25 @@ export function targetingPipeline<T extends Args>(
           take(1),
           removeOverlays(spriteRemover, msg),
           filter((xy) => !!xy),
-          map((xy) =>
-            addProperty(msg, 'selectedPos', {
-              ...xy,
-              z: msg.effectOrigin.z,
-            })
-          )
+          map((xy) => ({ ...msg, selectedPos: [{ ...xy, z: msg.effectOrigin.z }] }))
         );
-      } else if (em.hasComponent(msg.effectId, TargetOrigin)) {
-        return of(addProperty(msg, 'selectedPos', msg.effectOrigin));
       } else {
-        return of(addProperty(msg, 'selectedPos', null as GridPosData));
+        return of(msg);
+      }
+    }),
+    map((msg) => {
+      if (em.hasComponent(msg.effectId, TargetOrigin)) {
+        return radClone({ ...msg, selectedPos: [...msg.selectedPos, msg.effectOrigin] });
+      } else {
+        return msg;
+      }
+    }),
+    map((msg) => {
+      if (em.hasComponent(msg.effectId, TargetPositions)) {
+        const targetPositions = em.getComponent(msg.effectId, TargetPositions).positions;
+        return radClone({ ...msg, selectedPos: [...msg.selectedPos, ...targetPositions] });
+      } else {
+        return msg;
       }
     })
   );

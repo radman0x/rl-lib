@@ -23,7 +23,7 @@ import {
 } from '../systems.types';
 import { radClone } from '../systems.utils';
 
-type Args = ActiveEffect & EffectOrigin & EffectTarget & Partial<EffectReport>;
+type Args = ActiveEffect & EffectOrigin & Partial<EffectTarget> & Partial<EffectReport>;
 export type PushArgs = Args;
 
 type Out = AppliedForce & EffectReport;
@@ -47,10 +47,7 @@ function pushStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
       },
     };
     const direction = asCompassDirectionVec3(
-      unitDirectionVec3(
-        msg.effectOrigin,
-        em.getComponent(msg.effectTargetId, GridPos)
-      )
+      unitDirectionVec3(msg.effectOrigin, em.getComponent(msg.effectTargetId, GridPos))
     );
     force = {
       magnitude: em.getComponent(msg.effectId, Push).strength,

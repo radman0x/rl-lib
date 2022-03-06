@@ -1,17 +1,28 @@
-import { AreaTransitionSpec, GridPos } from '@rad/rl-ecs';
+import {
+  AreaTransitionSpec,
+  Climbable,
+  Description,
+  Effects,
+  GridPos,
+  Interactable,
+  Renderable,
+  TargetOrigin,
+  TargetPositions,
+} from '@rad/rl-ecs';
 import {
   DungeonGenOptions,
   DungeonPlacer,
   Pos2d,
-  ROTOpenType,
-  StaticTemplate,
+  randomNotTakenRoomPos,
   Room,
+  StaticTemplate,
 } from '@rad/rl-procgen';
-import { popRandomElement, ValueMap } from '@rad/rl-utils';
+import { ValueMap } from '@rad/rl-utils';
+import { createEntity } from 'libs/rl-ecs/src/lib/actioners/create-entity.actioner';
 import { staircasePrefab } from 'libs/rl-ecs/src/lib/component-utils.model';
-import { AreaIngress } from 'libs/rl-ecs/src/lib/components/area-ingress.model';
+import { SingleTarget } from 'libs/rl-ecs/src/lib/components/single-target.model';
+import { SpawnEntity } from 'libs/rl-ecs/src/lib/components/spawn-entity';
 import { EntityId, EntityManager } from 'rad-ecs';
-import * as ROT from 'rot-js';
 import { LevelBase } from './level-base.model';
 
 enum RoomTileType {
@@ -20,6 +31,7 @@ enum RoomTileType {
   DOOR = 2,
   FILL = 3,
   CORRIDOR = 4,
+  CHASM = 5,
 }
 
 export class StaticLevelTemplate extends LevelBase implements StaticTemplate {
@@ -34,24 +46,36 @@ export class StaticLevelTemplate extends LevelBase implements StaticTemplate {
     depth: number,
     placers: DungeonPlacer[]
   ) {
+    if (transitions.ingressEgress.length !== 2) {
+      throw Error(`Static level expects exactly 2 ingress / egress points`);
+    }
     const openRoomTiles: Pos2d[] = [];
     const tileTypeMap = new ValueMap<Pos2d, RoomTileType>();
     const allOpenTiles: Pos2d[] = [];
-    const rooms: Room[] = [];
 
     const DEPTH = depth * 3;
     const BASEMENT = DEPTH - 1;
     const GROUND = DEPTH;
 
-    const ROOM_MAX = 10;
-    for (let x = 1; x <= ROOM_MAX; ++x) {
-      for (let y = 1; y <= ROOM_MAX; ++y) {
+    const ROOM_MAX_X = 20;
+    const ROOM_MAX_Y = 10;
+    const CHASM_START = 12;
+    const CHASM_END = CHASM_START + 1;
+    for (let x = 1; x <= ROOM_MAX_X; ++x) {
+      for (let y = 1; y <= ROOM_MAX_Y; ++y) {
         tileTypeMap.set(new Pos2d(x, y), RoomTileType.OPEN);
         openRoomTiles.push(new Pos2d(x, y));
         allOpenTiles.push(new Pos2d(x, y));
       }
     }
-    rooms.push(new Room(0, ROOM_MAX, 0, ROOM_MAX));
+    for (let x = CHASM_START; x <= CHASM_END; ++x) {
+      for (let y = 1; y <= ROOM_MAX_Y; ++y) {
+        tileTypeMap.set(new Pos2d(x, y), RoomTileType.CHASM);
+      }
+    }
+
+    const accessibleArea = new Room({ x1: 1, x2: CHASM_START - 1, y1: 1, y2: ROOM_MAX_Y });
+    const blockedArea = new Room({ x1: CHASM_END + 1, x2: ROOM_MAX_X, y1: 1, y2: ROOM_MAX_Y });
 
     for (let [pos, type] of tileTypeMap) {
       switch (type) {
@@ -70,6 +94,9 @@ export class StaticLevelTemplate extends LevelBase implements StaticTemplate {
         case RoomTileType.FILL:
           this.options.fill(em, new GridPos({ ...pos, z: GROUND }));
           break;
+        case RoomTileType.CHASM:
+          this.options.chasm(em, new GridPos({ ...pos, z: BASEMENT }));
+          break;
       }
     }
 
@@ -78,9 +105,7 @@ export class StaticLevelTemplate extends LevelBase implements StaticTemplate {
       downTransitionTexture: downStairTexture,
       upTransitionTexture: upStairTexture,
     } = this.options;
-    for (const ingressEgress of transitions.ingressEgress) {
-      const egressPos = popRandomElement(openRoomTiles);
-      console.log(`Egress placed at: ${egressPos}`);
+    const setIngressEgress = (egressPos, ingressEgress) => {
       const stairId = staircasePrefab(
         em,
         new GridPos({ ...egressPos, z: GROUND }),
@@ -94,24 +119,35 @@ export class StaticLevelTemplate extends LevelBase implements StaticTemplate {
         upStairTexture
       );
       takenMap.set(new Pos2d(egressPos.x, egressPos.y), stairId);
-    }
+    };
+    // This is a hack, based on the set up of the dungeon branch to have the entrances placed in the right locations :P
+    setIngressEgress(accessibleArea.randomPos(), transitions.ingressEgress[0]);
+    setIngressEgress(blockedArea.randomPos(), transitions.ingressEgress[1]);
 
-    for (const ingressLabel of transitions.ingressOnly) {
-      const ingressPos = popRandomElement(openRoomTiles);
-      console.log(`Ingress Only placed at: ${ingressPos}`);
-      const ingressId = em.create(
-        new GridPos({ ...ingressPos, z: GROUND }),
-        new AreaIngress({ label: ingressLabel })
-      ).id;
-      takenMap.set(new Pos2d(ingressPos.x, ingressPos.y), ingressId);
-    }
+    const spawnId = this.options.floor(em);
+    const bridgePos = { x: CHASM_START, y: Math.floor(ROOM_MAX_Y / 2), z: BASEMENT };
+    const createBridgeEffect = em.create(
+      new SpawnEntity({ entities: [spawnId], replaceExisting: true }),
+      new TargetPositions({ positions: [bridgePos, { ...bridgePos, x: bridgePos.x + 1 }] }),
+      new SingleTarget()
+    ).id;
+    const switchPos = new Pos2d(CHASM_START - 1, Math.floor(ROOM_MAX_Y / 2));
+    em.create(
+      new GridPos({ ...switchPos, z: GROUND }),
+      new Renderable({ image: 'Tool-8.png', zOrder: 2 }),
+      new Description({
+        short: `a mighty lever with a broken handle`,
+      }),
+      new Effects({ contents: [createBridgeEffect] }),
+      new Interactable()
+    );
 
     for (const placer of [...placers, ...this.options.placers]) {
-      placer.place(em, DEPTH, { rooms, takenMap });
+      placer.place(em, DEPTH, { rooms: [accessibleArea], takenMap });
     }
 
-    this.placeInitialEnemies(allOpenTiles.map((pos2d) => new GridPos({ ...pos2d, z: DEPTH })));
+    this.placeInitialEnemies(allOpenTiles.map((pos2d) => new GridPos({ ...pos2d, z: GROUND })));
 
-    this.placeInitialItems(allOpenTiles.map((pos2d) => new GridPos({ ...pos2d, z: DEPTH })));
+    this.placeInitialItems(allOpenTiles.map((pos2d) => new GridPos({ ...pos2d, z: GROUND })));
   }
 }

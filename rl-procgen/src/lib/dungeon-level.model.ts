@@ -62,7 +62,9 @@ export class DungeonLevelTemplate extends LevelBase implements DungeonTemplate {
         tileTypeMap.set(new Pos2d(x, y), type);
       });
     }
-    const rooms = world.getRooms().map((r) => new RadRoom(r._x1, r._x2, r._y1, r._y2));
+    const rooms = world
+      .getRooms()
+      .map((r) => new RadRoom({ x1: r._x1, x2: r._x2, y1: r._y1, y2: r._y2 }));
 
     for (let corridor of world.getCorridors()) {
       corridor.create((x, y) => {

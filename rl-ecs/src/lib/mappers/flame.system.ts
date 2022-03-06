@@ -13,7 +13,7 @@ import {
 import { radClone } from '../systems.utils';
 
 export type FlameArgs = ActiveEffect &
-  EffectTarget &
+  Partial<EffectTarget> &
   Partial<Damaged> &
   Partial<DamageTargetEntity>;
 

@@ -7,7 +7,10 @@ import { actionEffectOutput } from './action-effect-output.operator';
 import { modifyEffectOutput } from './modify-effect-output.operator';
 import { produceEffectOutput } from './produce-effect-output.operator';
 
-export type EffectPipelineArgs = ActiveEffect & EffectTarget & Partial<TargetPos> & EffectOrigin;
+export type EffectPipelineArgs = ActiveEffect &
+  Partial<EffectTarget> &
+  Partial<TargetPos> &
+  EffectOrigin;
 
 export function effectPipeline(
   em: EntityManager,

@@ -40,8 +40,14 @@ export function effectAtPositionFlow<T extends Args>(
         return of(msg);
       }
     }),
-    map((msg) => entitiesAtPosition(msg, em, 'effectTargetId')),
-    mergeMap((msg) => of(...msg.filter((elem) => isValidId(elem.effectTargetId)))),
+    mergeMap((beforeEntitySpecificity) =>
+      of(beforeEntitySpecificity).pipe(
+        map((msg) => entitiesAtPosition(msg, em, 'effectTargetId')),
+        mergeMap((msg) =>
+          of(...msg.filter((elem) => isValidId(elem.effectTargetId)), beforeEntitySpecificity)
+        )
+      )
+    ),
     effectPipeline(em, areaResolver, ender),
     share(),
     expand((msg) => {

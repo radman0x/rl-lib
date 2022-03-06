@@ -3,10 +3,22 @@ import { randomElement, randomInt, ValueMap } from '@rad/rl-utils';
 import { Component, EntityId, EntityManager } from 'rad-ecs';
 
 export class Room {
-  constructor(public x1: number, public x2: number, public y1: number, public y2: number) {}
+  public x1: number;
+  public x2: number;
+  public y1: number;
+  public y2: number;
+  constructor(coords: { x1: number; x2: number; y1: number; y2: number }) {
+    Object.assign(this, coords);
+  }
 
   getCenter(): Pos2d {
     return new Pos2d(this.middleOf(this.x1, this.x2), this.middleOf(this.y1, this.y2));
+  }
+
+  randomPos(): Pos2d {
+    let x = randomInt(this.x1, this.x2);
+    let y = randomInt(this.y1, this.y2);
+    return new Pos2d(x, y);
   }
 
   private middleOf(min: number, max: number) {
@@ -22,26 +34,35 @@ export class Pos2d {
   }
 }
 
-export type TakenCb = ({ x, y, z }) => boolean;
+export type TakenCb = (Pos2d) => boolean;
 export type MarkTakenCb = ({ x, y, z }, id: EntityId) => void;
 
-export function randomNotTakenRoomPos(rooms: Room[], z: number, taken: TakenCb) {
-  let pos: { x: number; y: number; z: number };
+export function randomNotTakenRoomPos(rooms: Room, taken: TakenCb) {
+  let pos: Pos2d;
   do {
-    pos = randomRoomPos(rooms, z);
+    pos = rooms.randomPos();
   } while (taken(pos));
 
   return pos;
 }
 
-export function randomRoomPos(rooms: Room[], z: number) {
+export function randomNotTakenRoomsPos(rooms: Room[], z: number, taken: TakenCb) {
+  let pos: { x: number; y: number; z: number };
+  do {
+    pos = randomRoomsPos(rooms, z);
+  } while (taken(pos));
+
+  return pos;
+}
+
+export function randomRoomsPos(rooms: Room[], z: number) {
   let room = randomElement(rooms);
   let x = randomInt(room.x1, room.x2);
   let y = randomInt(room.y1, room.y2);
   return { x, y, z };
 }
 
-export const randomMiddleRoomPos = (rooms: Room[], z: number) => {
+export const randomMiddleRoomsPos = (rooms: Room[], z: number) => {
   let room = randomElement(rooms);
   return {
     x: room.getCenter().x,
@@ -58,7 +79,7 @@ export function placeEntityInRandomRoom(
   isTaken: TakenCb,
   markTaken: MarkTakenCb
 ) {
-  const chosenPos = randomNotTakenRoomPos(rooms, z, isTaken);
+  const chosenPos = randomNotTakenRoomsPos(rooms, z, isTaken);
   em.setComponent(id, new GridPos(chosenPos));
   markTaken(chosenPos, id);
   return new GridPos(chosenPos);
@@ -125,7 +146,7 @@ export class CavePlacer {
   constructor(public place: (em: EntityManager, depth: number, state: CavePlacerState) => void) {}
 }
 
-export type EntityCreator = (em: EntityManager, ...extras: Component[]) => void;
+export type EntityCreator = (em: EntityManager, ...extras: Component[]) => EntityId;
 
 export interface BaseGenOptions {
   height: number;
@@ -146,6 +167,7 @@ export interface DungeonGenOptions extends BaseGenOptions {
   corridor: EntityCreator;
   door: EntityCreator;
   wall: EntityCreator;
+  chasm: EntityCreator;
   placers: DungeonPlacer[];
 }
 

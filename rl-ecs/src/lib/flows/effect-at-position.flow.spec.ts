@@ -30,6 +30,7 @@ describe('Effect at position flow', () => {
     finished: boolean;
     summaries: Summaries | null;
     error: boolean | string;
+    count: number;
   };
   const newFlow = (em: EntityManager) => {
     const flow = effectAtPositionFlow(em, areaResolver, jest.fn(), jest.fn(), {} as any);
@@ -37,6 +38,7 @@ describe('Effect at position flow', () => {
       next: (msg) => {
         results.outcome = msg;
         results.finished = true;
+        results.count += 1;
       },
       error: (err) => (results.error = err),
     });
@@ -55,6 +57,7 @@ describe('Effect at position flow', () => {
       finished: false,
       summaries: null,
       error: false,
+      count: 0,
     };
     process = newFlow(em);
     effectTargetId = em.create().id;
@@ -66,9 +69,10 @@ describe('Effect at position flow', () => {
     expect(results.summaries).toEqual({});
   });
 
-  it('should not receive any messages if no effects were attempted to be actioned', () => {
+  it('should receive one message even if there are not entities at the target position', () => {
     process.start$.next({ targetPos, effectId: em.create().id });
-    expect(results.finished).toBe(false);
+    expect(results.finished).toBe(true);
+    expect(results.count).toEqual(1);
   });
 
   it('should receive the correct output when multiple outcomes occur as part of applying an effect', () => {

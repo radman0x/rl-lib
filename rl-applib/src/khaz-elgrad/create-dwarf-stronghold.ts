@@ -39,6 +39,8 @@ export function createDwarfStronghold(
         new Physical({ size: Size.FILL }),
         ...extras
       ).id,
+    chasm: (em, ...extras) =>
+      em.create(new Renderable({ image: 'Pit0-18.png', zOrder: 1 }), ...extras).id,
     width,
     height,
     upTransitionTexture: 'Tile-12.png',

@@ -1,10 +1,5 @@
 import { Id, selAddToArray, selSuggest } from '@rad/rl-applib';
-import {
-  addVec3,
-  compassDirectionToUnitVector,
-  equalsVec3,
-  isValidId,
-} from '@rad/rl-utils';
+import { addVec3, compassDirectionToUnitVector, equalsVec3, isValidId } from '@rad/rl-utils';
 import * as _ from 'lodash';
 import { EntityManager } from 'rad-ecs';
 import { Description } from '../components/description.model';
@@ -24,7 +19,7 @@ import { radClone } from '../systems.utils';
 
 type Args = Partial<EffectReport> &
   Partial<AppliedForce> &
-  EffectTarget &
+  Partial<EffectTarget> &
   Partial<WorldStateChangeReport>;
 export type PhysicsArgs = Args;
 
@@ -35,8 +30,8 @@ function physicsStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
   let out = { ...radClone(msg) };
   if (
     msg.force &&
-    isValidId(msg.effectTargetId) &&
-    em.hasComponent(msg.effectTargetId, GridPos)
+    (msg.effectTargetId,
+    isValidId(msg.effectTargetId) && em.hasComponent(msg.effectTargetId, GridPos))
   ) {
     let gridPos = em.getComponent(msg.effectTargetId, GridPos);
     let newPos = { ...gridPos };
@@ -45,8 +40,7 @@ function physicsStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
     if (msg.force.magnitude > 0) {
       selSuggest(out, 'effectReport.physics.spawnedEffects', []);
       selAddToArray(out, 'effectReport.physics.spawnedEffects', {
-        effectId: em.create(new Teleport({ target: addVec3(newPos, changeBy) }))
-          .id,
+        effectId: em.create(new Teleport({ target: addVec3(newPos, changeBy) })).id,
         effectTargetId: msg.effectTargetId,
       });
       selAddToArray(out, 'effectReport.physics.spawnedEffects', {

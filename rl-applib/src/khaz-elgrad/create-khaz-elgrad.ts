@@ -14,7 +14,7 @@ import {
   DungeonPlacer,
   placeEntityInRandomRoom,
   Pos2d,
-  randomMiddleRoomPos,
+  randomMiddleRoomsPos,
 } from '@rad/rl-procgen';
 import { randomInt } from '@rad/rl-utils';
 import { Fixed } from 'libs/rl-ecs/src/lib/components/fixed.model';
@@ -40,7 +40,7 @@ export function createKhazElgrad(
   dungeonBranch.addPlacerForLevel(
     startingLevel,
     new DungeonPlacer((em, depth, { takenMap, rooms }) => {
-      const pos = randomMiddleRoomPos(rooms, depth);
+      const pos = randomMiddleRoomsPos(rooms, depth);
       em.setComponent(playerId, new GridPos({ ...pos }));
       takenMap.set(new Pos2d(pos.x, pos.y), playerId);
     })

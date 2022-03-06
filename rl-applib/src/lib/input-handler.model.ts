@@ -10,7 +10,7 @@ export class InputHandler {
   public move$ = new Subject<CompassDirection>();
   public climb$ = new Subject<void>();
   public rest$ = new Subject<void>();
-  public applyItem$ = new Subject<void>();
+  public interact$ = new Subject<void>();
   public useAbility$ = new Subject<void>();
   public collect$ = new Subject<void>();
   public escape$ = new Subject<void>();
@@ -45,10 +45,10 @@ export class InputHandler {
     this.keyInput$
       .pipe(
         filter((key) => key === 'a'),
-        rxjsSpy.operators.tag('inputHandler.apply'),
+        rxjsSpy.operators.tag('inputHandler.interact'),
         mapTo(void 0)
       )
-      .subscribe(this.applyItem$);
+      .subscribe(this.interact$);
 
     this.keyInput$
       .pipe(

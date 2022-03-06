@@ -36,10 +36,10 @@ describe('Can afford cost', () => {
     );
   });
 
-  it('should fail when no possible cost options are present', () => {
+  it('should choose cannot afford when cost is present but not satisfied', () => {
     const data = {
-      effectId: 1,
-      effectSourceId: 2,
+      effectId,
+      effectSourceId,
     };
     const canAfford = mockObs(null);
     const cannotAfford = mockObs(null);
@@ -59,8 +59,8 @@ describe('Can afford cost', () => {
   it('should fail when charges are present but not sufficient', () => {
     em.setComponent(effectSourceId, new Charges({ curr: 0, max: 1 }));
     const data = {
-      effectId: 1,
-      effectSourceId: 2,
+      effectId,
+      effectSourceId,
     };
     const canAfford = mockObs(null);
     const cannotAfford = mockObs(null);
