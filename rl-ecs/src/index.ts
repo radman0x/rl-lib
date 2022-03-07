@@ -1,6 +1,7 @@
 export * from './lib/components/knowledge.model';
 export * from './lib/components/usable.model';
 export * from './lib/components/physical.model';
+export * from './lib/components/leverage-cost.model';
 export * from './lib/components/position.model';
 export * from './lib/components/renderable.model';
 export * from './lib/components/effects.model';
@@ -29,6 +30,7 @@ export * from './lib/components/target-origin.model';
 export * from './lib/components/interactable.model';
 export * from './lib/components/complex-cost.model';
 export * from './lib/components/leverage.model';
+export * from './lib/components/component-cost.model';
 export * from './lib/components/target-positions.model';
 export * from './lib/components/always-rendered.model';
 export * from './lib/components/charges.model';
@@ -53,6 +55,10 @@ export * from './lib/components/light-source.model';
 export * from './lib/components/light-preference.model';
 export * from './lib/components/heal.model';
 export * from './lib/components/speed.model';
+export * from './lib/components/leverage-remove.model';
+export * from './lib/components/consumable-remove.model';
+export * from './lib/components/recipes.model';
+export * from './lib/components/anvil.model';
 
 export * from './lib/mappers/grim-reaper.system';
 export * from './lib/mappers/mark-for-death.system';
@@ -76,6 +82,9 @@ export * from './lib/flows/effect-at-position.flow';
 export * from './lib/flows/collect-item.flow';
 export * from './lib/flows/global-turn-actions.flow';
 
+export * from './lib/operators/pull-costs.operator';
+export * from './lib/operators/analyse-cost.operator';
+export * from './lib/operators/process-removals.operator';
 export * from './lib/operators/cost-pipeline.operator';
 export * from './lib/operators/can-afford-cost.operator';
 export * from './lib/operators/consequence-pipeline.operator';

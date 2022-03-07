@@ -1,4 +1,6 @@
 import {
+  Animation,
+  Anvil,
   AreaTransitionSpec,
   Climbable,
   ComplexCost,
@@ -6,6 +8,7 @@ import {
   Effects,
   GridPos,
   Interactable,
+  LeverageCost,
   Renderable,
   TargetOrigin,
   TargetPositions,
@@ -133,7 +136,8 @@ export class StaticLevelTemplate extends LevelBase implements StaticTemplate {
       new SingleTarget(),
       new Description({
         short: `lowers a bridge`,
-      })
+      }),
+      new LeverageCost({ amount: 5 })
     ).id;
     const switchPos = new Pos2d(CHASM_START - 1, Math.floor(ROOM_MAX_Y / 2));
     em.create(
@@ -143,14 +147,37 @@ export class StaticLevelTemplate extends LevelBase implements StaticTemplate {
         short: `mighty crank`,
       }),
       new Effects({ contents: [createBridgeEffect] }),
-      new Interactable(),
-      new ComplexCost({
-        Leverage: {
-          property: 'power',
-          count: 5,
-          failureDesc: 'a lever to make the crank turn!',
-        },
+      new Interactable()
+    );
+
+    const fireEffect = em.create(
+      new TargetPositions({
+        positions: [
+          { ...bridgePos, z: GROUND },
+          { ...bridgePos, x: bridgePos.x + 1, z: GROUND },
+        ],
+      }),
+      new SingleTarget(),
+      new Description({
+        short: `makes fire`,
+      }),
+      new LeverageCost({ amount: 5 }),
+      new Animation({ name: 'explosionV007effect', speed: 0.25, scale: 0.5 }),
+      new Renderable({
+        image: 'Effect0-120.png',
+        uiImage: 'assets/interface/Effect0-120.png',
+        zOrder: 1,
       })
+    ).id;
+    const secondSwitchPos = new Pos2d(CHASM_START - 3, Math.floor(ROOM_MAX_Y / 2));
+    em.create(
+      new GridPos({ ...secondSwitchPos, z: GROUND }),
+      new Renderable({ image: 'Chest0-4.png', zOrder: 2 }),
+      new Anvil(),
+      new Description({
+        short: `Anvil`,
+      }),
+      new Effects({ contents: [fireEffect] })
     );
 
     for (const placer of [...placers, ...this.options.placers]) {

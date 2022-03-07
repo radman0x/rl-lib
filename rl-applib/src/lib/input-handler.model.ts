@@ -11,6 +11,7 @@ export class InputHandler {
   public climb$ = new Subject<void>();
   public rest$ = new Subject<void>();
   public interact$ = new Subject<void>();
+  public craft$ = new Subject<void>();
   public useAbility$ = new Subject<void>();
   public collect$ = new Subject<void>();
   public escape$ = new Subject<void>();
@@ -49,6 +50,14 @@ export class InputHandler {
         mapTo(void 0)
       )
       .subscribe(this.interact$);
+
+    this.keyInput$
+      .pipe(
+        filter((key) => key === 'C'),
+        rxjsSpy.operators.tag('inputHandler.craft'),
+        mapTo(void 0)
+      )
+      .subscribe(this.craft$);
 
     this.keyInput$
       .pipe(
