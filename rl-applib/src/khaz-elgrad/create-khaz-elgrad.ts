@@ -15,14 +15,18 @@ import {
   placeEntityInRandomRoom,
   Pos2d,
   randomMiddleRoomsPos,
+  randomNotTakenRoomsPos,
 } from '@rad/rl-procgen';
-import { randomInt } from '@rad/rl-utils';
+import { popRandomElement, randomElement, randomInt } from '@rad/rl-utils';
 import { Fixed } from 'libs/rl-ecs/src/lib/components/fixed.model';
 import { AreaResolver } from 'libs/rl-ecs/src/lib/utils/area-resolver.util';
 import { EntityId, EntityManager } from 'rad-ecs';
+import { createGameEntity, createIronOre } from '..';
+import { createBeetle, createOrc } from './agent-creators';
 import { createDwarfStronghold } from './create-dwarf-stronghold';
 import { createLowerMineTemplate } from './create-lower-mine-template';
 import { createUpperMineTemplate } from './create-upper-mine-template';
+import { createEndGameStairs } from './feature-creators';
 
 export function createKhazElgrad(
   em: EntityManager,
@@ -42,7 +46,30 @@ export function createKhazElgrad(
     new DungeonPlacer((em, depth, { takenMap, rooms }) => {
       const pos = randomMiddleRoomsPos(rooms, depth);
       em.setComponent(playerId, new GridPos({ ...pos }));
+      createGameEntity(em, createBeetle(playerId), { ...pos, x: pos.x + 1 });
+      createGameEntity(em, createOrc(playerId), { ...pos, x: pos.x - 1 });
       takenMap.set(new Pos2d(pos.x, pos.y), playerId);
+    })
+  );
+
+  dungeonBranch.addPlacerForLevel(
+    3,
+    new CavePlacer((em, depth, { takenMap, openList }) => {
+      for (let i = 0; i < 20; ++i) {
+        const pos = popRandomElement(openList);
+        createGameEntity(em, createIronOre(), { ...pos, z: depth });
+        takenMap.set(new Pos2d(pos.x, pos.y), playerId);
+      }
+    })
+  );
+
+  dungeonBranch.addPlacerForLevel(
+    1,
+    new DungeonPlacer((em, depth, { takenMap, rooms }) => {
+      const pos = randomNotTakenRoomsPos(rooms, depth, (pos) =>
+        takenMap.has(new Pos2d(pos.x, pos.y))
+      );
+      createGameEntity(em, createEndGameStairs(), pos);
     })
   );
 

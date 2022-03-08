@@ -8,8 +8,11 @@ import {
   Effects,
   GridPos,
   Interactable,
+  IronCost,
   LeverageCost,
+  Physical,
   Renderable,
+  Size,
   TargetOrigin,
   TargetPositions,
 } from '@rad/rl-ecs';
@@ -128,18 +131,34 @@ export class StaticLevelTemplate extends LevelBase implements StaticTemplate {
     setIngressEgress(accessibleArea.randomPos(), transitions.ingressEgress[0]);
     setIngressEgress(blockedArea.randomPos(), transitions.ingressEgress[1]);
 
-    const spawnId = this.options.floor(em);
+    em.create(
+      new Renderable({ image: 'Tile-32.png', zOrder: 10 }),
+      new GridPos({ x: CHASM_START, y: Math.floor(ROOM_MAX_Y / 2), z: BASEMENT })
+    );
+
+    em.create(
+      new Renderable({ image: 'Tile-33.png', zOrder: 10 }),
+      new GridPos({ x: CHASM_START + 1, y: Math.floor(ROOM_MAX_Y / 2), z: BASEMENT })
+    );
+
+    const spawnId = em.create(
+      new Renderable({ image: 'Tile-25.png', zOrder: 10 }),
+      new Physical({ size: Size.FILL })
+    ).id;
+
     const bridgePos = { x: CHASM_START, y: Math.floor(ROOM_MAX_Y / 2), z: BASEMENT };
     const createBridgeEffect = em.create(
-      new SpawnEntity({ entities: [spawnId], replaceExisting: true }),
+      new SpawnEntity({ entities: [em.createClone(spawnId).id], replaceExisting: true }),
       new TargetPositions({ positions: [bridgePos, { ...bridgePos, x: bridgePos.x + 1 }] }),
       new SingleTarget(),
+      new Animation({ name: 'explosionV007effect', speed: 0.25, scale: 0.5 }),
       new Description({
         short: `lowers a bridge`,
       }),
-      new LeverageCost({ amount: 5 })
+      new LeverageCost({ amount: 2 })
     ).id;
-    const switchPos = new Pos2d(CHASM_START - 1, Math.floor(ROOM_MAX_Y / 2));
+
+    const switchPos = new Pos2d(CHASM_START - 1, Math.floor(ROOM_MAX_Y / 2) - 2);
     em.create(
       new GridPos({ ...switchPos, z: GROUND }),
       new Renderable({ image: 'Tool-8.png', zOrder: 2 }),
@@ -150,7 +169,7 @@ export class StaticLevelTemplate extends LevelBase implements StaticTemplate {
       new Interactable()
     );
 
-    const fireEffect = em.create(
+    const crankRecipe = em.create(
       new TargetPositions({
         positions: [
           { ...bridgePos, z: GROUND },
@@ -167,17 +186,18 @@ export class StaticLevelTemplate extends LevelBase implements StaticTemplate {
         image: 'Effect0-120.png',
         uiImage: 'assets/interface/Effect0-120.png',
         zOrder: 1,
-      })
+      }),
+      new IronCost({ amount: 2 })
     ).id;
-    const secondSwitchPos = new Pos2d(CHASM_START - 3, Math.floor(ROOM_MAX_Y / 2));
+    const anvilPos = new Pos2d(2, ROOM_MAX_Y - 1);
     em.create(
-      new GridPos({ ...secondSwitchPos, z: GROUND }),
+      new GridPos({ ...anvilPos, z: GROUND }),
       new Renderable({ image: 'Chest0-4.png', zOrder: 2 }),
       new Anvil(),
       new Description({
         short: `Anvil`,
       }),
-      new Effects({ contents: [fireEffect] })
+      new Effects({ contents: [crankRecipe] })
     );
 
     for (const placer of [...placers, ...this.options.placers]) {

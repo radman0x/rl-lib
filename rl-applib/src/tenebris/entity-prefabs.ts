@@ -79,10 +79,7 @@ export function zombiePrefab(playerId: EntityId, em): Component[] {
   ];
 }
 
-export function lichenPrefab(
-  playerId: EntityId,
-  em: EntityManager
-): Component[] {
+export function lichenPrefab(playerId: EntityId, em: EntityManager): Component[] {
   const items: EntityId[] = [];
   if (Math.random() >= 0.5) {
     randomItem(
@@ -112,10 +109,7 @@ export function lichenPrefab(
   ];
 }
 
-export function giantSpiderPrefab(
-  playerId: EntityId,
-  em: EntityManager
-): Component[] {
+export function giantSpiderPrefab(playerId: EntityId, em: EntityManager): Component[] {
   const items: EntityId[] = [];
   if (Math.random() >= 0.8) {
     items.push(
@@ -191,10 +185,7 @@ export function ogrePrefab(playerId: EntityId, em: EntityManager): Component[] {
   ];
 }
 
-export function ghoulPrefab(
-  playerId: EntityId,
-  em: EntityManager
-): Component[] {
+export function ghoulPrefab(playerId: EntityId, em: EntityManager): Component[] {
   const items: EntityId[] = [];
   if (Math.random() >= 0.5) {
     items.push(
@@ -231,10 +222,7 @@ export function ghoulPrefab(
   ];
 }
 
-export function giantCentipedePrefab(
-  playerId: EntityId,
-  em: EntityManager
-): Component[] {
+export function giantCentipedePrefab(playerId: EntityId, em: EntityManager): Component[] {
   const items: EntityId[] = [];
   if (Math.random() >= 0.8) {
     items.push(
@@ -297,10 +285,7 @@ export function createCheese(em: EntityManager, pos?: GridPos): EntityId {
     em.setComponent(cheese, pos);
   }
 
-  em.setComponent(
-    heal,
-    new MemberOf({ id: cheese, component: Effects, property: 'contents' })
-  );
+  em.setComponent(heal, new MemberOf({ id: cheese, component: Effects, property: 'contents' }));
 
   return cheese;
 }
@@ -330,10 +315,7 @@ export function createHealingSalve(em: EntityManager, pos?: GridPos): EntityId {
     em.setComponent(salve, pos);
   }
 
-  em.setComponent(
-    heal,
-    new MemberOf({ id: salve, component: Effects, property: 'contents' })
-  );
+  em.setComponent(heal, new MemberOf({ id: salve, component: Effects, property: 'contents' }));
 
   return salve;
 }

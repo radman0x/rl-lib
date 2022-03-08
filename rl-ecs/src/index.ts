@@ -59,6 +59,7 @@ export * from './lib/components/leverage-remove.model';
 export * from './lib/components/consumable-remove.model';
 export * from './lib/components/recipes.model';
 export * from './lib/components/anvil.model';
+export * from './lib/components/iron.model';
 
 export * from './lib/mappers/grim-reaper.system';
 export * from './lib/mappers/mark-for-death.system';

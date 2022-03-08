@@ -1,6 +1,8 @@
 import { Physical, Renderable, Size } from '@rad/rl-ecs';
 import { DungeonLevelTemplate } from '@rad/rl-procgen';
 import { EntityId, EntityManager } from 'rad-ecs';
+import { randomEntity, createGameEntity } from '..';
+import { createBeetle, createOrc } from './agent-creators';
 
 export function createUpperMineTemplate(
   width: number,
@@ -53,7 +55,10 @@ export function createUpperMineTemplate(
     initialEnemyCount: 8,
     maxEnemyCount: 30,
     initialItemRange: { min: 3, max: 8 },
-    enemyGenerator: (pos) => 0,
+    enemyGenerator: (pos) => {
+      const chosen = randomEntity([{ weight: 1, generator: () => createOrc(playerId) }]);
+      return createGameEntity(em, chosen, pos);
+    },
     itemGenerator: (pos) => 0,
     placers: [],
   });

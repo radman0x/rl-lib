@@ -125,6 +125,11 @@ export function randomInt(min: number, max: number): number | never {
   return Math.floor(Math.random() * (max + 1 - min)) + min;
 }
 
+export function chanceFor<T>(value: T, chance: number): T | undefined {
+  const threshold = 1 - chance;
+  return Math.random() >= threshold ? value : undefined;
+}
+
 export enum CompassDirection {
   N = 'North',
   NE = 'North-East',
@@ -166,10 +171,7 @@ export const UNIT_VECTOR_TO_COMPASS_DIRECTION: UnitVectorToCompassDirectionIndex
   },
 };
 
-export const compassDirectionToUnitVector: Map<
-  CompassDirection,
-  Coord
-> = new Map([
+export const compassDirectionToUnitVector: Map<CompassDirection, Coord> = new Map([
   [CompassDirection.N, { x: 0, y: 1, z: 0 }],
   [CompassDirection.NE, { x: 1, y: 1, z: 0 }],
   [CompassDirection.E, { x: 1, y: 0, z: 0 }],

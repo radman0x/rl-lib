@@ -8,12 +8,7 @@ import {
   Size,
 } from '@rad/rl-ecs';
 import { CaveLevelTemplate, CavePlacer, Pos2d } from '@rad/rl-procgen';
-import {
-  popRandomElement,
-  randomElement,
-  randomInt,
-  ValueMap,
-} from '@rad/rl-utils';
+import { popRandomElement, randomElement, randomInt, ValueMap } from '@rad/rl-utils';
 import { EntityId, EntityManager } from 'rad-ecs';
 import { randomItem } from './base-prefabs';
 import {
@@ -59,15 +54,11 @@ export function createCaveTemplate(
       } else if (roll > 70) {
         return em.create(new GridPos(pos), ...ogrePrefab(playerId, em)).id;
       } else if (roll > 50) {
-        return em.create(
-          new GridPos(pos),
-          ...giantCentipedePrefab(playerId, em)
-        ).id;
+        return em.create(new GridPos(pos), ...giantCentipedePrefab(playerId, em)).id;
       } else if (roll > 40) {
         return em.create(new GridPos(pos), ...lichenPrefab(playerId, em)).id;
       } else if (roll > 10) {
-        return em.create(new GridPos(pos), ...giantSpiderPrefab(playerId, em))
-          .id;
+        return em.create(new GridPos(pos), ...giantSpiderPrefab(playerId, em)).id;
       } else {
         return em.create(new GridPos(pos), ...ratPrefab(playerId, em)).id;
       }
@@ -96,10 +87,7 @@ export function createCaveTemplate(
           chosenPos = randomElement(openList);
         } while (takenMap.has(chosenPos));
 
-        em.create(
-          new GridPos({ ...chosenPos, z: depth }),
-          ...ratPrefab(playerId, em)
-        );
+        em.create(new GridPos({ ...chosenPos, z: depth }), ...ratPrefab(playerId, em));
       }),
       new CavePlacer((em, depth, { takenMap, openList }) => {
         if (!openList.length) {

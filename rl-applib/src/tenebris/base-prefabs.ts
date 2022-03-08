@@ -143,10 +143,7 @@ type ItemNames =
 
 export type RandomItemOptions = Partial<Record<ItemNames, number>>;
 
-const ITEM_GENERATORS: Record<
-  ItemNames,
-  (em: EntityManager, pos: GridPos) => EntityId
-> = {
+const ITEM_GENERATORS: Record<ItemNames, (em: EntityManager, pos: GridPos) => EntityId> = {
   healingSalve: (em, pos) => createHealingSalve(em, pos),
   bigBoyStunGrenade: (em, pos) => createBigBoyStunGrenade(em, pos),
   smallStunGrenade: (em, pos) => createSmallStunGrenade(em, pos),
@@ -170,11 +167,7 @@ const ITEM_GENERATORS: Record<
     ),
 };
 
-export function randomItem(
-  options: RandomItemOptions,
-  em: EntityManager,
-  pos?: GridPos
-) {
+export function randomItem(options: RandomItemOptions, em: EntityManager, pos?: GridPos) {
   const total = Object.values(options).reduce((acc, curr) => acc + curr, 0);
   if (total === 0) {
     throw Error(`Specify at least one item weight!`);

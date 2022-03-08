@@ -1,6 +1,8 @@
 import { Physical, Renderable, Size } from '@rad/rl-ecs';
 import { CaveLevelTemplate } from '@rad/rl-procgen';
 import { EntityId, EntityManager } from 'rad-ecs';
+import { createGameEntity, randomEntity } from '..';
+import { createBeetle } from './agent-creators';
 
 export function createLowerMineTemplate(
   width: number,
@@ -29,7 +31,10 @@ export function createLowerMineTemplate(
     initialEnemyCount: 10,
     maxEnemyCount: 40,
     initialItemRange: { min: 6, max: 11 },
-    enemyGenerator: (pos) => 0,
+    enemyGenerator: (pos) => {
+      const chosen = randomEntity([{ weight: 1, generator: () => createBeetle(playerId) }]);
+      return createGameEntity(em, chosen, pos);
+    },
     itemGenerator: (pos) => 0,
     placers: [],
   });
