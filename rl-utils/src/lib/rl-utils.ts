@@ -54,6 +54,8 @@ export class ValueMap<K extends Hashable, V> {
   }
 }
 
+/** ORDER: SW W NW - S X N - SE E NE
+ */
 export function xyPositionsAround(pos: Coord): Coord[] {
   let around: Coord[] = [];
   for (let x = -1; x <= 1; ++x) {
@@ -292,6 +294,17 @@ export function roundDirectionVec3(vec: Vec3): Vec3 {
   };
 }
 
+export const COMPASS_DIR_SHORT_STRING = {
+  [CompassDirection.N]: 'N',
+  [CompassDirection.NE]: 'NE',
+  [CompassDirection.E]: 'E',
+  [CompassDirection.SE]: 'SE',
+  [CompassDirection.S]: 'S',
+  [CompassDirection.SW]: 'SW',
+  [CompassDirection.W]: 'W',
+  [CompassDirection.NW]: 'NW',
+};
+
 export function asCompassDirectionVec3(vec: Vec3): CompassDirection {
   const dir = roundDirectionVec3(normaliseVec3(vec));
   return UNIT_VECTOR_TO_COMPASS_DIRECTION[dir.x][dir.y];
@@ -304,3 +317,27 @@ export function isValidId(id: EntityId | null | undefined) {
 const modRgbString = (rgb: string) => '0x' + rgb.slice(1);
 export const rotColorToNumber = (rgb: [number, number, number]) =>
   +modRgbString(ROT.Color.toHex(rgb));
+
+// SW W NW - S X N - SE E NE
+export type AdjacencyStringIndex<T> = {
+  NONE: T;
+  // 1 adjacent
+  N: T;
+  E: T;
+  S: T;
+  W: T;
+  // 2 adjacent
+  N_E: T;
+  S_N: T;
+  S_E: T;
+  W_E: T;
+  W_S: T;
+  W_N: T;
+  // 3 adjacent
+  S_N_E: T;
+  W_S_E: T;
+  W_S_N: T;
+  W_N_E: T;
+  // 4 adjacent
+  W_S_N_E: T;
+};

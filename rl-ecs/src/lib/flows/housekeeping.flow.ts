@@ -45,14 +45,10 @@ export function housekeepingFlow(
       effectId: msg.conditionId,
       effectTargetId: null,
     })),
-    mergeMap(
-      (msg) => effectOnEntityFlowInstant(em, areaResolver, msg, ender).finish$
-    )
+    mergeMap((msg) => effectOnEntityFlowInstant(em, areaResolver, msg, ender).finish$)
   );
 
-  const finish$ = merge(updateBlockages, nonePresentCondition).pipe(
-    reduce((acc, curr) => null, null)
-  );
+  const finish$ = merge(updateBlockages, nonePresentCondition).pipe(reduce(() => null, null));
 
   return {
     start$,

@@ -44,10 +44,12 @@ export function createKhazElgrad(
   dungeonBranch.addPlacerForLevel(
     startingLevel,
     new DungeonPlacer((em, depth, { takenMap, rooms }) => {
-      const pos = randomMiddleRoomsPos(rooms, depth);
+      const pos = randomNotTakenRoomsPos(rooms, depth, (pos) =>
+        takenMap.has(new Pos2d(pos.x, pos.y))
+      );
       em.setComponent(playerId, new GridPos({ ...pos }));
-      createGameEntity(em, createBeetle(playerId), { ...pos, x: pos.x + 1 });
-      createGameEntity(em, createOrc(playerId), { ...pos, x: pos.x - 1 });
+      // createGameEntity(em, createBeetle(playerId), { ...pos, x: pos.x + 1 });
+      // createGameEntity(em, createOrc(playerId), { ...pos, x: pos.x - 1 });
       takenMap.set(new Pos2d(pos.x, pos.y), playerId);
     })
   );
