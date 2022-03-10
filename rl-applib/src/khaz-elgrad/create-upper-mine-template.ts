@@ -1,6 +1,17 @@
 import { Description, OnlySpecific, Physical, Renderable, Size, Stone, Wounds } from '@rad/rl-ecs';
 import { DungeonLevelTemplate } from '@rad/rl-procgen';
-import { NeighbourDisplayAffected } from 'libs/rl-ecs/src/lib/components/neighbour-display-affected.model';
+import {
+  createBlackVolcanicNDAComponent,
+  createBrightCaveNDAComponent,
+  createBrightMinesNDAComponent,
+  createDarkTileNDAComponent,
+  createDimCaveNDAComponent,
+  createDimMinesNDAComponent,
+  createOrangeDirtNDAComponent,
+  createSilverTileNDAComponent,
+  createSilverWallNDAComponent,
+  NeighbourDisplayAffected,
+} from 'libs/rl-ecs/src/lib/components/neighbour-display-affected.model';
 import { EntityId, EntityManager } from 'rad-ecs';
 
 export function createUpperMineTemplate(
@@ -12,33 +23,21 @@ export function createUpperMineTemplate(
   return new DungeonLevelTemplate({
     wall: (em, ...extras) =>
       em.create(
-        new NeighbourDisplayAffected({
-          typeId: 'dungeon-dark',
-          adjacencyImageMap: {
-            NONE: { image: 'Silver-Wall-NONE.png' },
-            N: { image: 'Silver-Wall-N.png' },
-            E: { image: 'Silver-Wall-W_E.png' },
-            S: { image: 'Silver-Wall-S_N.png' },
-            W: { image: 'Silver-Wall-W_E.png' },
-            N_E: { image: 'Silver-Wall-N_E.png' },
-            S_N_E: { image: 'Silver-Wall-S_N_E.png' },
-            S_E: { image: 'Silver-Wall-S_E.png' },
-            S_N: { image: 'Silver-Wall-S_N.png' },
-            W_E: { image: 'Silver-Wall-W_E.png' },
-            W_N: { image: 'Silver-Wall-W_N.png' },
-            W_N_E: { image: 'Silver-Wall-W_N_E.png' },
-            W_S: { image: 'Silver-Wall-W_S.png' },
-            W_S_E: { image: 'Silver-Wall-W_S_E.png' },
-            W_S_N: { image: 'Silver-Wall-W_S_N.png' },
-            W_S_N_E: { image: 'Silver-Wall-W_S_N_E.png' },
-          },
-        }),
+        createDimMinesNDAComponent('join'),
         new Physical({ size: Size.FILL }),
         new Wounds({ current: 1, max: 1, deathDesc: 'destroyed' }),
         new Description({ short: 'brick wall' }),
         new Stone(),
         ...extras
       ).id,
+    wallFloor: (em, ...extras) =>
+      em.create(
+        new Renderable({ image: 'Floor-391.png', zOrder: 1 }),
+        new Physical({ size: Size.FILL }),
+        ...extras
+      ).id,
+    roomFloor: (em, ...extras) =>
+      em.create(createDarkTileNDAComponent(), new Physical({ size: Size.FILL }), ...extras).id,
     floor: (em, ...extras) =>
       em.create(
         new Renderable({ image: 'Floor-192.png', zOrder: 1 }),
@@ -47,7 +46,7 @@ export function createUpperMineTemplate(
       ).id,
     corridor: (em, ...extras) =>
       em.create(
-        new Renderable({ image: 'Floor-206.png', zOrder: 1 }),
+        new Renderable({ image: 'Floor-384.png', zOrder: 1 }),
         new Physical({ size: Size.FILL }),
         ...extras
       ).id,
@@ -59,7 +58,7 @@ export function createUpperMineTemplate(
       ).id,
     fill: (em, ...extras) =>
       em.create(
-        new Renderable({ image: 'Wall-227.png', zOrder: 1 }),
+        createDimCaveNDAComponent('join'),
         new Physical({ size: Size.FILL }),
         new Wounds({ current: 1, max: 1, deathDesc: 'destroyed' }),
         new Description({ short: 'wall' }),

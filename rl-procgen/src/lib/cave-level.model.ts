@@ -32,6 +32,7 @@ export class CaveLevelTemplate extends LevelBase implements CaveTemplate {
     map.connect((x, y, contents) => {
       if (contents === 1) {
         this.options.fill(em, new GridPos({ x, y, z: GROUND }));
+        this.options.fillFloor(em, new GridPos({ x, y, z: BASEMENT }));
       } else {
         openList.push(new Pos2d(x, y));
         this.options.floor(em, new GridPos({ x, y, z: BASEMENT }));
@@ -75,12 +76,8 @@ export class CaveLevelTemplate extends LevelBase implements CaveTemplate {
       placer.place(em, DEPTH, { takenMap, openList });
     }
 
-    this.placeInitialEnemies(
-      openList.map((pos2d) => new GridPos({ ...pos2d, z: DEPTH }))
-    );
+    this.placeInitialEnemies(openList.map((pos2d) => new GridPos({ ...pos2d, z: DEPTH })));
 
-    this.placeInitialItems(
-      openList.map((pos2d) => new GridPos({ ...pos2d, z: DEPTH }))
-    );
+    this.placeInitialItems(openList.map((pos2d) => new GridPos({ ...pos2d, z: DEPTH })));
   }
 }

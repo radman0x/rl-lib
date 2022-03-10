@@ -30,16 +30,7 @@ import { staircasePrefab } from 'libs/rl-ecs/src/lib/component-utils.model';
 import { SingleTarget } from 'libs/rl-ecs/src/lib/components/single-target.model';
 import { SpawnEntity } from 'libs/rl-ecs/src/lib/components/spawn-entity';
 import { EntityId, EntityManager } from 'rad-ecs';
-import { LevelBase } from './level-base.model';
-
-enum RoomTileType {
-  OPEN = 0,
-  WALL = 1,
-  DOOR = 2,
-  FILL = 3,
-  CORRIDOR = 4,
-  CHASM = 5,
-}
+import { LevelBase, RoomTileType } from './level-base.model';
 
 export class StaticLevelTemplate extends LevelBase implements StaticTemplate {
   kind: 'STATIC' = 'STATIC';
@@ -70,7 +61,12 @@ export class StaticLevelTemplate extends LevelBase implements StaticTemplate {
     const CHASM_END = CHASM_START + 1;
     for (let x = 1; x <= ROOM_MAX_X; ++x) {
       for (let y = 1; y <= ROOM_MAX_Y; ++y) {
-        tileTypeMap.set(new Pos2d(x, y), RoomTileType.OPEN);
+        tileTypeMap.set(new Pos2d(x, y), RoomTileType.ROOM_WALL);
+      }
+    }
+    for (let x = 2; x <= ROOM_MAX_X - 1; ++x) {
+      for (let y = 2; y <= ROOM_MAX_Y - 1; ++y) {
+        tileTypeMap.set(new Pos2d(x, y), RoomTileType.ROOM);
         openRoomTiles.push(new Pos2d(x, y));
         allOpenTiles.push(new Pos2d(x, y));
       }
@@ -81,25 +77,35 @@ export class StaticLevelTemplate extends LevelBase implements StaticTemplate {
       }
     }
 
-    const accessibleArea = new Room({ x1: 1, x2: CHASM_START - 1, y1: 1, y2: ROOM_MAX_Y });
-    const blockedArea = new Room({ x1: CHASM_END + 1, x2: ROOM_MAX_X, y1: 1, y2: ROOM_MAX_Y });
+    const accessibleArea = new Room({ x1: 2, x2: CHASM_START - 1, y1: 2, y2: ROOM_MAX_Y - 1 });
+    const blockedArea = new Room({
+      x1: CHASM_END + 1,
+      x2: ROOM_MAX_X - 1,
+      y1: 2,
+      y2: ROOM_MAX_Y - 1,
+    });
 
     for (let [pos, type] of tileTypeMap) {
       switch (type) {
         case RoomTileType.DOOR:
           this.options.floor(em, new GridPos({ ...pos, z: BASEMENT }));
           break;
+        case RoomTileType.ROOM:
+          this.options.roomFloor(em, new GridPos({ ...pos, z: BASEMENT }));
+          break;
         case RoomTileType.OPEN:
           this.options.floor(em, new GridPos({ ...pos, z: BASEMENT }));
           break;
-        case RoomTileType.WALL:
+        case RoomTileType.ROOM_WALL:
           this.options.wall(em, new GridPos({ ...pos, z: GROUND }));
+          this.options.wallFloor(em, new GridPos({ ...pos, z: BASEMENT }));
           break;
         case RoomTileType.CORRIDOR:
           this.options.corridor(em, new GridPos({ ...pos, z: BASEMENT }));
           break;
         case RoomTileType.FILL:
           this.options.fill(em, new GridPos({ ...pos, z: GROUND }));
+          this.options.floor(em, new GridPos({ ...pos, z: BASEMENT }));
           break;
         case RoomTileType.CHASM:
           this.options.chasm(em, new GridPos({ ...pos, z: BASEMENT }));

@@ -17,6 +17,12 @@ export function createFinalLevelTemplate(
         new Physical({ size: Size.FILL }),
         ...extras
       ).id,
+    fillFloor: (em, ...extras) =>
+      em.create(
+        new Renderable({ image: 'Floor-103.png', zOrder: 1 }),
+        new Physical({ size: Size.FILL }),
+        ...extras
+      ).id,
     fill: (em, ...extras) =>
       em.create(
         new Renderable({ image: 'Tree0-147.png', zOrder: 1 }),

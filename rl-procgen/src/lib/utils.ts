@@ -167,12 +167,15 @@ export interface DungeonGenOptions extends BaseGenOptions {
   corridor: EntityCreator;
   door: EntityCreator;
   wall: EntityCreator;
+  wallFloor: EntityCreator;
+  roomFloor: EntityCreator;
   chasm: EntityCreator;
   placers: DungeonPlacer[];
 }
 
 export interface CaveGenOptions extends BaseGenOptions {
   placers: CavePlacer[];
+  fillFloor: EntityCreator;
 }
 
 export enum ROTOpenType {

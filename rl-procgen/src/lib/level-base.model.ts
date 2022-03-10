@@ -2,6 +2,16 @@ import { GridPos } from '@rad/rl-ecs';
 import { popRandomElement, randomInt } from '@rad/rl-utils';
 import { BaseGenOptions } from '..';
 
+export enum RoomTileType {
+  OPEN = 0,
+  ROOM_WALL = 1,
+  DOOR = 2,
+  FILL = 3,
+  CORRIDOR = 4,
+  ROOM = 5,
+  CHASM = 6,
+}
+
 export class LevelBase {
   constructor(private baseOptions: BaseGenOptions) {}
   generateEnemies(spawnable: GridPos[]): number {

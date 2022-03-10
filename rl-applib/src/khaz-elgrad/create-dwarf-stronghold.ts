@@ -1,5 +1,10 @@
-import { Physical, Renderable, Size } from '@rad/rl-ecs';
+import { Description, Physical, Renderable, Size, Stone, Wounds } from '@rad/rl-ecs';
 import { StaticLevelTemplate } from '@rad/rl-procgen';
+import {
+  createSilverTileNDAComponent,
+  createSilverWallNDAComponent,
+  createTileChasmNDAComponent,
+} from 'libs/rl-ecs/src/lib/components/neighbour-display-affected.model';
 import { EntityId, EntityManager } from 'rad-ecs';
 
 export function createDwarfStronghold(
@@ -11,10 +16,22 @@ export function createDwarfStronghold(
   return new StaticLevelTemplate({
     wall: (em, ...extras) =>
       em.create(
-        new Renderable({ image: 'Floor-295.png', zOrder: 1 }),
+        createSilverWallNDAComponent('silver-wall'),
+        new Physical({ size: Size.FILL }),
+        new Wounds({ current: 1, max: 1, deathDesc: 'destroyed' }),
+        new Description({ short: 'wall' }),
+        new Stone(),
+        ...extras
+      ).id,
+
+    wallFloor: (em, ...extras) =>
+      em.create(
+        new Renderable({ image: 'Floor-391.png', zOrder: 1 }),
         new Physical({ size: Size.FILL }),
         ...extras
       ).id,
+    roomFloor: (em, ...extras) =>
+      em.create(createSilverTileNDAComponent(), new Physical({ size: Size.FILL }), ...extras).id,
     floor: (em, ...extras) =>
       em.create(
         new Renderable({ image: 'Floor-192.png', zOrder: 1 }),
@@ -39,8 +56,9 @@ export function createDwarfStronghold(
         new Physical({ size: Size.FILL }),
         ...extras
       ).id,
-    chasm: (em, ...extras) =>
-      em.create(new Renderable({ image: 'Pit0-18.png', zOrder: 1 }), ...extras).id,
+    chasm: (em, ...extras) => em.create(createTileChasmNDAComponent('tile-chasm'), ...extras).id,
+
+    // em.create(new Renderable({ image: 'Pit0-18.png', zOrder: 1 }), ...extras).id,
     width,
     height,
     upTransitionTexture: 'Tile-12.png',

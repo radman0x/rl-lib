@@ -41,6 +41,12 @@ export function createCaveTemplate(
         new Physical({ size: Size.FILL }),
         ...extras
       ).id,
+    fillFloor: (em, ...extras) =>
+      em.create(
+        new Renderable({ image: 'Floor-192.png', zOrder: 1 }),
+        new Physical({ size: Size.FILL }),
+        ...extras
+      ).id,
     downTransitionTexture: 'Decor0-12.png',
     upTransitionTexture: 'Decor0-12.png',
     enemyChance: 0.27,

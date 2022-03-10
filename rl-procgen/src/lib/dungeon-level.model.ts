@@ -5,16 +5,8 @@ import { AreaIngress } from 'libs/rl-ecs/src/lib/components/area-ingress.model';
 import { EntityId, EntityManager } from 'rad-ecs';
 import * as ROT from 'rot-js';
 import { Room as RadRoom } from './utils';
-import { LevelBase } from './level-base.model';
+import { LevelBase, RoomTileType } from './level-base.model';
 import { DungeonGenOptions, DungeonPlacer, DungeonTemplate, Pos2d, ROTOpenType } from './utils';
-
-enum RoomTileType {
-  OPEN = 0,
-  WALL = 1,
-  DOOR = 2,
-  FILL = 3,
-  CORRIDOR = 4,
-}
 
 export class DungeonLevelTemplate extends LevelBase implements DungeonTemplate {
   kind: 'DUNGEON' = 'DUNGEON';
@@ -51,15 +43,17 @@ export class DungeonLevelTemplate extends LevelBase implements DungeonTemplate {
     for (let room of world.getRooms()) {
       room.create((x, y, type) => {
         const open = filled.get(new Pos2d(x, y)) === ROTOpenType.OPEN;
-        if (type === RoomTileType.WALL && open) {
+        if (type === RoomTileType.ROOM_WALL && open) {
           return;
         }
+        const radType =
+          type === RoomTileType.ROOM_WALL ? RoomTileType.ROOM_WALL : RoomTileType.ROOM;
         if (open) {
           openRoomTiles.push(new Pos2d(x, y));
           allOpenTiles.push(new Pos2d(x, y));
         }
 
-        tileTypeMap.set(new Pos2d(x, y), type);
+        tileTypeMap.set(new Pos2d(x, y), radType);
       });
     }
     const rooms = world
@@ -89,19 +83,22 @@ export class DungeonLevelTemplate extends LevelBase implements DungeonTemplate {
         case RoomTileType.DOOR:
           this.options.floor(em, new GridPos({ ...pos, z: BASEMENT }));
           break;
+        case RoomTileType.ROOM:
+          this.options.roomFloor(em, new GridPos({ ...pos, z: BASEMENT }));
+          break;
         case RoomTileType.OPEN:
           this.options.floor(em, new GridPos({ ...pos, z: BASEMENT }));
           break;
-        case RoomTileType.WALL:
+        case RoomTileType.ROOM_WALL:
           this.options.wall(em, new GridPos({ ...pos, z: GROUND }));
-          this.options.floor(em, new GridPos({ ...pos, z: BASEMENT }));
+          this.options.wallFloor(em, new GridPos({ ...pos, z: BASEMENT }));
           break;
         case RoomTileType.CORRIDOR:
           this.options.corridor(em, new GridPos({ ...pos, z: BASEMENT }));
           break;
         case RoomTileType.FILL:
           this.options.fill(em, new GridPos({ ...pos, z: GROUND }));
-          this.options.corridor(em, new GridPos({ ...pos, z: BASEMENT }));
+          this.options.floor(em, new GridPos({ ...pos, z: BASEMENT }));
           break;
       }
     }

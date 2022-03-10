@@ -9,7 +9,7 @@ import {
 } from '@rad/rl-utils';
 import { EntityManager } from 'rad-ecs';
 import { Observable, of } from 'rxjs';
-import { mapTo, mergeMap, tap, toArray } from 'rxjs/operators';
+import { filter, mapTo, mergeMap, tap, toArray } from 'rxjs/operators';
 import { NeighbourDisplayAffected } from '../components/neighbour-display-affected.model';
 import { entitiesWithComponents } from '../mappers/entities-with-component.system';
 
@@ -21,6 +21,7 @@ export function updateNeighbourDependentImages(em: EntityManager) {
           mergeMap((origMsg) => {
             const ndaMap = new ValueMap<GridPos, Set<string>>();
             return of(...entitiesWithComponents(origMsg, em, 'ndaId')).pipe(
+              filter((msg) => msg.ndaId !== null),
               tap((msg) => {
                 const [nda, gridPos] = em.getComponents(
                   msg.ndaId,
@@ -41,6 +42,7 @@ export function updateNeighbourDependentImages(em: EntityManager) {
             of(
               ...entitiesWithComponents({ componentTypes: ndaMapMsg.componentTypes }, em, 'ndaId')
             ).pipe(
+              filter((msg) => msg.ndaId !== null),
               tap((msg) => {
                 const { ndaMap } = ndaMapMsg;
                 const [nda, thisPos] = em.getComponents(
@@ -67,6 +69,9 @@ export function updateNeighbourDependentImages(em: EntityManager) {
 
                 let adjacencyString = unitVecAdjacencies
                   .filter((unitVec) => {
+                    if (!nda.pruneCardinalWhenSurrounded) {
+                      return true;
+                    }
                     // the intent of the wall type images is to provide an outline around a segment. When there are
                     // many together in one spot then what ends up happening is that each position has 4 connections
                     // and you get a railway type look. The logic here detects when there is a filled volume of positions.
