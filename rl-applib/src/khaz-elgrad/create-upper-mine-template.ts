@@ -1,9 +1,7 @@
-import { Physical, Renderable, Size } from '@rad/rl-ecs';
+import { Description, OnlySpecific, Physical, Renderable, Size, Stone, Wounds } from '@rad/rl-ecs';
 import { DungeonLevelTemplate } from '@rad/rl-procgen';
 import { NeighbourDisplayAffected } from 'libs/rl-ecs/src/lib/components/neighbour-display-affected.model';
 import { EntityId, EntityManager } from 'rad-ecs';
-import { randomEntity, createGameEntity } from '..';
-import { createBeetle, createOrc } from './agent-creators';
 
 export function createUpperMineTemplate(
   width: number,
@@ -35,8 +33,10 @@ export function createUpperMineTemplate(
             W_S_N_E: { image: 'Silver-Wall-W_S_N_E.png' },
           },
         }),
-        // new Renderable({ image: 'Floor-295.png', zOrder: 1 }),
         new Physical({ size: Size.FILL }),
+        new Wounds({ current: 1, max: 1, deathDesc: 'destroyed' }),
+        new Description({ short: 'brick wall' }),
+        new Stone(),
         ...extras
       ).id,
     floor: (em, ...extras) =>
@@ -61,6 +61,9 @@ export function createUpperMineTemplate(
       em.create(
         new Renderable({ image: 'Wall-227.png', zOrder: 1 }),
         new Physical({ size: Size.FILL }),
+        new Wounds({ current: 1, max: 1, deathDesc: 'destroyed' }),
+        new Description({ short: 'wall' }),
+        new Stone(),
         ...extras
       ).id,
     chasm: (em, ...extras) =>

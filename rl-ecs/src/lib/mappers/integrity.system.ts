@@ -25,15 +25,9 @@ function integrityStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
   if (msg.damage && isValidId(msg.damageTargetId)) {
     const targetWounds = em.getComponent(msg.damageTargetId, Wounds);
     if (targetWounds) {
-      const finalWounds = Math.min(
-        targetWounds.current - msg.damage.amount,
-        targetWounds.max
-      );
+      const finalWounds = Math.min(targetWounds.current - msg.damage.amount, targetWounds.max);
       // console.log(`Updating wounds to: ${finalWounds}`);
-      em.setComponent(
-        msg.damageTargetId,
-        new Wounds({ max: targetWounds.max, current: finalWounds })
-      );
+      em.setComponent(msg.damageTargetId, new Wounds({ ...targetWounds, current: finalWounds }));
     }
     const effectTargetDesc = em.hasComponent(msg.damageTargetId, Description)
       ? em.getComponent(msg.damageTargetId, Description).short

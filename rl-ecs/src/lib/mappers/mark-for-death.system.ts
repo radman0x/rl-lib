@@ -16,10 +16,7 @@ export type MarkForDeathArgs = Args;
 type Out = ReapedEntity & RemoveEntityArgs & Messages;
 export type MarkForDeathOut = Out;
 
-function markForDeathStep<T extends Args>(
-  msg: T,
-  em: EntityManager
-): Id<T & Out> {
+function markForDeathStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
   const out: T & Out = radClone({
     ...msg,
     reapedId: msg.reapedId ?? null,
@@ -37,7 +34,7 @@ function markForDeathStep<T extends Args>(
     const targetDesc = em.getComponent(msg.damageTargetId, Description);
     out.messages = [
       ...(out.messages ?? []),
-      `The ${targetDesc ? targetDesc.short : 'unnamed'} is killed!`,
+      `The ${targetDesc ? targetDesc.short : 'unnamed'} is ${targetIntegrity.deathDesc}!`,
     ];
     out.reapedId = em.get(msg.damageTargetId).id;
     out.entityRemoval = { doRemove: true, removeId: msg.damageTargetId };

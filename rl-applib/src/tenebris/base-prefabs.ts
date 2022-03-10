@@ -61,7 +61,7 @@ export function baseAgent(
     new Strength({ count: stats.strength }),
     new Toughness({ count: stats.toughness }),
     new WeaponSkill({ count: stats.weaponSkill }),
-    new Wounds({ current: stats.wounds, max: stats.wounds }),
+    new Wounds({ current: stats.wounds, max: stats.wounds, deathDesc: 'killed' }),
     new Attacks({ damage: stats.attackDamage, description: attackDesc }),
     new ApproachTarget({ targetId: playerId }),
     new Alignment({ type: AlignmentType.EVIL }),

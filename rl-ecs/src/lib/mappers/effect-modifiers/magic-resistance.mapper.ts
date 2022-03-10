@@ -1,9 +1,9 @@
-import { EntityManager } from 'rad-ecs';
-import { EffectTarget, Teleported } from '../../systems.types';
-import { OperationStep } from '../../operation-step.model';
-import { radClone, addProperty } from '../../systems.utils';
 import { Id } from '@rad/rl-applib';
+import { EntityManager } from 'rad-ecs';
 import { MagicResistance } from '../../components/magic-resistance.model';
+import { OperationStep } from '../../operation-step.model';
+import { EffectTarget, Teleported } from '../../systems.types';
+import { radClone } from '../../systems.utils';
 
 type Args = Partial<Teleported> & Partial<EffectTarget>;
 export type MagicResistanceArgs = Args;

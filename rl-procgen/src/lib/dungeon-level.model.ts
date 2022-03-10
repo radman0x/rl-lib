@@ -94,12 +94,14 @@ export class DungeonLevelTemplate extends LevelBase implements DungeonTemplate {
           break;
         case RoomTileType.WALL:
           this.options.wall(em, new GridPos({ ...pos, z: GROUND }));
+          this.options.floor(em, new GridPos({ ...pos, z: BASEMENT }));
           break;
         case RoomTileType.CORRIDOR:
           this.options.corridor(em, new GridPos({ ...pos, z: BASEMENT }));
           break;
         case RoomTileType.FILL:
           this.options.fill(em, new GridPos({ ...pos, z: GROUND }));
+          this.options.corridor(em, new GridPos({ ...pos, z: BASEMENT }));
           break;
       }
     }

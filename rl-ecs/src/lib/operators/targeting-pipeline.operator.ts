@@ -1,4 +1,4 @@
-import { TargetPositions } from '@rad/rl-ecs';
+import { OnlySpecific, TargetPositions } from '@rad/rl-ecs';
 import { equalsVec3 } from '@rad/rl-utils';
 import { EntityId, EntityManager } from 'rad-ecs';
 import { merge, Observable, of } from 'rxjs';
@@ -79,12 +79,21 @@ export function targetingPipeline<T extends Args>(
     }),
     map((msg) => {
       let selectablePositions: GridPosData[] = msg.selectablePositions ?? [];
-      selectablePositions = selectablePositions.filter(
-        (pos) =>
-          em
-            .matchingIndex(new GridPos(pos))
-            .filter((e) => e.has(Physical) && e.component(Physical).size === Size.FILL).length === 0
-      );
+      if (em.hasComponent(msg.effectId, OnlySpecific)) {
+        const specificType = em.getComponent(msg.effectId, OnlySpecific).componentType;
+        selectablePositions = selectablePositions.filter(
+          (pos) =>
+            em.matchingIndex(new GridPos(pos)).filter((e) => e.has(specificType)).length !== 0
+        );
+      } else {
+        selectablePositions = selectablePositions.filter(
+          (pos) =>
+            em
+              .matchingIndex(new GridPos(pos))
+              .filter((e) => e.has(Physical) && e.component(Physical).size === Size.FILL).length ===
+            0
+        );
+      }
       return radClone({ ...msg, selectablePositions });
     }),
     map((msg) => {
