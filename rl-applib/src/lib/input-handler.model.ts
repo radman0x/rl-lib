@@ -15,6 +15,9 @@ export class InputHandler {
   public useAbility$ = new Subject<void>();
   public collect$ = new Subject<void>();
   public escape$ = new Subject<void>();
+  public snapToPlayer$ = new Subject<void>();
+  public zoomIn$ = new Subject<void>();
+  public zoomOut$ = new Subject<void>();
 
   constructor() {
     this.keyInput$
@@ -81,5 +84,29 @@ export class InputHandler {
         mapTo(void 0)
       )
       .subscribe(this.escape$);
+
+    this.keyInput$
+      .pipe(
+        filter((key) => key === 'Home'),
+        rxjsSpy.operators.tag('inputHandler.snapToPlayer'),
+        mapTo(void 0)
+      )
+      .subscribe(this.snapToPlayer$);
+
+    this.keyInput$
+      .pipe(
+        filter((key) => key === '+'),
+        rxjsSpy.operators.tag('inputHandler.zoomIn'),
+        mapTo(void 0)
+      )
+      .subscribe(this.zoomIn$);
+
+    this.keyInput$
+      .pipe(
+        filter((key) => key === '-'),
+        rxjsSpy.operators.tag('inputHandler.zoomOut'),
+        mapTo(void 0)
+      )
+      .subscribe(this.zoomOut$);
   }
 }

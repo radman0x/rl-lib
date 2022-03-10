@@ -28,6 +28,7 @@ export class GridRendererComponent implements OnInit {
   @Input('settings') settings: RendererSettings;
   @Input('sprites') spriteSheet: string;
   @Input('viewerId') viewerId: EntityId;
+  @Input('snapToViewer') snapToViewer: boolean;
   @Input('backgroundColor') backgroundColor: number;
   @Output('mouseOverGridPos') mouseOverGridPos$: Subject<PointXY>;
   @Output('mousePressGridPos') mousePressGridPos$: Subject<PointXY>;
@@ -37,16 +38,19 @@ export class GridRendererComponent implements OnInit {
   private animations = new Map<number, PIXI.AnimatedSprite>();
   private overlaySpriteCounter = 1;
   private animationCounter = 1;
-  private desiredDisplayWidthPx: number;
-  private desiredDisplayHeightPx: number;
 
   public maxTileY: number;
   public maxTileX: number;
+
+  private rendererTilePosition: { x: number; y: number } = { x: 0, y: 0 };
 
   private rendererSubject = new ReplaySubject<Renderer>();
   private renderer: Renderer;
 
   private haltRender = false;
+  private instantSnapToViewer = false;
+
+  private zoomLevel = 1;
 
   constructor() {
     this.mouseOverGridPos$ = new Subject<PointXY>();
@@ -57,8 +61,30 @@ export class GridRendererComponent implements OnInit {
     if (!this.em) {
       throw Error(`No entity manager provided to grid renderer`);
     }
-    this.desiredDisplayWidthPx = this.settings.tileSize * this.settings.displayWidthInTiles;
-    this.desiredDisplayHeightPx = this.settings.tileSize * this.settings.displayHeightInTiles;
+  }
+
+  get desiredDisplayWidthPx() {
+    return this.settings.tileSize * this.settings.displayWidthInTiles * this.zoomLevel;
+  }
+
+  get desiredDisplayHeightPx() {
+    return this.settings.tileSize * this.settings.displayHeightInTiles * this.zoomLevel;
+  }
+
+  get desiredDisplayWidthTiles() {
+    return Math.floor(this.settings.displayWidthInTiles * this.zoomLevel);
+  }
+
+  get desiredDisplayHeightTiles() {
+    return Math.floor(this.settings.displayHeightInTiles * this.zoomLevel);
+  }
+
+  setZoom(zoom: number) {
+    this.instantSnapToViewer = true;
+    this.zoomLevel = zoom;
+  }
+  snapToViewerOnce() {
+    this.instantSnapToViewer = true;
   }
 
   ngAfterViewInit(): void {
@@ -180,7 +206,8 @@ export class GridRendererComponent implements OnInit {
     this.maxTileY = this.desiredDisplayHeightPx - TILE_SIZE;
 
     if (this.viewerId !== undefined && this.em.exists(this.viewerId)) {
-      const viewerZPos = this.em.getComponent(this.viewerId, GridPos).z;
+      const viewerPos = this.em.getComponent(this.viewerId, GridPos);
+      const viewerZPos = viewerPos.z;
       const viewerKnowledge = this.em.getComponent(this.viewerId, Knowledge);
       const currentKnowledge = viewerKnowledge.current;
       const historicalKnowledge = viewerKnowledge.history;
@@ -216,7 +243,21 @@ export class GridRendererComponent implements OnInit {
 
       const widthLimit = this.renderer.pixiApp.renderer.width / this.desiredDisplayWidthPx;
       const heightLimit = this.renderer.pixiApp.renderer.height / this.desiredDisplayHeightPx;
-      stage.scale.set(Math.min(widthLimit, heightLimit));
+      const scale = Math.min(widthLimit, heightLimit);
+      stage.scale.set(scale);
+
+      if (this.instantSnapToViewer || this.snapToViewer) {
+        this.instantSnapToViewer = false;
+        const xCenter = Math.floor(this.desiredDisplayWidthTiles / 2);
+        const yCenter = Math.floor(this.desiredDisplayHeightTiles / 2);
+        const renderXTile = xCenter - viewerPos.x;
+        const renderYTile = -(yCenter - viewerPos.y);
+        this.rendererTilePosition = { x: renderXTile, y: renderYTile };
+      }
+      stage.position.set(
+        this.rendererTilePosition.x * this.tileSize * scale,
+        this.rendererTilePosition.y * this.tileSize * scale
+      );
     }
   }
 
