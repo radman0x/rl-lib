@@ -14,5 +14,6 @@ export * from './khaz-elgrad/create-dwarf-stronghold';
 export * from './khaz-elgrad/create-khaz-elgrad';
 export * from './khaz-elgrad/create-lower-mine-template';
 export * from './khaz-elgrad/create-upper-mine-template';
+export * from './khaz-elgrad/create-cavgeon-template';
 export * from './khaz-elgrad/prefab-core';
 export * from './khaz-elgrad/item-creators';

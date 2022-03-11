@@ -98,6 +98,19 @@ export interface DungeonTemplate {
   kind: 'DUNGEON';
 }
 
+export interface CavgeonTemplate {
+  generate(
+    em: EntityManager,
+    transitions: AreaTransitionSpec,
+    depth: number,
+    placers: DungeonPlacer[]
+  ): void;
+
+  generateEnemies(spawnable: GridPos[]): number;
+
+  kind: 'CAVGEON';
+}
+
 export interface CaveTemplate {
   generate(
     em: EntityManager,
@@ -126,6 +139,7 @@ export interface StaticTemplate {
 
 export interface DungeonPlacerState {
   rooms: Room[];
+  openList: Pos2d[];
   takenMap: ValueMap<Pos2d, EntityId>;
 }
 

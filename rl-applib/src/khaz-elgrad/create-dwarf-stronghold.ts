@@ -1,5 +1,6 @@
-import { Description, Physical, Renderable, Size, Stone, Wounds } from '@rad/rl-ecs';
-import { StaticLevelTemplate } from '@rad/rl-procgen';
+import { Description, GridPos, Physical, Renderable, Size, Stone, Wounds } from '@rad/rl-ecs';
+import { CavePlacer, DungeonPlacer, StaticLevelTemplate } from '@rad/rl-procgen';
+import { popRandomElement, randomElement } from '@rad/rl-utils';
 import {
   createSilverTileNDAComponent,
   createSilverWallNDAComponent,
@@ -69,6 +70,15 @@ export function createDwarfStronghold(
     initialItemRange: { min: 0, max: 1 },
     enemyGenerator: (pos) => 0,
     itemGenerator: (pos) => 0,
-    placers: [],
+    placers: [
+      new DungeonPlacer((em, depth, { rooms, openList, takenMap }) => {
+        const pos = randomElement(openList);
+        const aesthetic = em.create(
+          new GridPos({ ...pos, z: depth - 1 }),
+          new Renderable({ image: 'Ground0-4.png', image2: 'Ground1-4.png', zOrder: 3 })
+        ).id;
+        takenMap.set(pos, aesthetic);
+      }),
+    ],
   });
 }

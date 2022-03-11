@@ -137,7 +137,7 @@ export class DungeonLevelTemplate extends LevelBase implements DungeonTemplate {
     }
 
     for (const placer of [...placers, ...this.options.placers]) {
-      placer.place(em, DEPTH, { rooms, takenMap });
+      placer.place(em, DEPTH, { rooms, takenMap, openList: allOpenTiles });
     }
 
     this.placeInitialEnemies(allOpenTiles.map((pos2d) => new GridPos({ ...pos2d, z: DEPTH })));

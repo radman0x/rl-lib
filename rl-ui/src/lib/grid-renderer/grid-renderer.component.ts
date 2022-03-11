@@ -38,6 +38,7 @@ export class GridRendererComponent implements OnInit {
   private animations = new Map<number, PIXI.AnimatedSprite>();
   private overlaySpriteCounter = 1;
   private animationCounter = 1;
+  private globalAnimationTicker = 0;
 
   public maxTileY: number;
   public maxTileX: number;
@@ -175,6 +176,10 @@ export class GridRendererComponent implements OnInit {
     if (this.haltRender) {
       return;
     }
+
+    this.globalAnimationTicker += 1 / 90;
+    this.globalAnimationTicker = this.globalAnimationTicker % 1;
+
     this.renderer.pixiApp.stage = new PIXI.Container();
 
     const stage = this.renderer.pixiApp.stage;
@@ -317,7 +322,11 @@ export class GridRendererComponent implements OnInit {
     if (renderable) {
       const r = renderable;
       if (!sprite) {
-        sprite = this.renderer.sprite(r.image);
+        if (r.image2 && this.globalAnimationTicker >= 0.5) {
+          sprite = this.renderer.sprite(r.image2);
+        } else {
+          sprite = this.renderer.sprite(r.image);
+        }
         this.sprites.set(id, sprite);
       }
 

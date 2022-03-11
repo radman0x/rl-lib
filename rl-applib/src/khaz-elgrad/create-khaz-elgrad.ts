@@ -21,7 +21,7 @@ import { popRandomElement, randomElement, randomInt } from '@rad/rl-utils';
 import { Fixed } from 'libs/rl-ecs/src/lib/components/fixed.model';
 import { AreaResolver } from 'libs/rl-ecs/src/lib/utils/area-resolver.util';
 import { EntityId, EntityManager } from 'rad-ecs';
-import { createGameEntity, createIronOre } from '..';
+import { createCavgeonTemplate, createGameEntity, createIronOre } from '..';
 import { createBeetle, createOrc } from './agent-creators';
 import { createDwarfStronghold } from './create-dwarf-stronghold';
 import { createLowerMineTemplate } from './create-lower-mine-template';
@@ -36,10 +36,11 @@ export function createKhazElgrad(
   height: number,
   startingLevel: number
 ): DungeonBranch {
+  const cavgeon = createCavgeonTemplate(width, height, playerId, em);
   const upperMines = createUpperMineTemplate(width, height, playerId, em);
   const lowerMines = createLowerMineTemplate(width, height, playerId, em);
   const stronghold = createDwarfStronghold(width, height, playerId, em);
-  const dungeonBranch = new DungeonBranch([upperMines, stronghold, lowerMines]);
+  const dungeonBranch = new DungeonBranch([upperMines, stronghold, lowerMines, cavgeon]);
 
   dungeonBranch.addPlacerForLevel(
     startingLevel,

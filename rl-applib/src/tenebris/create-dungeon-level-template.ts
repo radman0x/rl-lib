@@ -30,6 +30,18 @@ export function createDungeonTemplate(
         new Physical({ size: Size.FILL }),
         ...extras
       ).id,
+    roomFloor: (em, ...extras) =>
+      em.create(
+        new Renderable({ image: 'Floor-192.png', zOrder: 1 }),
+        new Physical({ size: Size.FILL }),
+        ...extras
+      ).id,
+    wallFloor: (em, ...extras) =>
+      em.create(
+        new Renderable({ image: 'Floor-192.png', zOrder: 1 }),
+        new Physical({ size: Size.FILL }),
+        ...extras
+      ).id,
     corridor: (em, ...extras) =>
       em.create(
         new Renderable({ image: 'Floor-206.png', zOrder: 1 }),

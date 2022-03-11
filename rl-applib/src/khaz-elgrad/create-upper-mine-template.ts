@@ -1,16 +1,9 @@
-import { Description, OnlySpecific, Physical, Renderable, Size, Stone, Wounds } from '@rad/rl-ecs';
+import { Description, Physical, Renderable, Size, Stone, Wounds } from '@rad/rl-ecs';
 import { DungeonLevelTemplate } from '@rad/rl-procgen';
 import {
-  createBlackVolcanicNDAComponent,
-  createBrightCaveNDAComponent,
-  createBrightMinesNDAComponent,
   createDarkTileNDAComponent,
   createDimCaveNDAComponent,
   createDimMinesNDAComponent,
-  createOrangeDirtNDAComponent,
-  createSilverTileNDAComponent,
-  createSilverWallNDAComponent,
-  NeighbourDisplayAffected,
 } from 'libs/rl-ecs/src/lib/components/neighbour-display-affected.model';
 import { EntityId, EntityManager } from 'rad-ecs';
 

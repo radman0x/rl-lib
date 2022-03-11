@@ -1,7 +1,6 @@
 import { Mental, MentalState, RandomMove, Renderable } from '@rad/rl-ecs';
-import { chanceFor } from '@rad/rl-utils';
 import { EntityId } from 'rad-ecs';
-import { createBaseAgent, createIronOre, EntityParts, randomEntity } from '..';
+import { createBaseAgent, EntityParts } from '..';
 
 export function createBeetle(playerId: EntityId): EntityParts {
   return {
@@ -14,7 +13,7 @@ export function createBeetle(playerId: EntityId): EntityParts {
         weaponSkill: 0,
         wounds: 1,
       }),
-      new Renderable({ image: 'Pest0-0.png', zOrder: 10 }),
+      new Renderable({ image: 'Pest0-2.png', image2: 'Pest1-2.png', zOrder: 10 }),
       new RandomMove({ chance: 0.7 / 10, scoreAdjust: 2 }),
       new Mental({ state: MentalState.NORMAL }),
     ],

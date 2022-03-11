@@ -207,7 +207,7 @@ export class StaticLevelTemplate extends LevelBase implements StaticTemplate {
     );
 
     for (const placer of [...placers, ...this.options.placers]) {
-      placer.place(em, DEPTH, { rooms: [accessibleArea], takenMap });
+      placer.place(em, DEPTH, { rooms: [accessibleArea], takenMap, openList: allOpenTiles });
     }
 
     this.placeInitialEnemies(allOpenTiles.map((pos2d) => new GridPos({ ...pos2d, z: GROUND })));
