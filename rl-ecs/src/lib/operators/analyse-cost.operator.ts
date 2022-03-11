@@ -1,13 +1,14 @@
 import { isCostComponent } from '@rad/rl-ecs';
-import { EntityId, EntityManager } from 'rad-ecs';
+import { ComponentConstructor, EntityId, EntityManager } from 'rad-ecs';
 import { Observable, of } from 'rxjs';
 import { filter, map, mapTo, mergeMap, scan, tap, toArray } from 'rxjs/operators';
 
 export type CostDetails = {
-  componentType: string;
+  componentType: ComponentConstructor;
   property: string;
   amount: number;
   deduct: boolean;
+  desc: string;
 };
 
 export type ContributeCostEventArgs = {
@@ -20,7 +21,7 @@ export function contributeCost(em: EntityManager) {
     return input.pipe(
       map((msg) => {
         const { cost, costPayerId } = msg;
-        const costComponent = em.getComponentByName(costPayerId, cost.componentType);
+        const costComponent = em.getComponent(costPayerId, cost.componentType);
         if (costComponent) {
           const costProperty = costComponent[cost.property];
           if (costProperty >= cost.amount) {
@@ -91,11 +92,7 @@ export type SatisfyAllCostsEventArgs = {
   payerCandidates: EntityId[];
 };
 
-export type CostContribution = {
-  componentType: string;
-  property: string;
-  amount: number;
-  deduct: boolean;
+export type CostContribution = CostDetails & {
   satisfied: boolean;
   contributions: Contribution[];
 };
@@ -120,6 +117,7 @@ export function satisfyAllCosts(em: EntityManager) {
                 property: pre.cost.property,
                 deduct: pre.cost.deduct,
                 amount: pre.cost.amount,
+                desc: pre.cost.desc,
               }))
             )
           ),
@@ -136,7 +134,7 @@ export function satisfyAllCosts(em: EntityManager) {
 }
 
 export type DeductCostArgs = {
-  componentType: string;
+  componentType: ComponentConstructor;
   property: string;
   amount: number;
   costPayerId: EntityId;
@@ -146,11 +144,11 @@ export function deductCost(em: EntityManager) {
   return <T extends DeductCostArgs>(input: Observable<T>) => {
     return input.pipe(
       tap((msg) => {
-        const payerComponent = em.getComponentByName(msg.costPayerId, msg.componentType);
+        const payerComponent = em.getComponent(msg.costPayerId, msg.componentType);
         if (payerComponent) {
           const curr: number = payerComponent[msg.property];
           payerComponent[msg.property] = curr - msg.amount;
-          em.setComponentByName(msg.costPayerId, msg.componentType, payerComponent);
+          em.setComponent(msg.costPayerId, new msg.componentType(payerComponent));
         }
       })
     );

@@ -27,6 +27,7 @@ import {
 import { ValueMap } from '@rad/rl-utils';
 import { createEntity } from 'libs/rl-ecs/src/lib/actioners/create-entity.actioner';
 import { staircasePrefab } from 'libs/rl-ecs/src/lib/component-utils.model';
+import { Fixed } from 'libs/rl-ecs/src/lib/components/fixed.model';
 import { SingleTarget } from 'libs/rl-ecs/src/lib/components/single-target.model';
 import { SpawnEntity } from 'libs/rl-ecs/src/lib/components/spawn-entity';
 import { EntityId, EntityManager } from 'rad-ecs';
@@ -161,7 +162,7 @@ export class StaticLevelTemplate extends LevelBase implements StaticTemplate {
       new Description({
         short: `lowers a bridge`,
       }),
-      new LeverageCost({ amount: 2 })
+      new IronCost({ amount: 2 })
     ).id;
 
     const switchPos = new Pos2d(CHASM_START - 1, Math.floor(ROOM_MAX_Y / 2) - 2);
@@ -172,7 +173,8 @@ export class StaticLevelTemplate extends LevelBase implements StaticTemplate {
         short: `mighty crank`,
       }),
       new Effects({ contents: [createBridgeEffect] }),
-      new Interactable()
+      new Interactable(),
+      new Fixed({})
     );
 
     const crankRecipe = em.create(
@@ -186,7 +188,6 @@ export class StaticLevelTemplate extends LevelBase implements StaticTemplate {
       new Description({
         short: `makes fire`,
       }),
-      new LeverageCost({ amount: 5 }),
       new Animation({ name: 'explosionV007effect', speed: 0.25, scale: 0.5 }),
       new Renderable({
         image: 'Effect0-120.png',

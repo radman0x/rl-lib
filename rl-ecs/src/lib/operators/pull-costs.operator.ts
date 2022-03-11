@@ -25,7 +25,7 @@ export function pullCosts(em: EntityManager) {
         const out: Costs = [];
         for (const component of components) {
           if (isCostComponent(component)) {
-            out.push({ ...component, deduct: component.consume });
+            out.push({ ...component, deduct: component.consume, desc: component.name });
           }
         }
         return { ...msg, costs: out };

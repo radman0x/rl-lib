@@ -17,3 +17,5 @@ export * from './khaz-elgrad/create-upper-mine-template';
 export * from './khaz-elgrad/create-cavgeon-template';
 export * from './khaz-elgrad/prefab-core';
 export * from './khaz-elgrad/item-creators';
+export * from './khaz-elgrad/recipe-creators';
+export * from './khaz-elgrad/ability-creators';

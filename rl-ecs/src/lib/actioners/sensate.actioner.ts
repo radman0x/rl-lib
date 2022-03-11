@@ -26,7 +26,8 @@ export type SensateOut = Out;
 function sensateStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
   let out = { ...radClone(msg) };
   if (
-    (msg.stun && msg.effectTargetId,
+    msg.stun &&
+    (msg.effectTargetId,
     isValidId(msg.effectTargetId) && em.hasComponent(msg.effectTargetId, Mental))
   ) {
     const statusEffects = new StatusEffects({

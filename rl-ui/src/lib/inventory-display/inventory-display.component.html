@@ -9,19 +9,11 @@
     (click)="item.action()"
     (contextmenu)="dropItem(item.ids[0])"
   >
-    <img
-      [src]="item.image"
-      width="50px"
-      height="50px"
-      style="image-rendering: pixelated"
-    />
+    <img [src]="item.image" width="50px" height="50px" style="image-rendering: pixelated" />
     <div class="h-100 d-flex flex-column justify-content-center">
       <span>{{ item.desc }}</span>
     </div>
-    <div
-      *ngIf="item.count > 1"
-      class="h-100 d-flex flex-column justify-content-center ml-2"
-    >
+    <div *ngIf="item.count > 1" class="h-100 d-flex flex-column justify-content-center ml-2">
       <span>X {{ item.count }}</span>
     </div>
   </button>

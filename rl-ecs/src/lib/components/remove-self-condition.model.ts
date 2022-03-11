@@ -1,11 +1,11 @@
-import { Component } from 'rad-ecs';
+import { Component, ComponentConstructor } from 'rad-ecs';
 export interface RemoveSelfConditionData {
-  componentType: string;
+  componentType: ComponentConstructor;
   property: string;
   minimum: number;
 }
 export class RemoveSelfCondition extends Component implements RemoveSelfConditionData {
-  public readonly componentType: string;
+  public readonly componentType: ComponentConstructor;
   public readonly property: string;
   public readonly minimum: number;
   constructor(data: RemoveSelfConditionData) {

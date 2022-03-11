@@ -28,7 +28,7 @@ describe('Process Removals', () => {
     it('should be a noop if the input entity does not exist', () => {
       const processRemoveId = 777;
       processRemoveSubject.next({
-        componentType: 'Consumable',
+        componentType: Consumable,
         property: 'uses',
         minimum: 1,
         processRemoveId,
@@ -39,7 +39,7 @@ describe('Process Removals', () => {
     it('should be a noop if no removal condition exists', () => {
       const processRemoveId = em.create().id;
       processRemoveSubject.next({
-        componentType: 'Consumable',
+        componentType: Consumable,
         property: 'uses',
         minimum: 1,
         processRemoveId,
@@ -50,7 +50,7 @@ describe('Process Removals', () => {
     it('should remove an entity when the component has property below minimum', () => {
       const processRemoveId = em.create(new Consumable({ uses: 0 })).id;
       processRemoveSubject.next({
-        componentType: 'Consumable',
+        componentType: Consumable,
         property: 'uses',
         minimum: 1,
         processRemoveId,
@@ -62,7 +62,7 @@ describe('Process Removals', () => {
     it('should not remove an entity when the component has property is above or equal', () => {
       const processRemoveId = em.create(new Consumable({ uses: 1 })).id;
       processRemoveSubject.next({
-        componentType: 'Consumable',
+        componentType: Consumable,
         property: 'uses',
         minimum: 1,
         processRemoveId,

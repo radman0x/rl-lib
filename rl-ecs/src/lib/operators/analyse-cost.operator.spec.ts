@@ -31,7 +31,7 @@ describe('Cost analysis', () => {
       const payerCandidates = [];
       satisfySubject.next({
         payerCandidates,
-        cost: { amount: 1, componentType: `Charges`, property: `curr` },
+        cost: { amount: 1, componentType: Charges, property: `curr`, deduct: false, desc: '' },
       });
       expect(out).toMatchObject({ satisfied: false, contributions: [] });
     });
@@ -41,7 +41,7 @@ describe('Cost analysis', () => {
       const payerCandidates = [candidate];
       satisfySubject.next({
         payerCandidates,
-        cost: { amount: 1, componentType: `Charges`, property: `curr` },
+        cost: { amount: 1, componentType: Charges, property: `curr`, deduct: false, desc: '' },
       });
       expect(out).toMatchObject({
         satisfied: true,
@@ -54,7 +54,7 @@ describe('Cost analysis', () => {
       const payerCandidates = [candidate];
       satisfySubject.next({
         payerCandidates,
-        cost: { amount: 2, componentType: `Charges`, property: `curr` },
+        cost: { amount: 2, componentType: Charges, property: `curr`, deduct: false, desc: '' },
       });
       expect(out).toMatchObject({
         satisfied: false,
@@ -68,7 +68,7 @@ describe('Cost analysis', () => {
       const payerCandidates = [candidate, candidateB];
       satisfySubject.next({
         payerCandidates,
-        cost: { amount: 5, componentType: `Charges`, property: `curr` },
+        cost: { amount: 5, componentType: Charges, property: `curr`, deduct: false, desc: '' },
       });
       expect(out).toMatchObject({
         satisfied: false,
@@ -86,7 +86,7 @@ describe('Cost analysis', () => {
       const payerCandidates = [candidate, candidateB, candidateC];
       satisfySubject.next({
         payerCandidates,
-        cost: { amount: 5, componentType: `Charges`, property: `curr` },
+        cost: { amount: 5, componentType: Charges, property: `curr`, deduct: false, desc: '' },
       });
       expect(out).toMatchObject({
         satisfied: true,
@@ -119,7 +119,7 @@ describe('Cost analysis', () => {
     it('should report 0 when no amount is contributed', () => {
       costPayerId = em.create(new Charges({ curr: 0, max: 0 })).id;
       contributeSubject.next({
-        cost: { amount: 1, componentType: `Charges`, property: `curr` },
+        cost: { amount: 1, componentType: Charges, property: `curr`, deduct: false, desc: '' },
         costPayerId,
       });
       expect(out).toMatchObject({ contribute: 0, costPayerId });
@@ -129,7 +129,7 @@ describe('Cost analysis', () => {
     it('should report 0 when the cost target component is not present on the payer', () => {
       costPayerId = em.create().id;
       contributeSubject.next({
-        cost: { amount: 1, componentType: `Charges`, property: `curr` },
+        cost: { amount: 1, componentType: Charges, property: `curr`, deduct: false, desc: '' },
         costPayerId,
       });
       expect(out).toMatchObject({ contribute: 0, costPayerId });
@@ -139,7 +139,7 @@ describe('Cost analysis', () => {
     it('should report amount available when full amount not contributed', () => {
       costPayerId = em.create(new Charges({ curr: 1, max: 1 })).id;
       contributeSubject.next({
-        cost: { amount: 3, componentType: `Charges`, property: `curr` },
+        cost: { amount: 3, componentType: Charges, property: `curr`, deduct: false, desc: '' },
         costPayerId,
       });
       expect(out).toMatchObject({ contribute: 1, costPayerId });
@@ -149,7 +149,7 @@ describe('Cost analysis', () => {
     it('should report a lesser amount when more than needed', () => {
       costPayerId = em.create(new Charges({ curr: 5, max: 5 })).id;
       contributeSubject.next({
-        cost: { amount: 3, componentType: `Charges`, property: `curr` },
+        cost: { amount: 3, componentType: Charges, property: `curr`, deduct: false, desc: '' },
         costPayerId,
       });
       expect(out).toMatchObject({ contribute: 3, costPayerId });
@@ -159,7 +159,7 @@ describe('Cost analysis', () => {
     it('should report the exact amount when cost and available match', () => {
       costPayerId = em.create(new Charges({ curr: 3, max: 3 })).id;
       contributeSubject.next({
-        cost: { amount: 3, componentType: `Charges`, property: `curr` },
+        cost: { amount: 3, componentType: Charges, property: `curr`, deduct: false, desc: '' },
         costPayerId,
       });
       expect(out).toMatchObject({ contribute: 3, costPayerId });
@@ -183,13 +183,13 @@ describe('Cost analysis', () => {
 
     it('should be a noop if the payer component does not exist', () => {
       const costPayerId = em.create().id;
-      deductSubject.next({ costPayerId, componentType: 'Charges', property: 'curr', amount: 1 });
+      deductSubject.next({ costPayerId, componentType: Charges, property: 'curr', amount: 1 });
       expect(err).toBe(undefined);
     });
 
     it('should do a deduction of less than the total available', () => {
       const costPayerId = em.create(new Charges({ curr: 1, max: 1 })).id;
-      deductSubject.next({ costPayerId, componentType: 'Charges', property: 'curr', amount: 1 });
+      deductSubject.next({ costPayerId, componentType: Charges, property: 'curr', amount: 1 });
       expect(em.getComponent(costPayerId, Charges).curr).toEqual(0);
     });
   });

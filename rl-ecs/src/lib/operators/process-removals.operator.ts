@@ -1,12 +1,12 @@
 import { removeEntity } from '@rad/rl-ecs';
-import { Component, EntityId, EntityManager } from 'rad-ecs';
+import { Component, ComponentConstructor, EntityId, EntityManager } from 'rad-ecs';
 import { Observable, of } from 'rxjs';
 import { filter, map, mapTo, mergeMap, tap, toArray } from 'rxjs/operators';
 import { RemoveSelfCondition } from '../components/remove-self-condition.model';
 
 export type ProcessRemoveEventArgs = {
   processRemoveId: EntityId;
-  componentType: string;
+  componentType: ComponentConstructor;
   property: string;
   minimum: number;
 };
@@ -16,7 +16,7 @@ export function processRemoveCondition(em: EntityManager) {
     return input.pipe(
       tap((msg) => {
         if (em.exists(msg.processRemoveId)) {
-          const targetProperty = em.getComponentByName(msg.processRemoveId, msg.componentType)?.[
+          const targetProperty = em.getComponent(msg.processRemoveId, msg.componentType)?.[
             msg.property
           ];
           if (targetProperty !== undefined && targetProperty < msg.minimum) {

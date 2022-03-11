@@ -177,7 +177,7 @@ export class GridRendererComponent implements OnInit {
       return;
     }
 
-    this.globalAnimationTicker += 1 / 90;
+    this.globalAnimationTicker += 1 / 45;
     this.globalAnimationTicker = this.globalAnimationTicker % 1;
 
     this.renderer.pixiApp.stage = new PIXI.Container();

@@ -17,9 +17,10 @@ export class IronCost extends ComponentCost {
   constructor(data: { amount: number }) {
     super({
       amount: data.amount,
-      componentType: 'Iron',
+      componentType: Iron,
       property: 'count',
       consume: true,
+      name: 'Iron',
     });
   }
 }

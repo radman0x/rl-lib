@@ -1,4 +1,5 @@
 import { Id } from '@rad/rl-applib';
+import { Physical } from '@rad/rl-ecs';
 import {
   asCompassDirectionVec3,
   isValidId,
@@ -7,6 +8,7 @@ import {
 } from '@rad/rl-utils';
 import { EntityManager } from 'rad-ecs';
 import { Description } from '../components/description.model';
+import { Fixed } from '../components/fixed.model';
 import { Force } from '../components/force.model';
 import { GridPos } from '../components/position.model';
 import { Push } from '../components/push.model';
@@ -36,7 +38,9 @@ function pushStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
     isValidId(msg.effectId) &&
     em.hasComponent(msg.effectId, Push) &&
     isValidId(msg.effectTargetId) &&
-    em.hasComponent(msg.effectTargetId, GridPos)
+    em.hasComponent(msg.effectTargetId, GridPos) &&
+    em.hasComponent(msg.effectTargetId, Physical) &&
+    !em.hasComponent(msg.effectTargetId, Fixed)
   ) {
     const activeEffectDescription = em.hasComponent(msg.effectId, Description)
       ? em.getComponent(msg.effectId, Description).short

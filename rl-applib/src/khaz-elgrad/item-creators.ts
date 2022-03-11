@@ -1,5 +1,17 @@
-import { Description, Iron, Physical, Renderable, Size } from '@rad/rl-ecs';
+import {
+  Description,
+  Heal,
+  Iron,
+  OnlySpecific,
+  Physical,
+  Renderable,
+  Size,
+  Stone,
+  Targeted,
+  Usable,
+} from '@rad/rl-ecs';
 import { RemoveSelfCondition } from 'libs/rl-ecs/src/lib/components/remove-self-condition.model';
+import { SingleTarget } from 'libs/rl-ecs/src/lib/components/single-target.model';
 import { EntityParts } from '..';
 
 export function createIronOre(): EntityParts {
@@ -14,10 +26,42 @@ export function createIronOre(): EntityParts {
       new Iron({ count: 1 }),
       new Description({ short: 'iron ore', typeId: 'iron-ore' }),
       new RemoveSelfCondition({
-        componentType: 'Iron',
+        componentType: Iron,
         minimum: 1,
         property: 'count',
       }),
+    ],
+  };
+}
+
+export function createPickAxe(): EntityParts {
+  return {
+    entity: [
+      new Physical({ size: Size.SMALL }),
+      new Renderable({
+        image: 'ShortWep-16.png',
+        zOrder: 5,
+        uiImage: `assets/interface/ShortWep-16.png`,
+      }),
+      new Description({
+        short: `pick-axe`,
+      }),
+    ],
+    effects: [
+      {
+        entity: [
+          new OnlySpecific({
+            componentType: Stone,
+          }),
+          new SingleTarget({}),
+          new Targeted({ range: 1 }),
+          new Heal({ amount: -10 }),
+          new Usable({ useName: 'excavate' }),
+          new Description({
+            short: `excavates`,
+          }),
+        ],
+      },
     ],
   };
 }

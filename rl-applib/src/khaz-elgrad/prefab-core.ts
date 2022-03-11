@@ -1,4 +1,5 @@
 import {
+  Abilities,
   Alignment,
   AlignmentType,
   ApproachTarget,
@@ -12,6 +13,7 @@ import {
   MemberOf,
   Mobile,
   MovingAgent,
+  Recipes,
   Sighted,
   Speed,
   Wounds,
@@ -87,23 +89,41 @@ export function randomEntity(generators: Generators) {
   return chosenGenerator();
 }
 
-export type EntityParts = { entity: Component[]; effects?: EntityParts[]; items?: EntityParts[] };
+export type EntityParts = {
+  entity: Component[];
+  effects?: EntityParts[];
+  items?: EntityParts[];
+  abilities?: EntityParts[];
+  recipes?: EntityParts[];
+};
 
 export function createGameEntity(
   em: EntityManager,
   parts: EntityParts,
   pos?: GridPosData
 ): EntityId {
-  const { effects, items, entity } = parts;
+  const { effects, items, abilities, recipes, entity } = parts;
   const effectIds =
     effects?.filter((p): p is EntityParts => !!p).map((effect) => createGameEntity(em, effect)) ??
     [];
   const itemIds =
     items?.filter((p): p is EntityParts => !!p).map((item) => createGameEntity(em, item)) ?? [];
+
+  const abilityIds =
+    abilities
+      ?.filter((p): p is EntityParts => !!p)
+      .map((ability) => createGameEntity(em, ability)) ?? [];
+
+  const recipeIds =
+    recipes?.filter((p): p is EntityParts => !!p).map((recipe) => createGameEntity(em, recipe)) ??
+    [];
+
   const entityId = em.create(
     ...entity,
     new Effects({ contents: effectIds }),
     new Inventory({ contents: itemIds }),
+    new Abilities({ contents: abilityIds }),
+    new Recipes({ contents: recipeIds }),
     pos ? new GridPos(pos) : undefined
   ).id;
 
@@ -113,6 +133,14 @@ export function createGameEntity(
 
   itemIds.forEach((id) =>
     em.setComponent(id, new MemberOf({ id: entityId, component: Inventory, property: 'contents' }))
+  );
+
+  abilityIds.forEach((id) =>
+    em.setComponent(id, new MemberOf({ id: entityId, component: Abilities, property: 'contents' }))
+  );
+
+  recipeIds.forEach((id) =>
+    em.setComponent(id, new MemberOf({ id: entityId, component: Recipes, property: 'contents' }))
   );
 
   return entityId;
