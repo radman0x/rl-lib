@@ -102,6 +102,7 @@ export * from './lib/operators/process-move.operator';
 export * from './lib/operators/attack-message.operator';
 export * from './lib/operators/noteworthy-at-pos.operator';
 export * from './lib/operators/update-neighbour-dependent-images.operator';
+export * from './lib/operators/animate-attack.operator';
 
 export * from './lib/areas/area-spec.model';
 

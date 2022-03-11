@@ -26,7 +26,7 @@ type AttemptMoveFlowArgs = {
     rand: Chance.Chance
   ) => RadRxOperator<TargetPos & AggressorEntity, { attack: AttackOrder | null }>;
   gatherMove: (em: EntityManager) => RadRxOperator<MoveAssessment, { move: MoveOrder | null }>;
-  processAttack: (em: EntityManager) => RadRxOperator<{ attack: AttackOrder | null }, any>;
+  processAttack: RadRxOperator<{ attack: AttackOrder | null }, any>;
   processMove: (em: EntityManager) => RadRxOperator<{ move: MoveOrder | null }, any>;
   afterMove: (em: EntityManager) => RadRxOperator<Messages & MoveOrder, any>;
   afterAttack: (em: EntityManager) => RadRxOperator<Messages, any>;
@@ -50,7 +50,7 @@ export function attemptMoveFlow({
       mergeMap((msg) =>
         msg.attack
           ? of(msg).pipe(
-              processAttack(em),
+              processAttack,
               afterAttack(em),
               mergeMap(() => NEVER)
             )

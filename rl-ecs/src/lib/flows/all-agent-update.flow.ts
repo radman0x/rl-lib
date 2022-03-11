@@ -1,3 +1,4 @@
+import { AttackOrder } from '@rad/rl-ecs';
 import { EntityId, EntityManager } from 'rad-ecs';
 import { merge, Observable, of } from 'rxjs';
 import * as rxjsSpy from 'rxjs-spy';
@@ -48,7 +49,8 @@ export function allAgentUpdateFlow(
   em: EntityManager,
   areaResolver: AreaResolver,
   rand: Chance.Chance,
-  ender: (endType: EndType) => void = null
+  ender: (endType: EndType) => void = null,
+  attackAnimator?: <T extends { attack: AttackOrder | null }>(input: Observable<T>) => Observable<T>
 ) {
   return <T extends Partial<Messages> & { playerZLevel: number }>(input: Observable<T>) => {
     return input.pipe(
@@ -171,6 +173,7 @@ export function allAgentUpdateFlow(
                   })
                 )
                 .pipe(
+                  attackAnimator ?? tap(() => {}),
                   map((msg) => spatial(msg, em)),
                   map((msg) => integrity(msg, em)),
                   map((msg) => markForDeath(msg, em)),
