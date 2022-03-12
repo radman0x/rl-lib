@@ -103,7 +103,7 @@ export interface CavgeonTemplate {
     em: EntityManager,
     transitions: AreaTransitionSpec,
     depth: number,
-    placers: DungeonPlacer[]
+    placers: (DungeonPlacer & CavePlacer)[]
   ): void;
 
   generateEnemies(spawnable: GridPos[]): number;
@@ -138,14 +138,15 @@ export interface StaticTemplate {
 }
 
 export interface DungeonPlacerState {
-  rooms: Room[];
   openList: Pos2d[];
   takenMap: ValueMap<Pos2d, EntityId>;
+  rooms: Room[];
 }
 
 export interface CavePlacerState {
   openList: Pos2d[];
   takenMap: ValueMap<Pos2d, EntityId>;
+  fillWallList: Pos2d[];
 }
 
 export class DungeonPlacer {
@@ -158,6 +159,17 @@ export class DungeonPlacer {
 export class CavePlacer {
   kind: 'CAVE' = 'CAVE';
   constructor(public place: (em: EntityManager, depth: number, state: CavePlacerState) => void) {}
+}
+
+export class CavgeonPlacer {
+  kind: 'CAVGEON' = 'CAVGEON';
+  constructor(
+    public place: (
+      em: EntityManager,
+      depth: number,
+      state: CavePlacerState & DungeonPlacerState
+    ) => void
+  ) {}
 }
 
 export type EntityCreator = (em: EntityManager, ...extras: Component[]) => EntityId;
@@ -185,6 +197,16 @@ export interface DungeonGenOptions extends BaseGenOptions {
   roomFloor: EntityCreator;
   chasm: EntityCreator;
   placers: DungeonPlacer[];
+}
+
+export interface CavgeonGenOptions extends BaseGenOptions {
+  corridor: EntityCreator;
+  door: EntityCreator;
+  wall: EntityCreator;
+  wallFloor: EntityCreator;
+  roomFloor: EntityCreator;
+  chasm: EntityCreator;
+  placers: CavgeonPlacer[];
 }
 
 export interface CaveGenOptions extends BaseGenOptions {

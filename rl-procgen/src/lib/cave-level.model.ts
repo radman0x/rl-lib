@@ -1,10 +1,10 @@
 import { AreaTransitionSpec, GridPos } from '@rad/rl-ecs';
-import { randomElement, ValueMap } from '@rad/rl-utils';
+import { randomElement, ValueMap, xyPositionsAround } from '@rad/rl-utils';
 import { staircasePrefab } from 'libs/rl-ecs/src/lib/component-utils.model';
 import { AreaIngress } from 'libs/rl-ecs/src/lib/components/area-ingress.model';
 import { EntityId, EntityManager } from 'rad-ecs';
 import * as ROT from 'rot-js';
-import { LevelBase } from './level-base.model';
+import { LevelBase, RoomTileType } from './level-base.model';
 import { CaveGenOptions, CavePlacer, CaveTemplate, Pos2d } from './utils';
 
 export class CaveLevelTemplate extends LevelBase implements CaveTemplate {
@@ -26,6 +26,8 @@ export class CaveLevelTemplate extends LevelBase implements CaveTemplate {
 
     const { width, height } = this.options;
     const openList: Pos2d[] = [];
+    const tileTypeMap = new ValueMap<Pos2d, RoomTileType>();
+    const fillWallList: Pos2d[] = [];
     var map = new ROT.Map.Cellular(width, height);
     map.randomize(0.5);
     for (var i = 0; i < 4; i++) map.create();
@@ -33,11 +35,22 @@ export class CaveLevelTemplate extends LevelBase implements CaveTemplate {
       if (contents === 1) {
         this.options.fill(em, new GridPos({ x, y, z: GROUND }));
         this.options.fillFloor(em, new GridPos({ x, y, z: BASEMENT }));
+        tileTypeMap.set(new Pos2d(x, y), RoomTileType.FILL);
       } else {
         openList.push(new Pos2d(x, y));
         this.options.floor(em, new GridPos({ x, y, z: BASEMENT }));
+        tileTypeMap.set(new Pos2d(x, y), RoomTileType.OPEN);
       }
     }, 0);
+    for (const [pos, type] of tileTypeMap) {
+      if (type === RoomTileType.FILL) {
+        const outsideConnected =
+          xyPositionsAround({ ...pos, z: 0 }).filter(
+            (pos) => tileTypeMap.get(new Pos2d(pos.x, pos.y)) === RoomTileType.OPEN
+          ).length !== 0;
+        outsideConnected && fillWallList.push(pos);
+      }
+    }
 
     const takenMap = new ValueMap<Pos2d, EntityId>();
     const {
@@ -73,7 +86,7 @@ export class CaveLevelTemplate extends LevelBase implements CaveTemplate {
     }
 
     for (const placer of [...placers, ...this.options.placers]) {
-      placer.place(em, DEPTH, { takenMap, openList });
+      placer.place(em, DEPTH, { takenMap, openList, fillWallList });
     }
 
     this.placeInitialEnemies(openList.map((pos2d) => new GridPos({ ...pos2d, z: DEPTH })));

@@ -114,6 +114,10 @@ export class GridRendererComponent implements OnInit {
 
       r.mousePress$
         .pipe(
+          map((msg) => {
+            console.log(`${JSON.stringify(msg, null, 2)}`);
+            return msg;
+          }),
           map((pos) => this.convertToGridPos(pos)),
           filter((pos) => pos !== null)
         )
@@ -177,7 +181,7 @@ export class GridRendererComponent implements OnInit {
       return;
     }
 
-    this.globalAnimationTicker += 1 / 45;
+    this.globalAnimationTicker += 1 / 90;
     this.globalAnimationTicker = this.globalAnimationTicker % 1;
 
     this.renderer.pixiApp.stage = new PIXI.Container();
@@ -249,8 +253,6 @@ export class GridRendererComponent implements OnInit {
       const widthLimit = this.renderer.pixiApp.renderer.width / this.desiredDisplayWidthPx;
       const heightLimit = this.renderer.pixiApp.renderer.height / this.desiredDisplayHeightPx;
       const scale = Math.min(widthLimit, heightLimit);
-      stage.scale.set(scale);
-
       if (this.instantSnapToViewer || this.snapToViewer) {
         this.instantSnapToViewer = false;
         const xCenter = Math.floor(this.desiredDisplayWidthTiles / 2);
@@ -260,9 +262,11 @@ export class GridRendererComponent implements OnInit {
         this.rendererTilePosition = { x: renderXTile, y: renderYTile };
       }
       stage.position.set(
-        this.rendererTilePosition.x * this.tileSize * scale,
-        this.rendererTilePosition.y * this.tileSize * scale
+        this.rendererTilePosition.x * (this.tileSize * scale),
+        this.rendererTilePosition.y * (this.tileSize * scale)
       );
+
+      stage.scale.set(scale);
     }
   }
 
@@ -272,9 +276,6 @@ export class GridRendererComponent implements OnInit {
 
   private convertToGridPos(pos: PointXY): PointXY | null {
     if (this.maxTileX === undefined || this.maxTileY === undefined) {
-      return null;
-    }
-    if (pos.x > this.maxTileX + this.tileSize || pos.y > this.maxTileY + this.tileSize) {
       return null;
     }
     const tileX = Math.floor(pos.x / this.tileSize);

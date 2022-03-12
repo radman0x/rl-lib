@@ -1,5 +1,5 @@
 import { AreaTransitionSpec, GridPos } from '@rad/rl-ecs';
-import { popRandomElement, ValueMap } from '@rad/rl-utils';
+import { popRandomElement, ValueMap, xyPositionsAround } from '@rad/rl-utils';
 import { staircasePrefab } from 'libs/rl-ecs/src/lib/component-utils.model';
 import { AreaIngress } from 'libs/rl-ecs/src/lib/components/area-ingress.model';
 import { EntityId, EntityManager } from 'rad-ecs';
@@ -7,12 +7,12 @@ import * as ROT from 'rot-js';
 import { Room as RadRoom } from './utils';
 import { LevelBase, RoomTileType } from './level-base.model';
 import { DungeonGenOptions, DungeonPlacer, DungeonTemplate, Pos2d, ROTOpenType } from './utils';
-import { CavgeonTemplate } from '..';
+import { CavePlacer, CavgeonGenOptions, CavgeonPlacer, CavgeonTemplate, EntityCreator } from '..';
 
 export class CavgeonLevelTemplate extends LevelBase implements CavgeonTemplate {
   kind: 'CAVGEON' = 'CAVGEON';
 
-  constructor(private options: DungeonGenOptions) {
+  constructor(private options: CavgeonGenOptions & { fillFloor: EntityCreator }) {
     super(options);
   }
 
@@ -20,7 +20,7 @@ export class CavgeonLevelTemplate extends LevelBase implements CavgeonTemplate {
     em: EntityManager,
     transitions: AreaTransitionSpec,
     depth: number,
-    placers: DungeonPlacer[]
+    placers: CavgeonPlacer[]
   ) {
     const DEPTH = depth * 3;
     const BASEMENT = DEPTH - 1;
@@ -79,18 +79,30 @@ export class CavgeonLevelTemplate extends LevelBase implements CavgeonTemplate {
       }
     }
 
+    const fillWallList: Pos2d[] = [];
     var map = new ROT.Map.Cellular(width, height);
     map.randomize(0.5);
     for (var i = 0; i < 4; i++) map.create();
     map.connect((x, y, contents) => {
       if (contents === 1) {
-        // tileTypeMap.set(new Pos2d(x, y), RoomTileType.FILL);;
-        // if (tileTypeMap.get(new Pos2d(x, y)) === RoomTileType.
+        this.options.fill(em, new GridPos({ x, y, z: GROUND }));
+        this.options.fillFloor(em, new GridPos({ x, y, z: BASEMENT }));
+        tileTypeMap.set(new Pos2d(x, y), RoomTileType.FILL);
       } else {
-        tileTypeMap.set(new Pos2d(x, y), RoomTileType.OPEN);
         allOpenTiles.push(new Pos2d(x, y));
+        this.options.floor(em, new GridPos({ x, y, z: BASEMENT }));
+        tileTypeMap.set(new Pos2d(x, y), RoomTileType.OPEN);
       }
     }, 0);
+    for (const [pos, type] of tileTypeMap) {
+      if (type === RoomTileType.FILL) {
+        const outsideConnected =
+          xyPositionsAround({ ...pos, z: 0 }).filter(
+            (pos) => tileTypeMap.get(new Pos2d(pos.x, pos.y)) === RoomTileType.OPEN
+          ).length !== 0;
+        outsideConnected && fillWallList.push(pos);
+      }
+    }
 
     for (let [pos, type] of tileTypeMap) {
       switch (type) {
@@ -151,7 +163,7 @@ export class CavgeonLevelTemplate extends LevelBase implements CavgeonTemplate {
     }
 
     for (const placer of [...placers, ...this.options.placers]) {
-      placer.place(em, DEPTH, { rooms, takenMap, openList: allOpenTiles });
+      placer.place(em, DEPTH, { rooms, takenMap, openList: allOpenTiles, fillWallList });
     }
 
     this.placeInitialEnemies(allOpenTiles.map((pos2d) => new GridPos({ ...pos2d, z: DEPTH })));

@@ -2,18 +2,50 @@ import { AdjacencyStringIndex } from '@rad/rl-utils';
 import { Component } from 'rad-ecs';
 export interface NeighbourDisplayAffectedData {
   typeId: string;
-  adjacencyImageMap: AdjacencyStringIndex<{ image: string; uiImage?: string }>;
+  adjacencyImageMap: AdjacencyStringIndex<{ image: string; image2?: string; uiImage?: string }>;
   pruneCardinalWhenSurrounded: boolean;
+  zOrder?: number;
 }
 export class NeighbourDisplayAffected extends Component implements NeighbourDisplayAffectedData {
   public readonly typeId: string;
-  public readonly adjacencyImageMap: AdjacencyStringIndex<{ image: string; uiImage?: string }>;
+  public readonly adjacencyImageMap: AdjacencyStringIndex<{
+    image: string;
+    image2?: string;
+    uiImage?: string;
+  }>;
   public readonly pruneCardinalWhenSurrounded: boolean;
+  public readonly zOrder?: number;
 
   constructor(data: NeighbourDisplayAffectedData) {
     super();
     Object.assign(this, data);
   }
+}
+
+export function createBlackOreNDAComponent(typeId: string) {
+  return new NeighbourDisplayAffected({
+    typeId,
+    zOrder: 5,
+    adjacencyImageMap: {
+      NONE: { image: 'Black-Ore0-S.png', image2: 'Black-Ore1-S.png' },
+      N: { image: 'Black-Ore0-S.png', image2: 'Black-Ore1-S.png' },
+      E: { image: 'Black-Ore0-S.png', image2: 'Black-Ore1-S.png' },
+      S: { image: 'Black-Ore0-W_E.png', image2: 'Black-Ore1-W_E.png' },
+      W: { image: 'Black-Ore0-S.png', image2: 'Black-Ore1-S.png' },
+      N_E: { image: 'Black-Ore0-W.png', image2: 'Black-Ore1-W.png' },
+      S_N_E: { image: 'Black-Ore0-W.png', image2: 'Black-Ore1-W.png' },
+      S_E: { image: 'Black-Ore0-W.png', image2: 'Black-Ore1-W.png' },
+      S_N: { image: 'Black-Ore0-W_E.png', image2: 'Black-Ore1-W_E.png' },
+      W_E: { image: 'Black-Ore0-S.png', image2: 'Black-Ore1-S.png' },
+      W_N: { image: 'Black-Ore0-E.png', image2: 'Black-Ore1-E.png' },
+      W_N_E: { image: 'Black-Ore0-S.png', image2: 'Black-Ore1-S.png' },
+      W_S: { image: 'Black-Ore0-E.png', image2: 'Black-Ore1-E.png' },
+      W_S_E: { image: 'Black-Ore0-EMPTY.png' },
+      W_S_N: { image: 'Black-Ore0-E.png', image2: 'Black-Ore1-E.png' },
+      W_S_N_E: { image: 'Black-Ore0-EMPTY.png' },
+    },
+    pruneCardinalWhenSurrounded: true,
+  });
 }
 
 export function createTileChasmNDAComponent(typeId: string) {

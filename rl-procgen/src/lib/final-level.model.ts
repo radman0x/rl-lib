@@ -1,10 +1,5 @@
 import { AreaTransitionSpec, GridPos, Lighting, LightLevel } from '@rad/rl-ecs';
-import {
-  CaveGenOptions,
-  CavePlacer,
-  CaveTemplate,
-  Pos2d,
-} from '@rad/rl-procgen';
+import { CaveGenOptions, CavePlacer, CaveTemplate, Pos2d } from '@rad/rl-procgen';
 import { randomElement, ValueMap } from '@rad/rl-utils';
 import { staircasePrefab } from 'libs/rl-ecs/src/lib/component-utils.model';
 import { AreaIngress } from 'libs/rl-ecs/src/lib/components/area-ingress.model';
@@ -93,11 +88,9 @@ export class FinalLevelTemplate extends LevelBase implements CaveTemplate {
     }
 
     for (const placer of [...placers, ...this.options.placers]) {
-      placer.place(em, DEPTH, { takenMap, openList });
+      placer.place(em, DEPTH, { takenMap, openList, fillWallList: [] });
     }
 
-    this.placeInitialEnemies(
-      openList.map((pos2d) => new GridPos({ ...pos2d, z: DEPTH }))
-    );
+    this.placeInitialEnemies(openList.map((pos2d) => new GridPos({ ...pos2d, z: DEPTH })));
   }
 }

@@ -98,7 +98,11 @@ export function updateNeighbourDependentImages(em: EntityManager) {
                   .join('_');
                 adjacencyString = adjacencyString === '' ? 'NONE' : adjacencyString;
                 const image = nda.adjacencyImageMap[adjacencyString].image;
-                em.setComponent(msg.ndaId, new Renderable({ image, zOrder: 1 }));
+                const image2 = nda.adjacencyImageMap[adjacencyString].image2;
+                em.setComponent(
+                  msg.ndaId,
+                  new Renderable({ image, image2, zOrder: nda.zOrder ?? 1 })
+                );
               }),
               toArray(),
               mapTo(preMsg)

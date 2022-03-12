@@ -162,7 +162,7 @@ export class StaticLevelTemplate extends LevelBase implements StaticTemplate {
       new Description({
         short: `lowers a bridge`,
       }),
-      new IronCost({ amount: 2 })
+      new IronCost({ amount: 2})
     ).id;
 
     const switchPos = new Pos2d(CHASM_START - 1, Math.floor(ROOM_MAX_Y / 2) - 2);

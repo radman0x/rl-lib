@@ -1,6 +1,7 @@
 import { Description, Physical, Renderable, Size, Stone, Wounds } from '@rad/rl-ecs';
 import { DungeonLevelTemplate } from '@rad/rl-procgen';
 import {
+  createBlackOreNDAComponent,
   createDarkTileNDAComponent,
   createDimCaveNDAComponent,
   createDimMinesNDAComponent,
@@ -14,15 +15,17 @@ export function createUpperMineTemplate(
   em: EntityManager
 ) {
   return new DungeonLevelTemplate({
-    wall: (em, ...extras) =>
-      em.create(
+    wall: (em, ...extras) => {
+      em.create(createBlackOreNDAComponent('join'), ...extras);
+      return em.create(
         createDimMinesNDAComponent('join'),
         new Physical({ size: Size.FILL }),
         new Wounds({ current: 1, max: 1, deathDesc: 'destroyed' }),
         new Description({ short: 'brick wall' }),
         new Stone(),
         ...extras
-      ).id,
+      ).id;
+    },
     wallFloor: (em, ...extras) =>
       em.create(
         new Renderable({ image: 'Floor-391.png', zOrder: 1 }),

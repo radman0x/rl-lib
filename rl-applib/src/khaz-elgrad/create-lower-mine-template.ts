@@ -1,11 +1,22 @@
-import { Description, Physical, Renderable, Size, Stone, Wounds } from '@rad/rl-ecs';
-import { CaveLevelTemplate } from '@rad/rl-procgen';
 import {
+  Description,
+  GridPos,
+  Inventory,
+  Physical,
+  Renderable,
+  Size,
+  Stone,
+  Wounds,
+} from '@rad/rl-ecs';
+import { CaveLevelTemplate, CavePlacer } from '@rad/rl-procgen';
+import { popRandomElement } from '@rad/rl-utils';
+import {
+  createBlackOreNDAComponent,
   createBlackVolcanicNDAComponent,
   createDimCaveNDAComponent,
 } from 'libs/rl-ecs/src/lib/components/neighbour-display-affected.model';
 import { EntityId, EntityManager } from 'rad-ecs';
-import { createGameEntity, randomEntity } from '..';
+import { createGameEntity, createIronOre, randomEntity } from '..';
 import { createBeetle } from './agent-creators';
 
 export function createLowerMineTemplate(
@@ -19,7 +30,7 @@ export function createLowerMineTemplate(
     width,
     fill: (em, ...extras) =>
       em.create(
-        createDimCaveNDAComponent('caves'),
+        createDimCaveNDAComponent('lower-mines-fill'),
         new Physical({ size: Size.FILL }),
         new Wounds({ current: 1, max: 1, deathDesc: 'destroyed' }),
         new Description({ short: 'earth' }),
@@ -27,12 +38,7 @@ export function createLowerMineTemplate(
         ...extras
       ).id,
     floor: (em, ...extras) =>
-      em.create(
-        createBlackVolcanicNDAComponent(),
-        // new Renderable({ image: 'Floor-192.png', zOrder: 1 }),
-        new Physical({ size: Size.FILL }),
-        ...extras
-      ).id,
+      em.create(createBlackVolcanicNDAComponent(), new Physical({ size: Size.FILL }), ...extras).id,
     fillFloor: (em, ...extras) =>
       em.create(
         new Renderable({ image: 'Floor-384.png', zOrder: 1 }),
@@ -50,6 +56,25 @@ export function createLowerMineTemplate(
       return createGameEntity(em, chosen, pos);
     },
     itemGenerator: (pos) => 0,
-    placers: [],
+    placers: [
+      new CavePlacer((em, depth, { takenMap, openList, fillWallList }) => {
+        for (let i = 0; i < 50; ++i) {
+          const pos = popRandomElement(fillWallList);
+          createGameEntity(
+            em,
+            {
+              entity: [
+                createBlackOreNDAComponent('lower-mines-fill'),
+                new Stone(),
+                new Wounds({ current: 1, max: 1, deathDesc: 'deposited on the ground' }),
+                new Description({ short: 'iron ore' }),
+              ],
+              items: [createIronOre()],
+            },
+            new GridPos({ ...pos, z: depth })
+          );
+        }
+      }),
+    ],
   });
 }

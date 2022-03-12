@@ -64,6 +64,12 @@ export function createCavgeonTemplate(
         new Physical({ size: Size.FILL }),
         ...extras
       ).id,
+    fillFloor: (em, ...extras) =>
+      em.create(
+        new Renderable({ image: 'Floor-384.png', zOrder: 1 }),
+        new Physical({ size: Size.FILL }),
+        ...extras
+      ).id,
     width,
     height,
     upTransitionTexture: 'Tile-12.png',
