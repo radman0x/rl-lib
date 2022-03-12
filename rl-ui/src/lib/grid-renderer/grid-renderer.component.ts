@@ -114,10 +114,6 @@ export class GridRendererComponent implements OnInit {
 
       r.mousePress$
         .pipe(
-          map((msg) => {
-            console.log(`${JSON.stringify(msg, null, 2)}`);
-            return msg;
-          }),
           map((pos) => this.convertToGridPos(pos)),
           filter((pos) => pos !== null)
         )
@@ -230,7 +226,7 @@ export class GridRendererComponent implements OnInit {
       }
       this.sprites.clear();
 
-      this.renderFromKnowledge(historicalKnowledge, viewerZPos, stage, 0xaaaaaa);
+      this.renderFromKnowledge(historicalKnowledge, viewerZPos, stage, 0xcccccc);
       this.renderFromKnowledge(currentKnowledge, viewerZPos, stage, 0x000000);
 
       this.em.each(
@@ -300,8 +296,8 @@ export class GridRendererComponent implements OnInit {
         .find((e) => e.has(LightLevel))
         ?.component(LightLevel).raw;
       const finalTint = posRawLight
-        ? Math.max(rotColorToNumber(posRawLight) - tintModifier, 0x444444)
-        : 0xffffff;
+        ? Math.max(rotColorToNumber(posRawLight) - tintModifier, 0xaaaaaa)
+        : 0xaaaaaa;
       const sortedIds = [...ids]
         .filter((id) => this.em.exists(id) && this.em.getComponent(id, Renderable) !== undefined)
         .sort((lhs, rhs) => {

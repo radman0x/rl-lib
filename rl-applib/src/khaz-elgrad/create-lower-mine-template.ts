@@ -1,23 +1,26 @@
 import {
   Description,
+  dijkstra,
   GridPos,
+  GridPosData,
   Inventory,
+  LightSource,
   Physical,
   Renderable,
   Size,
   Stone,
   Wounds,
 } from '@rad/rl-ecs';
-import { CaveLevelTemplate, CavePlacer } from '@rad/rl-procgen';
-import { popRandomElement } from '@rad/rl-utils';
+import { CaveLevelTemplate, CavePlacer, Pos2d } from '@rad/rl-procgen';
+import { popRandomElement, randomInt, ValueMap } from '@rad/rl-utils';
 import {
   createBlackOreNDAComponent,
   createBlackVolcanicNDAComponent,
   createDimCaveNDAComponent,
 } from 'libs/rl-ecs/src/lib/components/neighbour-display-affected.model';
 import { EntityId, EntityManager } from 'rad-ecs';
-import { createGameEntity, createIronOre, randomEntity } from '..';
-import { createBeetle } from './agent-creators';
+import { createGameEntity, createIronOre, randomChoice, weakAllItems } from '..';
+import { createBeetle, createGnat, createSnail } from './agent-creators';
 
 export function createLowerMineTemplate(
   width: number,
@@ -47,18 +50,26 @@ export function createLowerMineTemplate(
       ).id,
     downTransitionTexture: 'Decor0-12.png',
     upTransitionTexture: 'Decor0-12.png',
-    enemyChance: 0.27,
-    initialEnemyCount: 10,
-    maxEnemyCount: 40,
+    enemyChance: 0.18,
+    initialEnemyCount: 7,
+    maxEnemyCount: 20,
     initialItemRange: { min: 6, max: 11 },
     enemyGenerator: (pos) => {
-      const chosen = randomEntity([{ weight: 1, generator: () => createBeetle(playerId) }]);
+      const chosen = randomChoice([
+        { weight: 1, choice: createBeetle(playerId) },
+        { weight: 1, choice: createSnail(playerId) },
+        { weight: 1, choice: createGnat(playerId) },
+      ]);
       return createGameEntity(em, chosen, pos);
     },
-    itemGenerator: (pos) => 0,
+    itemGenerator: (pos) => {
+      const choice = randomChoice(weakAllItems());
+      return createGameEntity(em, choice, pos);
+    },
     placers: [
       new CavePlacer((em, depth, { takenMap, openList, fillWallList }) => {
-        for (let i = 0; i < 50; ++i) {
+        const oreCount = randomInt(5, 10);
+        for (let i = 0; i < oreCount; ++i) {
           const pos = popRandomElement(fillWallList);
           createGameEntity(
             em,
@@ -73,6 +84,44 @@ export function createLowerMineTemplate(
             },
             new GridPos({ ...pos, z: depth })
           );
+        }
+      }),
+      new CavePlacer((em, depth, { takenMap, openList }) => {
+        if (!openList.length) {
+          return;
+        }
+        const walkable = new ValueMap<GridPos, true>();
+        for (const pos of openList) {
+          walkable.set(new GridPos({ ...pos, z: 0 }), true);
+        }
+        const start = openList[0];
+        const distances = dijkstra({ ...start, z: 0 }, (pos: GridPosData) =>
+          walkable.has(new GridPos(pos))
+        );
+        const buckets: { [distance: number]: GridPos[] } = {};
+        let maxDistance = 0;
+        for (let [pos, distance] of distances) {
+          distance = Math.floor(distance);
+          buckets[distance] = buckets[distance] ?? [];
+          buckets[distance].push(pos);
+          maxDistance = Math.max(maxDistance, distance);
+        }
+        console.log(`bucket count: ${Object.entries(buckets).length}`);
+        let skip = 0;
+        for (let [, candidates] of Object.entries(buckets)) {
+          ++skip;
+          if (skip % 5 === 0) {
+            const lights = Math.ceil(candidates.length / 20);
+            for (let j = 0; j < lights; ++j) {
+              const { x, y } = popRandomElement(candidates);
+              const lightId = em.create(
+                new GridPos({ x, y, z: depth }),
+                new LightSource({ strength: [255, 255, 255] }),
+                new Renderable({ image: 'Decor0-65.png', zOrder: 0 })
+              ).id;
+              takenMap.set(new Pos2d(x, y), lightId);
+            }
+          }
         }
       }),
     ],

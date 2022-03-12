@@ -22,6 +22,58 @@ export class NeighbourDisplayAffected extends Component implements NeighbourDisp
   }
 }
 
+export function createMithrilOreNDAComponent(typeId: string) {
+  return new NeighbourDisplayAffected({
+    typeId,
+    zOrder: 5,
+    adjacencyImageMap: {
+      NONE: { image: 'Mithril-Ore0-S.png', image2: 'Mithril-Ore1-S.png' },
+      N: { image: 'Mithril-Ore0-S.png', image2: 'Mithril-Ore1-S.png' },
+      E: { image: 'Mithril-Ore0-S.png', image2: 'Mithril-Ore1-S.png' },
+      S: { image: 'Mithril-Ore0-W_E.png', image2: 'Mithril-Ore1-W_E.png' },
+      W: { image: 'Mithril-Ore0-S.png', image2: 'Mithril-Ore1-S.png' },
+      N_E: { image: 'Mithril-Ore0-W.png', image2: 'Mithril-Ore1-W.png' },
+      S_N_E: { image: 'Mithril-Ore0-W.png', image2: 'Mithril-Ore1-W.png' },
+      S_E: { image: 'Mithril-Ore0-W.png', image2: 'Mithril-Ore1-W.png' },
+      S_N: { image: 'Mithril-Ore0-W_E.png', image2: 'Mithril-Ore1-W_E.png' },
+      W_E: { image: 'Mithril-Ore0-S.png', image2: 'Mithril-Ore1-S.png' },
+      W_N: { image: 'Mithril-Ore0-E.png', image2: 'Mithril-Ore1-E.png' },
+      W_N_E: { image: 'Mithril-Ore0-S.png', image2: 'Mithril-Ore1-S.png' },
+      W_S: { image: 'Mithril-Ore0-E.png', image2: 'Mithril-Ore1-E.png' },
+      W_S_E: { image: 'Mithril-Ore0-EMPTY.png' },
+      W_S_N: { image: 'Mithril-Ore0-E.png', image2: 'Mithril-Ore1-E.png' },
+      W_S_N_E: { image: 'Mithril-Ore0-EMPTY.png' },
+    },
+    pruneCardinalWhenSurrounded: true,
+  });
+}
+
+export function createBrightOreNDAComponent(typeId: string) {
+  return new NeighbourDisplayAffected({
+    typeId,
+    zOrder: 5,
+    adjacencyImageMap: {
+      NONE: { image: 'Bright-Ore0-S.png', image2: 'Bright-Ore1-S.png' },
+      N: { image: 'Bright-Ore0-S.png', image2: 'Bright-Ore1-S.png' },
+      E: { image: 'Bright-Ore0-S.png', image2: 'Bright-Ore1-S.png' },
+      S: { image: 'Bright-Ore0-W_E.png', image2: 'Bright-Ore1-W_E.png' },
+      W: { image: 'Bright-Ore0-S.png', image2: 'Bright-Ore1-S.png' },
+      N_E: { image: 'Bright-Ore0-W.png', image2: 'Bright-Ore1-W.png' },
+      S_N_E: { image: 'Bright-Ore0-W.png', image2: 'Bright-Ore1-W.png' },
+      S_E: { image: 'Bright-Ore0-W.png', image2: 'Bright-Ore1-W.png' },
+      S_N: { image: 'Bright-Ore0-W_E.png', image2: 'Bright-Ore1-W_E.png' },
+      W_E: { image: 'Bright-Ore0-S.png', image2: 'Bright-Ore1-S.png' },
+      W_N: { image: 'Bright-Ore0-E.png', image2: 'Bright-Ore1-E.png' },
+      W_N_E: { image: 'Bright-Ore0-S.png', image2: 'Bright-Ore1-S.png' },
+      W_S: { image: 'Bright-Ore0-E.png', image2: 'Bright-Ore1-E.png' },
+      W_S_E: { image: 'Bright-Ore0-EMPTY.png' },
+      W_S_N: { image: 'Bright-Ore0-E.png', image2: 'Bright-Ore1-E.png' },
+      W_S_N_E: { image: 'Bright-Ore0-EMPTY.png' },
+    },
+    pruneCardinalWhenSurrounded: true,
+  });
+}
+
 export function createBlackOreNDAComponent(typeId: string) {
   return new NeighbourDisplayAffected({
     typeId,

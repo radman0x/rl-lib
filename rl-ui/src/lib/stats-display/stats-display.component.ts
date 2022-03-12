@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import {
   Armor,
   Attacks,
+  DefenseSkill,
   getModifiedComponent,
   Mana,
   recursiveObserveEntity,
@@ -40,6 +41,7 @@ export class StatsDisplayComponent implements OnInit {
 
   public stats: { desc: string; value: string }[] = [
     { desc: 'WEAPON SKILL', value: '-' },
+    { desc: 'DEFENSE SKILL', value: '-' },
     { desc: 'STRENGTH', value: '-' },
     { desc: 'TOUGHNESS', value: '-' },
     { desc: 'DAMAGE', value: '-' },
@@ -51,11 +53,12 @@ export class StatsDisplayComponent implements OnInit {
   public energy: Mana | null = null;
 
   private WS_INDEX = 0;
-  private S_INDEX = 1;
-  private T_INDEX = 2;
-  private D_INDEX = 3;
-  private ARMOR_INDEX = 4;
-  private WARD_INDEX = 5;
+  private DS_INDEX = 1;
+  private S_INDEX = 2;
+  private T_INDEX = 3;
+  private D_INDEX = 4;
+  private ARMOR_INDEX = 5;
+  private WARD_INDEX = 6;
 
   public woundDisplayWidth = 150;
   public energyDisplayWidth = 125;
@@ -74,11 +77,14 @@ export class StatsDisplayComponent implements OnInit {
 
     recursiveObserveEntity(this.statsEntityId, this.em)
       .pipe(debounceTime(50))
-      .subscribe(() => this.updateValues());
+      .subscribe(() => {
+        this.em.exists(this.statsEntityId) && this.updateValues();
+      });
   }
 
   updateValues() {
     this.updateValue(WeaponSkill, this.WS_INDEX, (ws) => ws.count.toString());
+    this.updateValue(DefenseSkill, this.DS_INDEX, (ds) => ds.count.toString());
     this.updateValue(Strength, this.S_INDEX, (s) => s.count.toString());
     this.updateValue(Toughness, this.T_INDEX, (t) => t.count.toString());
     this.updateValue(Attacks, this.D_INDEX, (a) => a.damage.toString());

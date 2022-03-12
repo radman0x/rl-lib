@@ -1,3 +1,4 @@
+import { DefenseSkill, DefenseSkillDelta } from '@rad/rl-ecs';
 import { ComponentConstructor, Entity, EntityId, EntityManager } from 'rad-ecs';
 import { merge, Observable, of } from 'rxjs';
 import { expand, map, mergeMap, takeLast, tap, toArray } from 'rxjs/operators';
@@ -21,10 +22,7 @@ function deltaValue<
   U extends typeof Strength | typeof WeaponSkill,
   V extends typeof StrengthDelta | typeof WeaponSkillDelta
 >(msg: T, em: EntityManager, modifyType: U, deltaType: V) {
-  if (
-    msg.working.has(modifyType) &&
-    em.hasComponent(msg.modifierId, deltaType)
-  ) {
+  if (msg.working.has(modifyType) && em.hasComponent(msg.modifierId, deltaType)) {
     const curr = msg.working.component(modifyType);
     const delta = em.getComponent(msg.modifierId, deltaType);
     msg.working = new Entity(
@@ -44,17 +42,11 @@ function overrideValue<
   U extends typeof Mental,
   V extends typeof MentalOverride
 >(msg: T, em: EntityManager, modifyType: U, overrideType: V) {
-  if (
-    msg.working.has(modifyType) &&
-    em.hasComponent(msg.modifierId, overrideType)
-  ) {
+  if (msg.working.has(modifyType) && em.hasComponent(msg.modifierId, overrideType)) {
     const override = em.getComponent(msg.modifierId, overrideType);
     msg.working = new Entity(
       null,
-      ...[
-        ...msg.working.allComponents().map((e) => e.component),
-        new modifyType({ ...override }),
-      ]
+      ...[...msg.working.allComponents().map((e) => e.component), new modifyType({ ...override })]
     );
   }
 
@@ -65,21 +57,12 @@ export function modifiers<
   T extends Args,
   U extends typeof Inventory | typeof StatusEffects,
   V extends typeof Equipped | typeof PassiveEffect
->(
-  msg: T,
-  em: EntityManager,
-  containerType: U,
-  signalComponent: V
-): Observable<EntityId> {
+>(msg: T, em: EntityManager, containerType: U, signalComponent: V): Observable<EntityId> {
   return of(msg).pipe(
     mergeMap((msg) => {
       if (em.hasComponent(msg.modifyId, containerType)) {
         const container = em.getComponent(msg.modifyId, containerType);
-        return of(
-          ...container.contents.filter((id) =>
-            em.hasComponent(id, signalComponent)
-          )
-        );
+        return of(...container.contents.filter((id) => em.hasComponent(id, signalComponent)));
       } else {
         return of() as Observable<EntityId>;
       }
@@ -115,6 +98,7 @@ export function modifieredEntity<T extends Args>(msg: T, em: EntityManager) {
         if (msg.modifiers.length !== 0) {
           return of({ ...msg, modifierId: msg.modifiers.pop() }).pipe(
             map((msg) => deltaValue(msg, em, Strength, StrengthDelta)),
+            map((msg) => deltaValue(msg, em, DefenseSkill, DefenseSkillDelta)),
             map((msg) => deltaValue(msg, em, WeaponSkill, WeaponSkillDelta)),
             map((msg) => deltaValue(msg, em, Armor, ArmorDelta)),
             map((msg) => overrideValue(msg, em, Mental, MentalOverride))
@@ -141,8 +125,5 @@ export function getModifiedComponent<T extends ComponentConstructor>(
     return null;
   }
   const comp = em.getComponent(id, c);
-  return modifieredEntity(
-    { modifyId: id, working: new Entity(null, comp) },
-    em
-  ).component(c);
+  return modifieredEntity({ modifyId: id, working: new Entity(null, comp) }, em).component(c);
 }

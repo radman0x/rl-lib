@@ -1,23 +1,28 @@
-import { Physical, Renderable, Size } from '@rad/rl-ecs';
-import { StaticLevelTemplate } from '@rad/rl-procgen';
+import { Description, GridPos, Physical, Renderable, Size, Stone, Wounds } from '@rad/rl-ecs';
+import { DungeonPlacer, TrollLevelTemplate } from '@rad/rl-procgen';
 import {
-  createSilverTileNDAComponent,
-  createSilverWallNDAComponent,
+  createBrightMinesNDAComponent,
+  createOrangeDirtNDAComponent,
   createTileChasmNDAComponent,
 } from 'libs/rl-ecs/src/lib/components/neighbour-display-affected.model';
 import { EntityId, EntityManager } from 'rad-ecs';
+import { createGameEntity } from '..';
+import { createTroll } from './agent-creators';
 
-export function createDwarfStronghold(
+export function createTrollDen(
   width: number,
   height: number,
   playerId: EntityId,
   em: EntityManager
 ) {
-  return new StaticLevelTemplate({
+  return new TrollLevelTemplate({
     wall: (em, ...extras) =>
       em.create(
-        createSilverWallNDAComponent('silver-wall'),
+        createBrightMinesNDAComponent('troll-fill'),
+        new Description({ short: 'earth' }),
         new Physical({ size: Size.FILL }),
+        new Stone(),
+        new Wounds({ current: 1, max: 1, deathDesc: 'cleared' }),
         ...extras
       ).id,
 
@@ -28,7 +33,7 @@ export function createDwarfStronghold(
         ...extras
       ).id,
     roomFloor: (em, ...extras) =>
-      em.create(createSilverTileNDAComponent(), new Physical({ size: Size.FILL }), ...extras).id,
+      em.create(createOrangeDirtNDAComponent(), new Physical({ size: Size.FILL }), ...extras).id,
     floor: (em, ...extras) =>
       em.create(
         new Renderable({ image: 'Floor-192.png', zOrder: 1 }),
@@ -67,14 +72,10 @@ export function createDwarfStronghold(
     enemyGenerator: (pos) => 0,
     itemGenerator: (pos) => 0,
     placers: [
-      // new DungeonPlacer((em, depth, { rooms, openList, takenMap }) => {
-      //   const pos = randomElement(openList);
-      //   const aesthetic = em.create(
-      //     new GridPos({ ...pos, z: depth - 1 }),
-      //     new Renderable({ image: 'Ground0-4.png', image2: 'Ground1-4.png', zOrder: 3 })
-      //   ).id;
-      //   takenMap.set(pos, aesthetic);
-      // }),
+      new DungeonPlacer((em, depth, { rooms, openList, takenMap }) => {
+        const pos = openList[1];
+        createGameEntity(em, createTroll(playerId), { ...pos, z: depth });
+      }),
     ],
   });
 }

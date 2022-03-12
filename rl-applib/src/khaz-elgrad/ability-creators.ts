@@ -26,8 +26,7 @@ export function createShoveAbility(): EntityParts {
       new SingleTarget(),
       new ManaCost({ amount: 5 }),
       new Description({ short: 'push' }),
-      new Push({ strength: 3 }),
-      new Bang({ strength: 3 }),
+      new Push({ strength: 4 }),
     ],
   };
 }

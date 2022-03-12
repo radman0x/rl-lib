@@ -1,7 +1,13 @@
 import { AreaTransitionSpec, EgressDirection } from '@rad/rl-ecs';
 import { AreaResolver } from 'libs/rl-ecs/src/lib/utils/area-resolver.util';
 import { EntityManager } from 'rad-ecs';
-import { CavgeonLevelTemplate, CavgeonPlacer, DungeonPlacer, StaticLevelTemplate } from '..';
+import {
+  CavgeonLevelTemplate,
+  CavgeonPlacer,
+  DungeonPlacer,
+  StaticLevelTemplate,
+  TrollLevelTemplate,
+} from '..';
 import { CaveLevelTemplate } from './cave-level.model';
 import { DungeonLevelTemplate } from './dungeon-level.model';
 import { FinalLevelTemplate } from './final-level.model';
@@ -12,7 +18,8 @@ type LevelTemplateUnion =
   | CaveLevelTemplate
   | FinalLevelTemplate
   | StaticLevelTemplate
-  | CavgeonLevelTemplate;
+  | CavgeonLevelTemplate
+  | TrollLevelTemplate;
 type LevelPlacerUnion = CavePlacer | DungeonPlacer | CavgeonPlacer;
 
 export class DungeonBranch {
@@ -50,7 +57,7 @@ export class DungeonBranch {
     this.levelMergeTransitionSpecs[levelNumber].push(transitions);
   }
 
-  addPlacerForLevel(levelNumber: number, placer: DungeonPlacer | CavePlacer) {
+  addPlacerForLevel(levelNumber: number, placer: DungeonPlacer | CavePlacer | CavgeonPlacer) {
     this.levelPlacers[levelNumber] = this.levelPlacers[levelNumber] || [];
     this.levelPlacers[levelNumber].push(placer);
   }
@@ -110,9 +117,10 @@ export class DungeonBranch {
           mergedTransitions,
           levelNumber,
           placers.filter((placer): placer is CavgeonPlacer => placer.kind === 'CAVGEON')
-        );        
+        );
       case 'DUNGEON':
       case 'STATIC':
+      case 'TROLL':
         return levelTemplate.generate(
           em,
           mergedTransitions,

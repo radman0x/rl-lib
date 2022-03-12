@@ -87,7 +87,7 @@ export class InventoryDisplayComponent implements OnInit {
   }
 
   private update() {
-    if (this.em.hasComponent(this.inventoryId, Inventory)) {
+    if (this.em.exists(this.inventoryId) && this.em.hasComponent(this.inventoryId, Inventory)) {
       let entries: {
         desc: string;
         typeId?: string;

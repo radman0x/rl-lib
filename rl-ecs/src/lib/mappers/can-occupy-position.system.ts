@@ -8,7 +8,7 @@ import { OperationStep } from '../operation-step.model';
 import { TargetPos } from '../systems.types';
 import { radClone } from '../systems.utils';
 
-type Args = TargetPos;
+type Args = TargetPos & { isBlocked?: boolean };
 export type CanOccupyPositionArgs = Args;
 
 interface Out {
@@ -16,10 +16,7 @@ interface Out {
 }
 export type CanOccupyPositionOut = Out;
 
-function canOccupyPositionStep<T extends Args>(
-  msg: T,
-  em: EntityManager
-): Id<T & Out> {
+function canOccupyPositionStep<T extends Args>(msg: T, em: EntityManager): Id<T & Out> {
   if (!msg.targetPos) {
     return { ...radClone(msg), canOccupy: null };
   }
@@ -29,6 +26,9 @@ function canOccupyPositionStep<T extends Args>(
       canOccupy = false;
     }
     if (entity.has(MovingAgent) || entity.has(PlayerAgent)) {
+      canOccupy = false;
+    }
+    if (msg.isBlocked) {
       canOccupy = false;
     }
   });

@@ -9,6 +9,7 @@ import { Id } from '@rad/rl-applib';
 import { isValidId } from '@rad/rl-utils';
 import { WeaponSkill } from '../components/weapon-skill.model';
 import { getModifiedComponent } from '../operators/modifiered-entity-pipeline.operator';
+import { DefenseSkill } from '@rad/rl-ecs';
 
 type Args = { aggressorId: EntityId | null } & CombatTargetEntity;
 export type ResolveStrikeArgs = Args;
@@ -24,21 +25,18 @@ function resolveStrikeStep<T extends Args>(
   if (!isValidId(msg.combatTargetId) || !isValidId(msg.aggressorId)) {
     return { ...radClone(msg), strikeSuccess: null };
   }
-  const targetWeaponSkill = getModifiedComponent(
-    msg.combatTargetId,
-    WeaponSkill,
-    em
-  ).count;
-  if (targetWeaponSkill === 0) {
+  const targetDefenseSkill = getModifiedComponent(msg.combatTargetId, DefenseSkill, em)?.count;
+
+  const targetWeaponSkill = getModifiedComponent(msg.combatTargetId, WeaponSkill, em).count;
+
+  const defenderSkill = targetDefenseSkill ?? targetWeaponSkill;
+
+  if (defenderSkill === 0) {
     return { ...radClone(msg), strikeSuccess: true };
   }
-  const protagWeaponSkill = getModifiedComponent(
-    msg.aggressorId,
-    WeaponSkill,
-    em
-  ).count;
+  const protagWeaponSkill = getModifiedComponent(msg.aggressorId, WeaponSkill, em).count;
   const BASE_TO_HIT = 6;
-  const wsDiff = protagWeaponSkill - targetWeaponSkill;
+  const wsDiff = protagWeaponSkill - defenderSkill;
   const actualToHit = BASE_TO_HIT - wsDiff;
   const hitRoll = rand.d10();
   let strikeSuccess = false;

@@ -1,4 +1,5 @@
 import {
+  DefenseSkillDelta,
   Description,
   GridPos,
   Physical,
@@ -10,7 +11,6 @@ import {
 import { ArmorDelta } from 'libs/rl-ecs/src/lib/components/armor-delta.model';
 import { StrengthDelta } from 'libs/rl-ecs/src/lib/components/strength-delta.model';
 import { WeaponSkillDelta } from 'libs/rl-ecs/src/lib/components/weapon-skill-delta.model';
-import { EntityManager } from 'rad-ecs';
 
 export interface ArmorOptions {
   armourAmount: number;
@@ -84,6 +84,7 @@ export interface WeaponOptions {
 export function createWeapon(options: WeaponOptions, pos?: GridPos) {
   const components = [
     new WeaponSkillDelta({ change: options.weaponSkill }),
+    new DefenseSkillDelta({ change: options.weaponSkill }),
     new StrengthDelta({ change: options.strength }),
     new Description({ short: options.description }),
     new Wieldable({ slots: 1 }),
@@ -126,7 +127,7 @@ export function createRustySword(pos?: GridPos) {
   return createWeapon(
     {
       description: 'Rusty sword',
-      image: 'MedWep-1.png',
+      image: 'LongWep-8.png',
       strength: 0,
       weaponSkill: 2,
     },
@@ -138,7 +139,7 @@ export function createShortSword(pos?: GridPos) {
   return createWeapon(
     {
       description: 'Short sword',
-      image: 'LongWep-9.png',
+      image: 'LongWep-7.png',
       strength: 1,
       weaponSkill: 3,
     },
@@ -150,7 +151,7 @@ export function createLongSword(pos?: GridPos) {
   return createWeapon(
     {
       description: 'Long sword',
-      image: 'LongWep-7.png',
+      image: 'LongWep-9.png',
       strength: 1,
       weaponSkill: 4,
     },

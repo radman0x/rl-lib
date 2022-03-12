@@ -4,6 +4,7 @@ import {
   AlignmentType,
   ApproachTarget,
   Attacks,
+  DefenseSkill,
   Description,
   Effects,
   GridPos,
@@ -13,8 +14,10 @@ import {
   MemberOf,
   Mobile,
   MovingAgent,
+  Physical,
   Recipes,
   Sighted,
+  Size,
   Speed,
   Wounds,
 } from '@rad/rl-ecs';
@@ -23,9 +26,28 @@ import { Strength } from 'libs/rl-ecs/src/lib/components/strength.model';
 import { Toughness } from 'libs/rl-ecs/src/lib/components/toughness.model';
 import { WeaponSkill } from 'libs/rl-ecs/src/lib/components/weapon-skill.model';
 import { Component, EntityId, EntityManager } from 'rad-ecs';
+import {
+  createBrightOre,
+  createFlameGrenade,
+  createFlameWand,
+  createHalberd,
+  createHealingSalvey,
+  createHeavyArmor,
+  createIronOre,
+  createLightArmor,
+  createLongSword,
+  createPlateArmor,
+  createRichIronOre,
+  createRustySword,
+  createSandwich,
+  createShortSword,
+  createStunGrenade,
+  createStunWand,
+} from '..';
 
 export interface BaseAgentStats {
   weaponSkill: number;
+  defenseSkill?: number;
   strength: number;
   toughness: number;
   wounds: number;
@@ -52,7 +74,11 @@ export function createBaseAgent(
     new Alignment({ type: AlignmentType.EVIL }),
     new MovingAgent({}),
     new Description({ short: description }),
+    new Physical({ size: Size.MEDIUM }),
   ];
+  if (stats.defenseSkill) {
+    components.push(new DefenseSkill({ count: stats.defenseSkill }));
+  }
   stats.speed = stats.speed ?? 1;
   components.push(new Mobile({ range: stats.speed }));
   components.push(
@@ -66,27 +92,93 @@ export function createBaseAgent(
 }
 
 export type Generator = () => EntityParts;
-export type WeightedGenerator = { weight: number; generator: Generator };
-export type Generators = WeightedGenerator[];
+export type WeightedChoice<T> = { weight: number; choice: T };
+export type Choices<T> = WeightedChoice<T>[];
 
-export function randomEntity(generators: Generators) {
-  const total = generators.map((e) => e.weight).reduce((acc, curr) => acc + curr, 0);
+export function randomChoice<T>(choices: Choices<T>) {
+  const total = choices.map((e) => e.weight).reduce((acc, curr) => acc + curr, 0);
   if (total === 0) {
-    throw Error(`Specify at least one item weight!`);
+    throw Error(`Specify at least one weighted choice!`);
   }
-  const ranges: { range: [number, number]; generator: Generator }[] = [];
+  const ranges: { range: [number, number]; choice: T }[] = [];
   let lastMax = 0;
-  for (let { generator, weight } of generators) {
+  for (let { choice, weight } of choices) {
     const range = weight / total;
-    ranges.push({ range: [lastMax, lastMax + range], generator });
+    ranges.push({ range: [lastMax, lastMax + range], choice });
     lastMax += range;
   }
   const roll = Math.random();
-  const chosenGenerator = ranges
+  const chosen = ranges
     .filter(({ range: [min, max] }) => roll >= min && roll <= max)
-    .map(({ generator }) => generator)
+    .map(({ choice }) => choice)
     .pop();
-  return chosenGenerator();
+  return chosen;
+}
+
+export function weakAllItems() {
+  const ALL_ITEMS: Choices<EntityParts> = [
+    { weight: 0.1, choice: createBrightOre() },
+    { weight: 0.3, choice: createRichIronOre() },
+    { weight: 0.7, choice: createIronOre() },
+    { weight: 0.2, choice: createSandwich() },
+    { weight: 0.05, choice: createFlameWand() },
+    { weight: 0.05, choice: createStunWand() },
+    { weight: 0.3, choice: createFlameGrenade() },
+    { weight: 0.2, choice: createHealingSalvey() },
+    { weight: 0.3, choice: createStunGrenade() },
+    { weight: 0.2, choice: { entity: createLightArmor() } },
+    { weight: 0.05, choice: { entity: createHeavyArmor() } },
+    { weight: 0.01, choice: { entity: createPlateArmor() } },
+    { weight: 0.3, choice: { entity: createRustySword() } },
+    { weight: 0.1, choice: { entity: createShortSword() } },
+    { weight: 0.01, choice: { entity: createLongSword() } },
+    { weight: 0.01, choice: { entity: createHalberd() } },
+  ];
+  return ALL_ITEMS;
+}
+
+export function moderateAllItems() {
+  const ALL_ITEMS: Choices<EntityParts> = [
+    { weight: 0.2, choice: createBrightOre() },
+    { weight: 0.2, choice: createRichIronOre() },
+    { weight: 0.4, choice: createIronOre() },
+    { weight: 0.1, choice: createSandwich() },
+    { weight: 0.1, choice: createFlameWand() },
+    { weight: 0.1, choice: createStunWand() },
+    { weight: 0.4, choice: createFlameGrenade() },
+    { weight: 0.3, choice: createHealingSalvey() },
+    { weight: 0.4, choice: createStunGrenade() },
+    { weight: 0.15, choice: { entity: createLightArmor() } },
+    { weight: 0.1, choice: { entity: createHeavyArmor() } },
+    { weight: 0.07, choice: { entity: createPlateArmor() } },
+    { weight: 0.1, choice: { entity: createRustySword() } },
+    { weight: 0.25, choice: { entity: createShortSword() } },
+    { weight: 0.07, choice: { entity: createLongSword() } },
+    { weight: 0.07, choice: { entity: createHalberd() } },
+  ];
+  return ALL_ITEMS;
+}
+
+export function strongAllItems() {
+  const ALL_ITEMS: Choices<EntityParts> = [
+    { weight: 0.3, choice: createBrightOre() },
+    { weight: 0.4, choice: createRichIronOre() },
+    { weight: 0.1, choice: createIronOre() },
+    { weight: 0.1, choice: createSandwich() },
+    { weight: 0.15, choice: createFlameWand() },
+    { weight: 0.15, choice: createStunWand() },
+    { weight: 0.45, choice: createFlameGrenade() },
+    { weight: 0.35, choice: createHealingSalvey() },
+    { weight: 0.45, choice: createStunGrenade() },
+    { weight: 0.1, choice: { entity: createLightArmor() } },
+    { weight: 0.15, choice: { entity: createHeavyArmor() } },
+    { weight: 0.15, choice: { entity: createPlateArmor() } },
+    { weight: 0.1, choice: { entity: createRustySword() } },
+    { weight: 0.35, choice: { entity: createShortSword() } },
+    { weight: 0.15, choice: { entity: createLongSword() } },
+    { weight: 0.15, choice: { entity: createHalberd() } },
+  ];
+  return ALL_ITEMS;
 }
 
 export type EntityParts = {
@@ -100,7 +192,8 @@ export type EntityParts = {
 export function createGameEntity(
   em: EntityManager,
   parts: EntityParts,
-  pos?: GridPosData
+  pos?: GridPosData,
+  ...extras: Component[]
 ): EntityId {
   const { effects, items, abilities, recipes, entity } = parts;
   const effectIds =
@@ -124,7 +217,8 @@ export function createGameEntity(
     new Inventory({ contents: itemIds }),
     new Abilities({ contents: abilityIds }),
     new Recipes({ contents: recipeIds }),
-    pos ? new GridPos(pos) : undefined
+    pos ? new GridPos(pos) : undefined,
+    ...extras
   ).id;
 
   effectIds.forEach((id) =>

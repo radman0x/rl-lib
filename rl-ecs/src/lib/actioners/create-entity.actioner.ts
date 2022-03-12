@@ -13,11 +13,8 @@ export function createEntity<T extends CreateEntityArgs>(em: EntityManager) {
           if (msg.createEntity.replaceExisting) {
             em.matchingIndex(new GridPos(msg.targetPos)).forEach((entity) => em.remove(entity.id));
           }
-          const components = em
-            .get(msg.createEntity.entities[0]) // HACK, only using the first entity for now
-            .allComponents()
-            .map((entry) => entry.component);
-          const id = em.create(...components).id;
+
+          const id = msg.createEntity.entities[0];
           em.setComponent(id, new GridPos({ ...msg.targetPos }));
         }
       })

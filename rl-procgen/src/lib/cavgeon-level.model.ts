@@ -85,9 +85,9 @@ export class CavgeonLevelTemplate extends LevelBase implements CavgeonTemplate {
     for (var i = 0; i < 4; i++) map.create();
     map.connect((x, y, contents) => {
       if (contents === 1) {
-        this.options.fill(em, new GridPos({ x, y, z: GROUND }));
-        this.options.fillFloor(em, new GridPos({ x, y, z: BASEMENT }));
-        tileTypeMap.set(new Pos2d(x, y), RoomTileType.FILL);
+        // this.options.fill(em, new GridPos({ x, y, z: GROUND }));
+        // this.options.fillFloor(em, new GridPos({ x, y, z: BASEMENT }));
+        // tileTypeMap.set(new Pos2d(x, y), RoomTileType.FILL);
       } else {
         allOpenTiles.push(new Pos2d(x, y));
         this.options.floor(em, new GridPos({ x, y, z: BASEMENT }));

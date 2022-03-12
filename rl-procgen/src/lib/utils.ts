@@ -137,6 +137,19 @@ export interface StaticTemplate {
   kind: 'STATIC';
 }
 
+export interface TrollTemplate {
+  generate(
+    em: EntityManager,
+    transitions: AreaTransitionSpec,
+    depth: number,
+    placers: DungeonPlacer[]
+  ): void;
+
+  generateEnemies(spawnable: GridPos[]): number;
+
+  kind: 'TROLL';
+}
+
 export interface DungeonPlacerState {
   openList: Pos2d[];
   takenMap: ValueMap<Pos2d, EntityId>;
