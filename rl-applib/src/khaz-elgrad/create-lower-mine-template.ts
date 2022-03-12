@@ -12,7 +12,7 @@ import {
   Wounds,
 } from '@rad/rl-ecs';
 import { CaveLevelTemplate, CavePlacer, Pos2d } from '@rad/rl-procgen';
-import { popRandomElement, randomInt, ValueMap } from '@rad/rl-utils';
+import { popRandomElement, randomElement, randomInt, ValueMap } from '@rad/rl-utils';
 import {
   createBlackOreNDAComponent,
   createBlackVolcanicNDAComponent,
@@ -21,6 +21,7 @@ import {
 import { EntityId, EntityManager } from 'rad-ecs';
 import { createGameEntity, createIronOre, randomChoice, weakAllItems } from '..';
 import { createBeetle, createGnat, createSnail } from './agent-creators';
+import { createAlchemyBench } from './feature-creators';
 
 export function createLowerMineTemplate(
   width: number,
@@ -48,12 +49,12 @@ export function createLowerMineTemplate(
         new Physical({ size: Size.FILL }),
         ...extras
       ).id,
-    downTransitionTexture: 'Decor0-12.png',
-    upTransitionTexture: 'Decor0-12.png',
+    upTransitionTexture: 'Tile-12.png',
+    downTransitionTexture: 'Tile-13.png',
     enemyChance: 0.18,
     initialEnemyCount: 7,
     maxEnemyCount: 20,
-    initialItemRange: { min: 6, max: 11 },
+    initialItemRange: { min: 2, max: 3 },
     enemyGenerator: (pos) => {
       const chosen = randomChoice([
         { weight: 1, choice: createBeetle(playerId) },
@@ -67,6 +68,12 @@ export function createLowerMineTemplate(
       return createGameEntity(em, choice, pos);
     },
     placers: [
+      new CavePlacer((em, depth, { takenMap, openList, fillWallList }) => {
+        if (Math.random() <= 0.5) {
+          const pos = randomElement(openList);
+          createGameEntity(em, createAlchemyBench(em), new GridPos({ ...pos, z: depth }));
+        }
+      }),
       new CavePlacer((em, depth, { takenMap, openList, fillWallList }) => {
         const oreCount = randomInt(5, 10);
         for (let i = 0; i < oreCount; ++i) {
@@ -106,7 +113,6 @@ export function createLowerMineTemplate(
           buckets[distance].push(pos);
           maxDistance = Math.max(maxDistance, distance);
         }
-        console.log(`bucket count: ${Object.entries(buckets).length}`);
         let skip = 0;
         for (let [, candidates] of Object.entries(buckets)) {
           ++skip;

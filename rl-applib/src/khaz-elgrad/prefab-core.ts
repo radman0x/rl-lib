@@ -126,13 +126,6 @@ export function weakAllItems() {
     { weight: 0.3, choice: createFlameGrenade() },
     { weight: 0.2, choice: createHealingSalvey() },
     { weight: 0.3, choice: createStunGrenade() },
-    { weight: 0.2, choice: { entity: createLightArmor() } },
-    { weight: 0.05, choice: { entity: createHeavyArmor() } },
-    { weight: 0.01, choice: { entity: createPlateArmor() } },
-    { weight: 0.3, choice: { entity: createRustySword() } },
-    { weight: 0.1, choice: { entity: createShortSword() } },
-    { weight: 0.01, choice: { entity: createLongSword() } },
-    { weight: 0.01, choice: { entity: createHalberd() } },
   ];
   return ALL_ITEMS;
 }
@@ -148,13 +141,6 @@ export function moderateAllItems() {
     { weight: 0.4, choice: createFlameGrenade() },
     { weight: 0.3, choice: createHealingSalvey() },
     { weight: 0.4, choice: createStunGrenade() },
-    { weight: 0.15, choice: { entity: createLightArmor() } },
-    { weight: 0.1, choice: { entity: createHeavyArmor() } },
-    { weight: 0.07, choice: { entity: createPlateArmor() } },
-    { weight: 0.1, choice: { entity: createRustySword() } },
-    { weight: 0.25, choice: { entity: createShortSword() } },
-    { weight: 0.07, choice: { entity: createLongSword() } },
-    { weight: 0.07, choice: { entity: createHalberd() } },
   ];
   return ALL_ITEMS;
 }
@@ -170,13 +156,6 @@ export function strongAllItems() {
     { weight: 0.45, choice: createFlameGrenade() },
     { weight: 0.35, choice: createHealingSalvey() },
     { weight: 0.45, choice: createStunGrenade() },
-    { weight: 0.1, choice: { entity: createLightArmor() } },
-    { weight: 0.15, choice: { entity: createHeavyArmor() } },
-    { weight: 0.15, choice: { entity: createPlateArmor() } },
-    { weight: 0.1, choice: { entity: createRustySword() } },
-    { weight: 0.35, choice: { entity: createShortSword() } },
-    { weight: 0.15, choice: { entity: createLongSword() } },
-    { weight: 0.15, choice: { entity: createHalberd() } },
   ];
   return ALL_ITEMS;
 }

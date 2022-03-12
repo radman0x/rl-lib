@@ -24,13 +24,16 @@ import { SingleTarget } from 'libs/rl-ecs/src/lib/components/single-target.model
 import { SpawnEntity } from 'libs/rl-ecs/src/lib/components/spawn-entity';
 import { EntityManager } from 'rad-ecs';
 import {
+  createFlameGrenadeRecipe,
   createHalberdRecipe,
+  createHealingSalveRecipe,
   createHeavyArmorRecipe,
   createLightArmorRecipe,
   createLongSwordRecipe,
   createPlateArmorRecipe,
   createRustySwordRecipe,
   createShortSwordRecipe,
+  createStunGrenadeRecipe,
   createTwoHandedSwordRecipe,
   EntityParts,
 } from '..';
@@ -53,6 +56,45 @@ export function createDoubleWallLight(): EntityParts {
       new Physical({ size: Size.SMALL }),
       new Fixed({}),
       new LightSource({ strength: [255, 255, 255] }),
+    ],
+  };
+}
+
+export function createWeaponBench(em: EntityManager): EntityParts {
+  return {
+    entity: [
+      new Renderable({ image: 'Decor0-50.png', zOrder: 1 }),
+      new Physical({ size: Size.MEDIUM }),
+      new Fixed({}),
+      new Anvil(),
+      new Description({ short: 'weapon station' }),
+    ],
+    effects: [
+      createRustySwordRecipe(em),
+      createShortSwordRecipe(em),
+      createLongSwordRecipe(em),
+      createTwoHandedSwordRecipe(em),
+      createHalberdRecipe(em),
+      createLightArmorRecipe(em),
+      createHeavyArmorRecipe(em),
+      createPlateArmorRecipe(em),
+    ],
+  };
+}
+
+export function createAlchemyBench(em: EntityManager): EntityParts {
+  return {
+    entity: [
+      new Renderable({ image: 'Decor0-53.png', zOrder: 1 }),
+      new Physical({ size: Size.MEDIUM }),
+      new Fixed({}),
+      new Anvil(),
+      new Description({ short: 'alchemy station' }),
+    ],
+    effects: [
+      createStunGrenadeRecipe(em),
+      createFlameGrenadeRecipe(em),
+      createHealingSalveRecipe(em),
     ],
   };
 }

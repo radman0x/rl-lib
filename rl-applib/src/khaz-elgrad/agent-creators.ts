@@ -221,7 +221,7 @@ export function createGhoul(playerId: EntityId): EntityParts {
     items: [],
   };
 
-  if (Math.random() <= 0.3) {
+  if (Math.random() <= 0.1) {
     ghoul.items.push(randomItem);
   }
 
@@ -247,7 +247,7 @@ export function createGremlin(playerId: EntityId): EntityParts {
     ],
     items: [],
   };
-  if (Math.random() <= 0.4) {
+  if (Math.random() <= 0.1) {
     gremlin.items.push(randomItem);
   }
   return gremlin;
@@ -273,7 +273,7 @@ export function createDeformed(playerId: EntityId): EntityParts {
     ],
     items: [],
   };
-  if (Math.random() <= 0.25) {
+  if (Math.random() <= 0.05) {
     deformed.items.push(randomItem);
   }
   return deformed;
@@ -284,13 +284,13 @@ export function createOrc(playerId: EntityId): EntityParts {
   const orc = {
     entity: [
       ...createBaseAgent(playerId, 'orc', 'hit', {
-        attackDamage: 1,
+        attackDamage: 2,
         sightRange: 10,
         strength: 5,
         toughness: 4,
         weaponSkill: 5,
         defenseSkill: 3,
-        wounds: 1,
+        wounds: 2,
       }),
       new Renderable({ image: 'Humanoid0-27.png', image2: 'Humanoid1-27.png', zOrder: 10 }),
       new RandomMove({ chance: 0.1, scoreAdjust: 0.5 }),
@@ -298,7 +298,7 @@ export function createOrc(playerId: EntityId): EntityParts {
     ],
     items: [],
   };
-  if (Math.random() <= 0.25) {
+  if (Math.random() <= 0.15) {
     orc.items.push(randomItem);
   }
   return orc;
@@ -314,8 +314,8 @@ export function createTroll(playerId: EntityId): EntityParts {
         strength: 6,
         toughness: 5,
         weaponSkill: 5,
-        defenseSkill: 4,
-        wounds: 7,
+        defenseSkill: 5,
+        wounds: 9,
       }),
       new Renderable({ image: 'Undead0-7.png', image2: 'Undead1-7.png', zOrder: 10 }),
       new RandomMove({ chance: 0.1, scoreAdjust: 0.5 }),
@@ -324,7 +324,7 @@ export function createTroll(playerId: EntityId): EntityParts {
     ],
     items: [],
   };
-  if (Math.random() <= 0.25) {
+  if (Math.random() <= 0.6) {
     troll.items.push(randomItem);
   }
   return troll;

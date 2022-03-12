@@ -118,7 +118,7 @@ export function createFlameGrenadeRecipe(em: EntityManager): EntityParts {
 
 export function createStunGrenadeRecipe(em: EntityManager): EntityParts {
   const grenade = createGameEntity(em, createStunGrenade());
-  const image = 'Potion-2.png';
+  const image = 'Potion-7.png';
   return {
     entity: [
       new Animation({ name: 'explosionV003effect', speed: 0.08, scale: 0.17 }),

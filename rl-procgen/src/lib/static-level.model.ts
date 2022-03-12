@@ -28,6 +28,7 @@ import {
 } from 'libs/rl-applib/src/khaz-elgrad/agent-creators';
 import {
   BrownChairType,
+  createAlchemyBench,
   createBarSection,
   createBedRoll,
   createBrownChair,
@@ -40,6 +41,7 @@ import {
   createRoundTable,
   createSingleWallLight,
   createStrongholdAnvil,
+  createWeaponBench,
 } from 'libs/rl-applib/src/khaz-elgrad/feature-creators';
 import { staircasePrefab } from 'libs/rl-ecs/src/lib/component-utils.model';
 import { Fixed } from 'libs/rl-ecs/src/lib/components/fixed.model';

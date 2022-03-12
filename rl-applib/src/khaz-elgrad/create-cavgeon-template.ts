@@ -11,7 +11,7 @@ import {
   Wounds,
 } from '@rad/rl-ecs';
 import { CavgeonLevelTemplate, CavgeonPlacer, DungeonLevelTemplate, Pos2d } from '@rad/rl-procgen';
-import { ValueMap, popRandomElement, randomInt } from '@rad/rl-utils';
+import { ValueMap, popRandomElement, randomInt, randomElement } from '@rad/rl-utils';
 import {
   createBlackOreNDAComponent,
   createBrightOreNDAComponent,
@@ -42,6 +42,7 @@ import {
   createDeformed,
   createOrc,
 } from './agent-creators';
+import { createAlchemyBench, createWeaponBench } from './feature-creators';
 
 export function createCavgeonTemplate(
   width: number,
@@ -113,16 +114,16 @@ export function createCavgeonTemplate(
     enemyChance: 0.24,
     initialEnemyCount: 10,
     maxEnemyCount: 32,
-    initialItemRange: { min: 4, max: 8 },
+    initialItemRange: { min: 2, max: 3 },
     enemyGenerator: (pos) => {
       const chosen = randomChoice([
         { weight: 0.5, choice: createBeetle(playerId) },
         { weight: 0.5, choice: createSnail(playerId) },
         { weight: 0.5, choice: createGnat(playerId) },
-        { weight: 1, choice: createGhoul(playerId) },
-        { weight: 1, choice: createDeformed(playerId) },
-        { weight: 1, choice: createGremlin(playerId) },
-        { weight: 0.25, choice: createOrc(playerId) },
+        { weight: 1.25, choice: createGhoul(playerId) },
+        { weight: 1.25, choice: createDeformed(playerId) },
+        { weight: 1.25, choice: createGremlin(playerId) },
+        { weight: 0.75, choice: createOrc(playerId) },
       ]);
       return createGameEntity(em, chosen, pos);
     },
@@ -186,6 +187,18 @@ export function createCavgeonTemplate(
             },
             new GridPos({ ...pos, z: depth })
           );
+        }
+      }),
+      new CavgeonPlacer((em, depth, { takenMap, openList, fillWallList }) => {
+        if (Math.random() <= 0.6) {
+          const pos = randomElement(openList);
+          createGameEntity(em, createWeaponBench(em), new GridPos({ ...pos, z: depth }));
+        }
+      }),
+      new CavgeonPlacer((em, depth, { takenMap, openList, fillWallList }) => {
+        if (Math.random() <= 0.45) {
+          const pos = randomElement(openList);
+          createGameEntity(em, createAlchemyBench(em), new GridPos({ ...pos, z: depth }));
         }
       }),
       new CavgeonPlacer((em, depth, { takenMap, openList }) => {
