@@ -147,7 +147,7 @@ export function createGnat(playerId: EntityId): EntityParts {
   const fleshySack = createFleshySack();
   const gnat = {
     entity: [
-      ...createBaseAgent(playerId, 'gnat', 'stings', {
+      ...createBaseAgent(playerId, 'gnat', 'sting', {
         attackDamage: 1,
         sightRange: 6,
         strength: 3,
