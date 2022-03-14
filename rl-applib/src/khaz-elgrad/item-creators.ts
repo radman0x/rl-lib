@@ -281,7 +281,7 @@ export function createStunGrenade(): EntityParts {
           new Usable({ useName: 'hurl' }),
           new EnergyCost({ amount: 1 }),
           new Description({ short: 'produces a white concussive flash' }),
-          new Bang({ strength: 8 }),
+          new Bang({ strength: 6 }),
         ],
       },
     ],
@@ -313,7 +313,7 @@ export function createStunWand(): EntityParts {
           new Usable({ useName: 'zap' }),
           new EnergyCost({ amount: 1 }),
           new Description({ short: 'produces a white concussive flash' }),
-          new Bang({ strength: 8 }),
+          new Bang({ strength: 4 }),
         ],
       },
     ],
@@ -384,7 +384,7 @@ export function createFlameGrenade(): EntityParts {
   };
 }
 
-export function createMithrilCrank(em: EntityManager): EntityParts {
+export function createMithrilCrank(): EntityParts {
   return {
     entity: [
       new Leverage({ power: 10 }),

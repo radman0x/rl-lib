@@ -72,10 +72,10 @@ export class TrollLevelTemplate extends LevelBase implements TrollTemplate {
   ) {
     const textualMap = `
 ####M#M#M###
-#........  #
+#..T.....  #
 #.....T..  #
 #.  .......i
-#.  .@.....#
+#.  .......#
 i..........#
 #..........#
 #.....  ...i

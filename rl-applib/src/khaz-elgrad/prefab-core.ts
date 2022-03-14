@@ -36,6 +36,7 @@ import {
   createIronOre,
   createLightArmor,
   createLongSword,
+  createPickAxe,
   createPlateArmor,
   createRichIronOre,
   createRustySword,
@@ -117,6 +118,7 @@ export function randomChoice<T>(choices: Choices<T>) {
 
 export function weakAllItems() {
   const ALL_ITEMS: Choices<EntityParts> = [
+    { weight: 0.1, choice: createPickAxe() },
     { weight: 0.1, choice: createBrightOre() },
     { weight: 0.3, choice: createRichIronOre() },
     { weight: 0.7, choice: createIronOre() },
@@ -132,6 +134,7 @@ export function weakAllItems() {
 
 export function moderateAllItems() {
   const ALL_ITEMS: Choices<EntityParts> = [
+    { weight: 0.1, choice: createPickAxe() },
     { weight: 0.2, choice: createBrightOre() },
     { weight: 0.2, choice: createRichIronOre() },
     { weight: 0.4, choice: createIronOre() },
@@ -147,6 +150,7 @@ export function moderateAllItems() {
 
 export function strongAllItems() {
   const ALL_ITEMS: Choices<EntityParts> = [
+    { weight: 0.1, choice: createPickAxe() },
     { weight: 0.3, choice: createBrightOre() },
     { weight: 0.4, choice: createRichIronOre() },
     { weight: 0.1, choice: createIronOre() },
